@@ -1,0 +1,44 @@
+---
+title: "Improving forecasts with clustering and meta data"
+author:
+- familyname: Ashouri
+  othernames: Mahsa
+  address: Institute of Service Science, National Tsing Hua University, Taiwan
+  email: mahsa.ashouri@iss.nthu.edu.tw
+  correspondingauthor: true
+- familyname: Hyndman
+  othernames: Rob J
+  address: Monash University, Clayton VIC 3800, Australia
+  email: rob.hyndman@monash.edu
+abstract: "A brief summary of our ideas"
+keywords: "blah, blah"
+wpnumber: no/yr
+jelcodes: C10,C14,C22
+blind: false
+cover: false
+toc: false
+bibliography: references.bib
+biblio-style: authoryear-comp
+output:
+  MonashEBSTemplates::workingpaper:
+    fig_caption: yes
+    fig_height: 5
+    fig_width: 8
+    includes:
+      in_header: preamble.tex
+    keep_tex: yes
+    number_sections: yes
+    citation_package: biblatex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, cache=TRUE, messages=FALSE, warning=FALSE)
+# Make sure you have the latest version of rmarkdown and bookdown
+#devtools::install_github("rstudio/rmarkdown")
+#devtools::install_github("rstudio/bookdown")
+library(ggplot2)
+```
+
+
+# Introduction
+
