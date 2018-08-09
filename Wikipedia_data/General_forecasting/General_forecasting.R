@@ -1,5 +1,5 @@
 setwd(
-  "G:/My Drive/A New Tree based Method for Clustering Time Series/Forecasting paper_Rob/hierarchical-clustering-forecasting/Wikipedia_data/General_forecasting"
+  "G:/My Drive/A New Tree based Method for Clustering Time Series/Forecasting paper_Rob/hierarchical-clustering-forecasting/Wikipedia_data/General_forecasting/Input_Data"
 )
 lapply(
   c(
@@ -27,220 +27,8 @@ set.seed(123)
 #### Reading data
 wikipedia_data <-
   read.csv("wikipedia_data.csv", header = TRUE)#### remove "-" from mobile-app and mobile-web&cleaning categories
-##############################
-#### Hierarchical Method +ARIMA
-##############################
+#######creating cat_column in main dataset to use in all methods
 
-################
-##Data reshaping
-###############
-## Long to wide
-wikipedia_choose <- cbind.data.frame(
-  views = wikipedia_data$views,
-  category = wikipedia_data$cat_column,
-  split = wikipedia_data$Split,
-  date = wikipedia_data$date
-)
-
-wikipedia_long <-
-  as.data.frame(matrix(wikipedia_choose$views, nrow = 394, ncol = 913))
-##############
-names <- as.vector(unique(wikipedia_choose$category))
-names(wikipedia_long) <- c(names)
-##################
-## using heirachies and groupings
-##################
-#test_reshape_hts <- test_reshape[, -c(1, 2)]
-name_length <- str_length(names)
-grouping_hts <- rbind(
-  #agent
-  str_sub(names, start = name_length - 8, end = name_length - 7),
-  #access
-  str_sub(names, start = name_length - 15, end = name_length - 9),
-  #language
-  str_sub(names, start = name_length - 6, end = name_length - 5),
-  #purpose
-  str_sub(names, start = name_length - 4, end = name_length - 2)
-)
-total_wikipedia <-
-  ts(wikipedia_long,
-     frequency = 7,
-     start = c(1, 1),
-     c(1, 394))
-#training_wikipedia <-
-# window(total_wikipedia,
-#  start = c(1, 1),
-# end = c(1, 366))
-validation_wikipedia <-
-  window(total_wikipedia,
-         start = c(1, 367),
-         end = c(1, 394))
-#g_wikipedia_hts <- gts(training_wikipedia, groups = grouping_hts)
-
-error_forecast_hierarchy <- function(total_wikipedia) {
-  k <-
-    28 #### number of points that we want to forecast finally (rolling)
-  n <- nrow(total_wikipedia)
-  result <- list()
-  error <- list()
-  total_forecast <- list()
-  for (i in 1:k) {
-    ### training set
-    training_wikipedia  <-
-      window(total_wikipedia,
-             start = c(1, 1),
-             end = c(1, (n - k) + (i - 1)))
-    ### validation set
-    validation_wikipedia <-
-      window(total_wikipedia,
-             start = c(1, (n - k) + i),
-             end = c(1, (n - k) + i))
-    g_wikipedia_hts <-
-      gts(training_wikipedia, groups = grouping_hts)
-    ### running the forecast
-    fore_g_wikipedia_hts <-
-      forecast.gts(
-        g_wikipedia_hts,
-        fmethod = "arima",
-        h = 1,
-        method = "comb",
-        weights = "sd"
-      )
-    total_forecast[[length(total_forecast) + 1]] = fore_g_wikipedia_hts
-    result[[length(result) + 1]] = as.data.frame(fore_g_wikipedia_hts$bts)
-  }
-  return(list(result, total_forecast))
-}
-
-start.time <- Sys.time()
-final_result_hierarchy <-
-  error_forecast_hierarchy(total_wikipedia)#### arima: Time difference of 11.03499 hours
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-time.taken
-
-### saving hierarchy forecast and error results
-forecast_result_hierarchy <-
-  do.call("rbind", final_result_hierarchy[[1]])
-write.csv(forecast_result_hierarchy, "forecast_result_hierarchy.csv")
-error_result_hierarchy <-
-  as.data.frame(validation_wikipedia) - forecast_result_hierarchy
-write.csv(error_result_hierarchy, "error_result_hierarchy.csv")
-
-
-##############################
-#### Hierarchical Method +ETS
-##############################
-
-#### Reading data
-wikipedia_data <-
-  read.csv("wikipedia_data.csv", header = TRUE)#### remove "-" from mobile-app and mobile-web&cleaning categories
-################
-##Data reshaping
-###############
-## Long to wide
-wikipedia_choose <- cbind.data.frame(
-  views = wikipedia_data$views,
-  category = wikipedia_data$cat_column,
-  split = wikipedia_data$Split,
-  date = wikipedia_data$date
-)
-
-wikipedia_long <-
-  as.data.frame(matrix(wikipedia_choose$views, nrow = 394, ncol = 913))
-##############
-names <- as.vector(unique(wikipedia_choose$category))
-names(wikipedia_long) <- c(names)
-##################
-## using heirachies and groupings
-##################
-#test_reshape_hts <- test_reshape[, -c(1, 2)]
-name_length <- str_length(names)
-grouping_hts <- rbind(
-  #agent
-  str_sub(names, start = name_length - 8, end = name_length - 7),
-  #access
-  str_sub(names, start = name_length - 15, end = name_length - 9),
-  #language
-  str_sub(names, start = name_length - 6, end = name_length - 5),
-  #purpose
-  str_sub(names, start = name_length - 4, end = name_length - 2)
-)
-total_wikipedia <-
-  ts(wikipedia_long,
-     frequency = 7,
-     start = c(1, 1),
-     c(1, 394))
-#training_wikipedia <-
-# window(total_wikipedia,
-#  start = c(1, 1),
-# end = c(1, 366))
-validation_wikipedia <-
-  window(total_wikipedia,
-         start = c(1, 367),
-         end = c(1, 394))
-#g_wikipedia_hts <- gts(training_wikipedia, groups = grouping_hts)
-
-error_forecast_hierarchy_ets <- function(total_wikipedia) {
-  k <-
-    28 #### number of points that we want to forecast finally (rolling)
-  n <- nrow(total_wikipedia)
-  result <- list()
-  error <- list()
-  total_forecast <- list()
-  for (i in 1:k) {
-    ### training set
-    training_wikipedia  <-
-      window(total_wikipedia,
-             start = c(1, 1),
-             end = c(1, (n - k) + (i - 1)))
-    ### validation set
-    validation_wikipedia <-
-      window(total_wikipedia,
-             start = c(1, (n - k) + i),
-             end = c(1, (n - k) + i))
-    g_wikipedia_hts <-
-      gts(training_wikipedia, groups = grouping_hts)
-    ### running the forecast
-    fore_g_wikipedia_hts <-
-      forecast.gts(
-        g_wikipedia_hts,
-        fmethod = "ets",
-        h = 1,
-        method = "comb",
-        weights = "sd"
-      )
-    total_forecast[[length(total_forecast) + 1]] = fore_g_wikipedia_hts
-    result[[length(result) + 1]] = as.data.frame(fore_g_wikipedia_hts$bts)
-    #result[i,] <- as.data.frame(fore_g_wikipedia_hts$bts)
-    
-  }
-  return(list(result, total_forecast))
-}
-
-start.time <- Sys.time()
-final_result_hierarchy_ets <-
-  error_forecast_hierarchy_ets(total_wikipedia)#### ets: Time difference of 3.580751 hours
-
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-time.taken
-
-### saving hierarchy forecast and error results
-forecast_result_hierarchy_ets <-
-  do.call("rbind", final_result_hierarchy_ets[[1]])
-write.csv(forecast_result_hierarchy_ets,
-          "forecast_result_hierarchy_ets.csv")
-error_result_hierarchy_ets <-
-  as.data.frame(validation_wikipedia) - forecast_result_hierarchy_ets
-write.csv(error_result_hierarchy_ets,
-          "error_result_hierarchy_ets.csv")
-
-#########################
-#### Using multiple linear models
-#########################
-#wikipedia_data <-
-#read.csv("all_clusters.csv", header = TRUE)#### remove "-" from mobile-app and mobile-web&cleaning categories
 #cat_unique <- as.vector(unique(wikipedia_data$category))
 ### spliting name strings
 #cat_unique_split <- strsplit(cat_unique, "-")
@@ -258,34 +46,122 @@ write.csv(error_result_hierarchy_ets,
 ## adding a category column to the dataset same as hierarchy method series lables
 #cat_column<-rep(names,each=394)
 #wikipedia_data$cat_column<-cat_column
-#write.csv(wikipedia_data,"wikipedia_data.csv")
+##############################
+#### Hierarchical Method +ARIMA and ETS
+##############################
+##Data reshaping
+wikipedia_wide <-
+  as.data.frame(matrix(wikipedia_data$views, nrow = 394, ncol = 913)) #394: length of each series and 913: number of series
+##############
+names <- as.vector(unique(wikipedia_data$cat_column))
+names(wikipedia_wide) <- c(names)
+##################
+## using heirachies and groupings
+##################
+#test_reshape_hts <- test_reshape[, -c(1, 2)]
+name_length <- str_length(names)
+grouping_hts <- rbind(
+  #agent
+  str_sub(names, start = name_length - 8, end = name_length - 7),
+  #access
+  str_sub(names, start = name_length - 15, end = name_length - 9),
+  #language
+  str_sub(names, start = name_length - 6, end = name_length - 5),
+  #purpose
+  str_sub(names, start = name_length - 4, end = name_length - 2)
+)
+total_wikipedia <-
+  ts(wikipedia_wide,
+     frequency = 7,
+     start = c(1, 1),
+     c(1, 394))
+validation_wikipedia <-
+  window(total_wikipedia,
+         start = c(1, 367),
+         end = c(1, 394))
+error_forecast_hierarchy <- function(total_wikipedia) {
+  k <-
+    28 #### rolling window width
+  n <- nrow(total_wikipedia)
+  forecast_arima <- list()
+  forecast_ets <- list()
+  for (i in 1:k) {
+    ### training set
+    training_wikipedia  <-
+      window(total_wikipedia,
+             start = c(1, 1),
+             end = c(1, (n - k) + (i - 1)))
+    ### validation set
+    validation_wikipedia <-
+      window(total_wikipedia,
+             start = c(1, (n - k) + i),
+             end = c(1, (n - k) + i))
+    g_wikipedia_hts <-
+      gts(training_wikipedia, groups = grouping_hts)
+    ### running the forecast
+    fore_hts_arima <-
+      forecast.gts(
+        g_wikipedia_hts,
+        fmethod = "arima",
+        h = 1,
+        method = "comb",
+        weights = "sd"
+      )
+    fore_hts_ets <-
+      forecast.gts(
+        g_wikipedia_hts,
+        fmethod = "ets",
+        h = 1,
+        method = "comb",
+        weights = "sd"
+      )
+    forecast_arima[[length(forecast_arima) + 1]] = as.data.frame(fore_hts_arima$bts)
+    forecast_ets[[length(forecast_ets) + 1]] = as.data.frame(fore_hts_ets$bts)
+  }
+  return(list(forecast_arima, forecast_ets))
+}
+start.time <- Sys.time()
+final_result_hierarchy <-
+  error_forecast_hierarchy(total_wikipedia)#### arima: Time difference of 11.03499 hours
+#### ets: Time difference of 3.580751 hours
+end.time <- Sys.time()
+end.time - start.time
+### saving hierarchy forecast and error results
+forecast_hierarchy_arima <-
+  do.call("rbind", final_result_hierarchy[[1]])
+write.csv(forecast_hierarchy_arima, "forecast_hierarchy_arima.csv")
+error_hierarchy_arima <-
+  as.data.frame(validation_wikipedia) - forecast_hierarchy_arima
+write.csv(error_hierarchy_arima, "error_hierarchy_arima.csv")
+forecast_hierarchy_ets <-
+  do.call("rbind", final_result_hierarchy[[2]])
+write.csv(forecast_hierarchy_ets, "forecast_hierarchy_ets.csv")
+error_hierarchy_ets <-
+  as.data.frame(validation_wikipedia) - forecast_hierarchy_ets
+write.csv(error_hierarchy_ets, "error_hierarchy_ets.csv")
+#########################
+#### Using multiple linear models
+#########################
 wikipedia_data <- read.csv("wikipedia_data.csv", header = TRUE)
-###
 category_uni <- (unique(wikipedia_data$cat_column))
 lag_making <- list()
 for (i in seq_along(category_uni))
   lag_making[[i]] <-
   Lag(wikipedia_data$views[wikipedia_data$cat_column == category_uni[i]], 1:7)
-
 lag_making <- do.call(rbind, lag_making)
-#### sorting dataset based on the category column since lagged columns are base on sorted data
-wikipedia_data <- wikipedia_data[order(wikipedia_data$cat_column),]
-### final data with error lags
+### dataset with lags
 wikipedia_data <- cbind(wikipedia_data, lag_making)
 wikipedia_data <- na.omit(wikipedia_data)
 List_1 = split(wikipedia_data, wikipedia_data$cat_column)
-
-########## running Single_step
-##### function to do rolling cross-validation for one series and use lapply to repeat it for all series
 error_forecast_multiple_OLS <- function(df) {
   k <-
-    28 #### number of points that we want to forecast finally (rolling)
+    28 #### rolling-window width
   result <- list()
   error <- list()
   for (i in 1:k) {
     n <- nrow(df)
-    df.train <- df[1:((n - k) + (i - 1)), ]
-    df.valid <- df[(n - k) + i, ]
+    df.train <- df[1:((n - k) + (i - 1)),]
+    df.valid <- df[(n - k) + i,]
     multiple_OLS_model <-
       lm(views ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4 + Lag.5 + Lag.6 + Lag.7,
          data = df.train)
@@ -295,20 +171,15 @@ error_forecast_multiple_OLS <- function(df) {
       as.vector((df.valid$views - fore_multiple_OLS))
     result[[length(result) + 1]] = as.data.frame(fore_multiple_OLS)
     error[[length(error) + 1]] = as.data.frame(error_multiple_OLS)
-    
   }
   return(list(result, error))
 }
-
 start.time <- Sys.time()
 final_result_multiple_OLS <-
   lapply(List_1, error_forecast_multiple_OLS)### Time difference of 1.308091 mins
 end.time <- Sys.time()
-time.taken <- end.time - start.time
-time.taken
-
+end.time - start.time
 ### saving multiple-OLS forecast and error results
-
 ##### forecast results
 List_forecast <- list()
 for (i in 1:913) {
@@ -321,11 +192,10 @@ names(forecast_result_multiple_OLS) <- NULL
 ### each series in one column
 forecast_result_multiple_OLS <- t(forecast_result_multiple_OLS)
 h <- t(as.data.frame(names(final_result_multiple_OLS)))
-forecast_result_multiple_OLS <- rbind(h, forecast_result_multiple_OLS)
-### saving result
+forecast_result_multiple_OLS <-
+  rbind(h, forecast_result_multiple_OLS)
 write.csv(forecast_result_multiple_OLS,
           "forecast_result_multiple_OLS.csv")
-
 ##### error results
 List_error <- list()
 for (i in 1:913) {
@@ -339,19 +209,14 @@ names(forecast_result_multiple_OLS) <- NULL
 error_result_multiple_OLS <- t(error_result_multiple_OLS)
 h <- t(as.data.frame(names(final_result_multiple_OLS)))
 error_result_multiple_OLS <- rbind(h, error_result_multiple_OLS)
-### saving result
 write.csv(error_result_multiple_OLS, "error_result_multiple_OLS.csv")
-
 #########################
 #### Using ARIMA models
 #########################
-wikipedia_data <- read.csv("wikipedia_data.csv", header = TRUE)
 #### using long data made in hierarchy approach to keep same labels
 wikipedia_long <-
   read.csv("wikipedia_long_hierarchy.csv", header = TRUE)
-
-new_matrix <-
-  wikipedia_long
+new_matrix <- wikipedia_long
 new_matrix_T <- t(as.matrix(new_matrix))
 # each rows as one list member
 List_2 <- do.call(c, apply(new_matrix_T, 1, list))
@@ -380,18 +245,13 @@ fore_error_arima <- function(df) {
       as.numeric(valid.ts) - as.numeric(pred_arima$mean)
     result[[length(result) + 1]] = as.data.frame(pred_arima$mean)
     error[[length(error) + 1]] = as.data.frame(error_arima)
-    
   }
   return(list(result, error))
 }
 start.time <- Sys.time()
 forecast_error_result_arima = lapply(List_2, fore_error_arima) ###Time difference of 15.14 hours
-
 end.time <- Sys.time()
-time.taken <- end.time - start.time
-time.taken
-
-
+end.time - start.time
 ##### forecast results
 List_forecast <- list()
 for (i in 1:913) {
@@ -405,10 +265,7 @@ names(forecast_result_arima) <- NULL
 forecast_result_multiple_OLS <- t(forecast_result_arima)
 h <- t(as.data.frame(names(forecast_error_result_arima)))
 forecast_result_arima <- rbind(h, forecast_result_arima)
-### saving result
 write.csv(forecast_result_arima, "forecast_result_arima.csv")
-
-
 ##### error results
 List_error <- list()
 for (i in 1:913) {
@@ -422,5 +279,4 @@ names(forecast_result_arima) <- NULL
 error_result_arima <- t(error_result_arima)
 h <- t(as.data.frame(names(forecast_error_result_arima)))
 error_result_arima <- rbind(h, error_result_arima)
-### saving result
 write.csv(error_result_arima, "error_result_arima.csv")
