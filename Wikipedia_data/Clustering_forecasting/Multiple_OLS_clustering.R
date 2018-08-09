@@ -40,22 +40,22 @@ forecast_error_all_clusters_multiple_OLS<-function(df){
   df <- cbind(df, lag_making)
   df <- na.omit(df)
   List_1 = split(df, df$cat_column)
-  error_forecast_multiple_OLS <- function(df) {
+  error_forecast_multiple_OLS <- function(df_3) {
     k <-
       28 #### rolling-windows width
     result <- list()
     error <- list()
     for (i in 1:k) {
-      n <- nrow(df)
-      df.train <- df[1:((n - k)+(i-1)),]
-      df.valid <- df[(n - k) + i,]
+      n <- nrow(df_3)
+      df_3.train <- df_3[1:((n - k)+(i-1)),]
+      df_3.valid <- df_3[(n - k) + i,]
       multiple_OLS_model <-
         lm(views ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4 + Lag.5 + Lag.6 + Lag.7,
-           data = df.train)
+           data = df_3.train)
       fore_multiple_OLS <-
-        predict.glm(multiple_OLS_model, newdata = df.valid)
+        predict.lm(multiple_OLS_model, newdata = df_3.valid)
       error_multiple_OLS <-
-        as.vector((df.valid$views - fore_multiple_OLS))
+        as.vector((df_3.valid$views - fore_multiple_OLS))
       result[[length(result) + 1]] = as.data.frame(fore_multiple_OLS)
       error[[length(error) + 1]] = as.data.frame(error_multiple_OLS)
       }
