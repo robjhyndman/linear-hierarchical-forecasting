@@ -129,16 +129,12 @@ end.time - start.time
 ### saving hierarchy forecast and error results
 forecast_hierarchy_arima <-
   do.call("rbind", final_result_hierarchy[[1]])
-write.csv(forecast_hierarchy_arima, "forecast_hierarchy_arima.csv")
 error_hierarchy_arima <-
   as.data.frame(validation_wikipedia) - forecast_hierarchy_arima
-write.csv(error_hierarchy_arima, "error_hierarchy_arima.csv")
 forecast_hierarchy_ets <-
   do.call("rbind", final_result_hierarchy[[2]])
-write.csv(forecast_hierarchy_ets, "forecast_hierarchy_ets.csv")
 error_hierarchy_ets <-
   as.data.frame(validation_wikipedia) - forecast_hierarchy_ets
-write.csv(error_hierarchy_ets, "error_hierarchy_ets.csv")
 #########################
 #### Using multiple linear models
 #########################
@@ -194,8 +190,6 @@ forecast_result_multiple_OLS <- t(forecast_result_multiple_OLS)
 h <- t(as.data.frame(names(final_result_multiple_OLS)))
 forecast_result_multiple_OLS <-
   rbind(h, forecast_result_multiple_OLS)
-write.csv(forecast_result_multiple_OLS,
-          "forecast_result_multiple_OLS.csv")
 ##### error results
 List_error <- list()
 for (i in 1:913) {
@@ -209,7 +203,6 @@ names(forecast_result_multiple_OLS) <- NULL
 error_result_multiple_OLS <- t(error_result_multiple_OLS)
 h <- t(as.data.frame(names(final_result_multiple_OLS)))
 error_result_multiple_OLS <- rbind(h, error_result_multiple_OLS)
-write.csv(error_result_multiple_OLS, "error_result_multiple_OLS.csv")
 #########################
 #### Using ARIMA models
 #########################
@@ -265,7 +258,6 @@ names(forecast_result_arima) <- NULL
 forecast_result_multiple_OLS <- t(forecast_result_arima)
 h <- t(as.data.frame(names(forecast_error_result_arima)))
 forecast_result_arima <- rbind(h, forecast_result_arima)
-write.csv(forecast_result_arima, "forecast_result_arima.csv")
 ##### error results
 List_error <- list()
 for (i in 1:913) {
@@ -279,4 +271,4 @@ names(forecast_result_arima) <- NULL
 error_result_arima <- t(error_result_arima)
 h <- t(as.data.frame(names(forecast_error_result_arima)))
 error_result_arima <- rbind(h, error_result_arima)
-write.csv(error_result_arima, "error_result_arima.csv")
+

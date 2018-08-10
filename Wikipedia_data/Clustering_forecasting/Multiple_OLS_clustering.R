@@ -94,11 +94,6 @@ forecast_multiple_OLS_cluster_1<-forecast_result_multiple_OLS[,names(forecast_re
 forecast_multiple_OLS_cluster_2<-forecast_result_multiple_OLS[,names(forecast_result_multiple_OLS) %in% (name_cluster_2)]
 forecast_multiple_OLS_cluster_3<-forecast_result_multiple_OLS[,names(forecast_result_multiple_OLS) %in% (name_cluster_3)]
 forecast_multiple_OLS_cluster_4<-forecast_result_multiple_OLS[,names(forecast_result_multiple_OLS) %in% (name_cluster_4)]
-### saving result
-write.csv(forecast_multiple_OLS_cluster_1,"forecast_result_multiple_OLS_cluster_1.csv")
-write.csv(forecast_multiple_OLS_cluster_2,"forecast_result_multiple_OLS_cluster_2.csv")
-write.csv(forecast_multiple_OLS_cluster_3,"forecast_result_multiple_OLS_cluster_3.csv")
-write.csv(forecast_multiple_OLS_cluster_4,"forecast_result_multiple_OLS_cluster_4.csv")
 ##### error results
 List_error <- list()
 for (i in 1:913) {
@@ -116,8 +111,3 @@ error_multiple_OLS_cluster_1<-error_result_multiple_OLS[,names(error_result_mult
 error_multiple_OLS_cluster_2<-error_result_multiple_OLS[,names(error_result_multiple_OLS) %in% (name_cluster_2)]
 error_multiple_OLS_cluster_3<-error_result_multiple_OLS[,names(error_result_multiple_OLS) %in% (name_cluster_3)]
 error_multiple_OLS_cluster_4<-error_result_multiple_OLS[,names(error_result_multiple_OLS) %in% (name_cluster_4)]
-### saving result
-write.csv(error_multiple_OLS_cluster_1,"error_result_multiple_OLS_cluster_1.csv")
-write.csv(error_multiple_OLS_cluster_2,"error_result_multiple_OLS_cluster_2.csv")
-write.csv(error_multiple_OLS_cluster_3,"error_result_multiple_OLS_cluster_3.csv")
-write.csv(error_multiple_OLS_cluster_4,"error_result_multiple_OLS_cluster_4.csv")

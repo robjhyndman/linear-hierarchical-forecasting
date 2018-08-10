@@ -1,3 +1,6 @@
+
+### NEED TO BE FIXED
+
 setwd(
   "G:/My Drive/A New Tree based Method for Clustering Time Series/Forecasting paper_Rob/hierarchical-clustering-forecasting/Wikipedia_data/Clustering_forecasting/Input_Data"
 )
@@ -95,6 +98,6 @@ forecast_hierarchy_cluster_1_2 <- function(df) {
 }
 
 final_hierarchy_arima_ets <-
-  apply(cluster_1_2, forecast_hierarchy_cluster_1_2)
+  lapply(cluster_1_2, forecast_hierarchy_cluster_1_2)
 #### arima:Time difference of 1.314881 hours
 #### ets: Time difference of 49.89878 mins
