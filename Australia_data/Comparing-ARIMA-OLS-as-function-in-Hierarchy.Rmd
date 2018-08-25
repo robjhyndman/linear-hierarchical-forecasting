@@ -1,0 +1,1253 @@
+---
+title: "Comparing *arima*, *ets* and *OLS* with and without hierarchy process - *Australian Domestic Tourism*"
+author: "Mahsa Ashouri"
+date: "August 15, 2018"
+output: ioslides_presentation
+---
+<style type="text/css">
+
+body{ /* Normal  */
+      font-size: 12px;
+  }
+td {  /* Table  */
+  font-size: 8px;
+}
+h1.title {
+  font-size: 30px;
+  color: DarkRed;
+}
+h1 { /* Header 1 */
+  font-size: 28px;
+  color: DarkBlue;
+}
+h2 { /* Header 2 */
+    font-size: 22px;
+  color: DarkBlue;
+}
+h3 { /* Header 3 */
+  font-size: 18px;
+  font-family: "Times New Roman", Times, serif;
+  color: DarkBlue;
+}
+code.r{ /* Code block */
+    font-size: 12px;
+}
+pre { /* Code block - determines code spacing between lines */
+    font-size: 14px;
+}
+</style>
+
+#First case study: "Australian Domestic Tourism"
+
+## Data description: 
+* 304 quarterly time series (Length of each time series: 228 - 1998~2016)
+* Four hierarchy groups: 
+
+  a. State (4 levels - A~G)
+  b. Zone (27 levels - AA~GB)
+  c. Region (76 levels - AAA~GBD)
+  d. Purpose (4 levels - Holiday, Visiting, Business, Other)
+
+## Six methods:
+a. Forecasting hierarchical time series using **optimal combination reconciliation** with **arima** bottom level forecast
+b. Forecasting hierarchical time series using **optimal combination reconciliation** with **ets** bottom level forecast
+c. Forecasting hierarchical time series using **optimal combination reconciliation** with **OLS** bottom level forecast
+d. Forecasting time series using **arima** models
+e. Forecasting time series using **ets** models
+f. Forecasting time series using **OLS** models
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+setwd(
+  "G:/My Drive/A New Tree based Method for Clustering Time Series/Forecasting paper_Rob/hierarchical-clustering-forecasting/Australia_data"
+)
+lapply(
+  c(
+    "quantmod",
+    "ggplot2",
+    "partykit",
+    "scales",
+    "matrixStats",
+    "MASS",
+    "GGally",
+    "forecast",
+    "dplyr",
+    "plyr",
+    "reshape",
+    "reshape2",
+    "gridExtra",
+    "stringr",
+    "hts",
+    "data.table"
+  ),
+  require,
+  character.only = T
+)
+set.seed(123)
+```
+
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE,eval=FALSE}
+###################
+########hierarchy+ARIMA-hierarchy+ets
+###################
+## reading data
+TourismData <-
+  read.csv("TourismData_v3.csv", header = TRUE)
+### deleting Year and Month columns
+names<-names(TourismData[,-c(1,2)])
+name_length <- str_length(names)
+grouping_hts <- rbind(
+  #State
+  str_sub(names, start = name_length -5 , end = name_length - 5),
+  #Zone
+  str_sub(names, start = name_length -5 , end = name_length - 4),
+  #Regions
+  str_sub(names, start = name_length - 5, end = name_length - 3),
+  #purpose
+  str_sub(names, start = name_length -2 , end = name_length)
+)
+total_tourist <-
+  ts(TourismData[,-c(1,2)],
+     start = c(1, 1),
+     end=c(1, 228),frequency = 4)
+validation_tourist <-
+  window(total_tourist,
+         start = c(1, 217),
+         end = c(1, 228))
+error_forecast_hierarchy <- function(total_tourist) {
+  k <-
+    12 #### rolling window width
+  n <- nrow(total_tourist)
+   forecast_arima <- list()
+   forecast_ets <- list()
+    for (i in 1:k) {
+    ### training set
+    training_tourist  <-
+      window(total_tourist,
+             start = c(1, 1),
+             end = c(1, (n - k) + (i - 1)))
+    ### validation set
+    validation_tourist <-
+      window(total_tourist,
+             start = c(1, (n - k) + i),
+             end = c(1, (n - k) + i))
+    g_tourist_hts <-
+      gts(training_tourist, groups = grouping_hts)
+    ### running the forecast
+    fore_hts_arima <-
+      forecast.gts(
+        g_tourist_hts,
+        fmethod = "arima",
+        h = 1,
+        method = "comb",
+        weights = "sd"
+      )
+    fore_hts_ets <-
+      forecast.gts(
+        g_tourist_hts,
+        fmethod = "ets",
+        h = 1,
+        method = "comb",
+        weights = "sd"
+      )
+    forecast_arima[[length(forecast_arima) + 1]] = as.data.frame(fore_hts_arima$bts)
+    forecast_ets[[length(forecast_ets) + 1]] = as.data.frame(fore_hts_ets$bts)
+     }
+  return(list(forecast_arima,forecast_ets))
+}
+final_result_hierarchy <-
+  error_forecast_hierarchy(total_tourist)
+### saving hierarchy forecast and error results
+forecast_hierarchy_arima <-
+  do.call("rbind", final_result_hierarchy[[1]])
+write.csv(forecast_hierarchy_arima,"forecast_hierarchy_arima.csv")
+forecast_hierarchy_arima[forecast_hierarchy_arima<0]<-0
+error_hierarchy_arima <-
+  as.data.frame(validation_tourist) - forecast_hierarchy_arima
+write.csv(error_hierarchy_arima,"error_hierarchy_arima.csv")
+forecast_hierarchy_ets <-
+  do.call("rbind", final_result_hierarchy[[2]])
+write.csv(forecast_hierarchy_ets,"forecast_hierarchy_ets.csv")
+forecast_hierarchy_ets[forecast_hierarchy_ets<0]<-0
+error_hierarchy_ets <-
+  as.data.frame(validation_tourist) - forecast_hierarchy_ets
+write.csv(error_hierarchy_ets,"error_hierarchy_ets.csv")
+####################
+##### hierarchy+OLS
+###################
+## reading data
+TourismData <-
+  read.csv("Long_TourismData.csv", header = TRUE) 
+
+category_unique <- as.vector(TourismData$Category)
+TourismData$State <- substring(category_unique, 1, 1)
+TourismData$Zone <- substring(category_unique, 1, 2)
+TourismData$Regions <- substring(category_unique, 1, 3)
+TourismData$Purpose <- substring(category_unique, 4, 6)
+##validation set
+TourismData.valid.train <-
+  split.data.frame(TourismData, TourismData$Split, drop = FALSE)
+validation_set <-
+  as.data.frame(matrix(
+    TourismData.valid.train[[2]]$Value,
+    nrow = 12,
+    ncol = 304
+  ))
+names(validation_set) <-
+  unique(TourismData.valid.train[[2]]$Category)
+names <- unique(TourismData$Category)
+#### group defining
+name_length <- str_length(names)
+g <- rbind(
+  #State
+  str_sub(names, start = name_length -5 , end = name_length - 5),
+  #Zone
+  str_sub(names, start = name_length -5 , end = name_length - 4),
+  #Regions
+  str_sub(names, start = name_length - 5, end = name_length - 3),
+  #purpose
+  str_sub(names, start = name_length -2 , end = name_length)
+)
+List_1 <- split(TourismData$Value, TourismData$Category)
+m1 <- do.call("cbind", List_1)
+m <- gts(m1, groups = g)
+ally_m <- aggts(m)
+ally_m.data.frame <- as.data.frame(ally_m)
+ally_m.data.frame_reshape <-
+  melt(ally_m.data.frame, mesure.vars = 1:ncol(ally_m.data.frame))
+ally_m.data.frame_reshape$Trend <- rep(1:228)
+ally_m.data.frame_reshape$Seasonality <-rep(1:4)
+ally_m.data.frame_reshape$Split <-
+  c(rep("training", times = 216), rep("Validation", times = 12))
+TourismData_1 <- ally_m.data.frame_reshape
+names(TourismData_1) <-
+  c("cat_column", "Value", "Trend", "Seasonality", "Split")
+category_uni <- (unique(TourismData_1$cat_column))
+lag_making <- list()
+for (i in seq_along(category_uni))
+  lag_making[[i]] <-
+  Lag(TourismData_1$Value[TourismData_1$cat_column == category_uni[i]], 1:4)
+lag_making <- do.call(rbind, lag_making)
+TourismData_1 <- cbind(TourismData_1, lag_making)
+TourismData_1 <- na.omit(TourismData_1)
+
+TourismData_1.series <-
+  split(TourismData_1, TourismData_1$cat_column)
+
+f <- list()
+fore_hierarchy_multiple_OLS <- function(df) {
+  k <- 12
+   fore_result<-matrix(NA,nrow = k,ncol=1)
+  for (i in 1:k) {
+    n <- nrow(df)
+    train.1 <- df[1:((n - k) + (i - 1)), ]
+    valid.1 <- df[(n - k) + i, ]
+    hierarchy_multiple_OLS_model <-
+      lm(Value ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4, data = train.1)
+    fore_hierarchy_multiple_OLS <-
+      predict.lm(hierarchy_multiple_OLS_model, newdata = valid.1)
+      fore_result[i,]<-fore_hierarchy_multiple_OLS
+  }
+  f[[length(f) + 1]] <- fore_result
+  return(f)
+}
+fore_hierarchy_multiple_OLS_results <-
+  lapply(TourismData_1.series, fore_hierarchy_multiple_OLS) 
+
+allf <- do.call("cbind", fore_hierarchy_multiple_OLS_results)
+allf <- as.data.frame(do.call("cbind", allf))
+names(allf)<-names(fore_hierarchy_multiple_OLS_results)
+allf <- ts(allf)
+y.f <-
+  combinef(allf,
+           groups = get_groups(m),
+           keep = "gts",
+           algorithms = "lu")
+forecast_hierarchy_OLS<-as.data.frame(y.f$bts)
+### matching two data frames order to calculate the errors
+setDT(forecast_hierarchy_OLS)
+forecast_hierarchy_OLS<-setcolorder(forecast_hierarchy_OLS, names(validation_set))
+write.csv(forecast_hierarchy_OLS,"forecast_hierarchy_OLS.csv")
+forecast_hierarchy_OLS[forecast_hierarchy_OLS<0]<-0
+error_hierarchy_OLS<-as.data.frame(validation_set)-as.data.frame(forecast_hierarchy_OLS)
+write.csv(error_hierarchy_OLS,"error_hierarchy_OLS.csv")
+```
+
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+forecast_hierarchy_arima<-read.csv("forecast_hierarchy_arima.csv",header = TRUE)
+forecast_hierarchy_arima[forecast_hierarchy_arima<0]<-0
+error_hierarchy_arima<-read.csv("error_hierarchy_arima.csv")
+forecast_hierarchy_ets<-read.csv("forecast_hierarchy_ets.csv",header = TRUE)
+forecast_hierarchy_ets[forecast_hierarchy_ets<0]<-0
+error_hierarchy_ets<-read.csv("error_hierarchy_ets.csv")
+forecast_hierarchy_OLS<-read.csv("forecast_hierarchy_OLS.csv",header = TRUE)
+forecast_hierarchy_OLS[forecast_hierarchy_OLS<0]<-0
+error_hierarchy_OLS<-read.csv("error_hierarchy_OLS.csv")
+#########################################
+#### computing RMSEs and plotting results
+########################################
+## hierarchy+arima
+mean_error_hierarchy_arima<-apply(error_hierarchy_arima,2,mean)
+RMSE_hierarchy_arima<-as.data.frame(log(sqrt((mean_error_hierarchy_arima)^2)))
+RMSE_hierarchy_arima$group<-"Hierarchy-arima"
+names(RMSE_hierarchy_arima)<-c("RMSE","Method")
+ave_RMSE_hierarchy_arima<-mean(as.vector(RMSE_hierarchy_arima$RMSE)) ##
+#hierarchy+ets
+mean_error_hierarchy_ets<-apply(error_hierarchy_ets,2,mean)
+RMSE_hierarchy_ets<-as.data.frame(log(sqrt((mean_error_hierarchy_ets)^2)))
+RMSE_hierarchy_ets$group<-"Hierarchy-ets"
+names(RMSE_hierarchy_ets)<-c("RMSE","Method")
+ave_RMSE_hierarchy_ets<-mean(as.vector(RMSE_hierarchy_ets$RMSE)) ##
+#hierarchy+OLS
+mean_error_hierarchy_OLS<-apply(error_hierarchy_OLS,2,mean) 
+RMSE_hierarchy_OLS<-as.data.frame(log(sqrt((mean_error_hierarchy_OLS)^2)))
+RMSE_hierarchy_OLS$group<-"Hierarchy-OLS"
+names(RMSE_hierarchy_OLS)<-c("RMSE","Method")
+ave_RMSE_hierarchy_OLS<-mean(as.vector(RMSE_hierarchy_OLS$RMSE)) ## 
+
+Long_RMSE_hierarchy<-rbind(RMSE_hierarchy_arima,RMSE_hierarchy_ets,RMSE_hierarchy_OLS)
+
+long_error_hierarchy_arima<-melt(error_hierarchy_arima)
+long_error_hierarchy_arima$Method<-"Hierarchy-arima"
+names(long_error_hierarchy_arima)<-c("Series","Error","Method")
+long_error_hierarchy_ets<-melt(error_hierarchy_ets)
+long_error_hierarchy_ets$Method<-"Hierarchy-ets"
+names(long_error_hierarchy_ets)<-c("Series","Error","Method")
+long_error_hierarchy_OLS<-melt(error_hierarchy_OLS)
+long_error_hierarchy_OLS$Mrthod<-"Hierarchy-OLS"
+names(long_error_hierarchy_OLS)<-c("Series","Error","Method")
+Long_Error_hierarchy<-rbind(long_error_hierarchy_arima,long_error_hierarchy_ets,long_error_hierarchy_OLS)
+```
+
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE,eval=FALSE}
+## Models without hierarchy
+#########
+##arima & ets
+#########
+TourismData <-
+  read.csv("TourismData_v3.csv", header = TRUE)
+# each rows as one list member
+List <- do.call(c, apply(TourismData[,-c(1,2)], 2, list))
+#List_2 <- convertColsToList(new_matrix)
+fore_error_arima_ets <- function(df) {
+  k <-
+    12 
+  result_fore_arima <- list()
+  result_error_arima <- list()
+  result_fore_ets <- list()
+  result_error_ets <- list()
+  for (i in 1:k) {
+    n <- length(df)
+    series.ts <- 
+      ts(df,start = c(1, 1),
+         end = c(1, 228),
+         freq = 4)
+    train.ts <-
+      window(series.ts, end = c(1, (n - k) + (i - 1)))
+    valid.ts <-
+      window(series.ts,
+             start = c(1, (n - k) + i),
+             end = c(1, (n - k) + i))
+    #### forecast and error
+    fit_arima <- auto.arima(train.ts)
+    fit_ets <-ets(train.ts)
+    fore_arima <- forecast(fit_arima, h = 1)
+    fore_ets<-forecast(fit_ets,h=1)
+    result_fore_arima[[length(result_fore_arima) + 1]] = as.data.frame(fore_arima$mean)
+    result_fore_arima[result_fore_arima<0]<-0
+    result_error_arima[[length(result_error_arima) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(fore_arima$mean))
+    result_fore_ets[[length(result_fore_ets) + 1]] = as.data.frame(fore_ets$mean)
+    result_fore_ets[result_fore_ets<0]<-0
+    result_error_ets[[length(result_error_ets) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(fore_ets$mean))
+  }
+  return(list(result_fore_arima, result_error_arima,result_fore_ets,result_error_ets))
+}
+forecast_error_arima_ets = lapply(List, fore_error_arima_ets) 
+##### forecast arima
+List_forecast_arima <- list()
+for (i in 1:304) {
+  List_forecast_arima[[length(List_forecast_arima) + 1]] = ldply (forecast_error_arima_ets[[i]][1], data.frame)
+}
+fore_arima<-unlist(List_forecast_arima)
+forecast_arima<-as.data.frame(matrix(fore_arima,nrow=12,ncol=304))
+names(forecast_arima) <-as.vector(names(forecast_error_arima_ets))
+## error arima
+List_error_arima <- list()
+for (i in 1:304) {
+  List_error_arima[[length(List_error_arima) + 1]] = ldply (forecast_error_arima_ets[[i]][2], data.frame)
+}
+er_arima<-unlist(List_error_arima)
+error_arima<-as.data.frame(matrix(er_arima,nrow=12,ncol=304))
+names(error_arima) <-as.vector(names(forecast_error_arima_ets))
+##### forecast ets
+List_forecast_ets <- list()
+for (i in 1:304) {
+  List_forecast_ets[[length(List_forecast_ets) + 1]] = ldply (forecast_error_arima_ets[[i]][3], data.frame)
+}
+fore_ets<-unlist(List_forecast_ets)
+forecast_ets<-as.data.frame(matrix(fore_ets,nrow=12,ncol=304))
+names(forecast_ets) <-as.vector(names(forecast_error_arima_ets))
+## error ets
+List_error_ets <- list()
+for (i in 1:304) {
+  List_error_ets[[length(List_error_ets) + 1]] = ldply (forecast_error_arima_ets[[i]][4], data.frame)
+}
+er_ets<-unlist(List_error_ets)
+error_ets<-as.data.frame(matrix(er_ets,nrow=12,ncol=304))
+names(error_ets) <-as.vector(names(forecast_error_arima_ets))
+## saving results
+write.csv(forecast_arima,"forecast_arima.csv")
+write.csv(error_arima,"error_arima.csv")
+write.csv(forecast_ets,"forecast_ets.csv")
+write.csv(error_ets,"error_ets.csv")
+###########
+#### OLS
+#########
+TourismData <-
+  read.csv("Long_TourismData.csv", header = TRUE)
+category_uni <- as.vector(TourismData$Category)
+lag_making <- list()
+for (i in seq_along(category_uni))
+  lag_making[[i]] <-
+  Lag(TourismData$Value[TourismData$Category == category_uni[i]], 1:4)
+lag_making <- do.call(rbind, lag_making)
+### dataset with lags
+TourismData <- cbind(TourismData, lag_making)
+TourismData <- na.omit(TourismData)
+List_OLS = split.data.frame(TourismData, TourismData$Category,drop = FALSE)
+error_forecast_OLS<- function(df) {
+  k <- 12
+  fore_result<-list()
+  error_result<-list()
+  for (i in 1:k) {
+    n <- nrow(df)
+    train.1 <- df[1:((n - k) + (i - 1)), ]
+    valid.1 <- df[(n - k) + i, ]
+    multiple_OLS_model <-
+      lm(Value ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4, data = train.1)
+    fore_multiple_OLS <-
+      predict.lm(multiple_OLS_model, newdata = valid.1)
+    fore_result[[length(fore_result)+1]]<-as.numeric(fore_multiple_OLS)
+    fore_multiple_OLS[fore_multiple_OLS<0]<-0
+    error_result[[length(error_result)+1]]<-valid.1$Value-as.numeric(fore_multiple_OLS)
+  }
+  return(list(fore_result,error_result))
+}
+
+final_result_OLS <-
+  lapply(List_OLS, error_forecast_OLS)
+##### forecast results
+List_forecast_OLS <- list()
+for (i in 1:304) {
+  List_forecast_OLS[[length(List_forecast_OLS) + 1]] = ldply (final_result_OLS[[i]][1], data.frame)
+}
+fore_OLS<-unlist(List_forecast_OLS)
+forecast_OLS<-as.data.frame(matrix(fore_OLS,nrow=12,ncol=304))
+names(forecast_OLS) <-as.vector(names(final_result_OLS))
+## error 
+List_error_OLS <- list()
+for (i in 1:304) {
+  List_error_OLS[[length(List_error_OLS) + 1]] = ldply (final_result_OLS[[i]][2], data.frame)
+}
+er_OLS<-unlist(List_error_OLS)
+error_OLS<-as.data.frame(matrix(er_OLS,nrow=12,ncol=304))
+names(error_OLS) <-as.vector(names(final_result_OLS))
+## saving results
+write.csv(forecast_OLS,"forecast_OLS.csv")
+write.csv(error_OLS,"error_OLS.csv")
+```
+
+
+```{r echo=FALSE, message = FALSE, results='asis',cache=TRUE}
+forecast_arima<-read.csv("forecast_arima.csv",header = TRUE)
+forecast_arima[forecast_arima<0]<-0
+error_arima<-read.csv("error_arima.csv")
+forecast_ets<-read.csv("forecast_ets.csv",header = TRUE)
+forecast_ets[forecast_ets<0]<-0
+error_ets<-read.csv("error_ets.csv")
+forecast_OLS<-read.csv("forecast_OLS.csv",header = TRUE)
+forecast_OLS[forecast_OLS<0]<-0
+error_OLS<-read.csv("error_OLS.csv")
+
+mean_error_arima<-apply(error_arima,2,mean)
+RMSE_arima<-as.data.frame(log(sqrt((mean_error_arima)^2)))
+RMSE_arima$group<-"arima"
+names(RMSE_arima)<-c("RMSE","Method")
+ave_RMSE_arima<-mean(as.vector(RMSE_arima$RMSE)) ##
+
+mean_error_ets<-apply(error_ets,2,mean)
+RMSE_ets<-as.data.frame(log(sqrt((mean_error_ets)^2)))
+RMSE_ets$group<-"ets"
+names(RMSE_ets)<-c("RMSE","Method")
+ave_RMSE_ets<-mean(as.vector(RMSE_ets$RMSE)) ##
+
+mean_error_OLS<-apply(error_OLS,2,mean)
+RMSE_OLS<-as.data.frame(log(sqrt((mean_error_OLS)^2)))
+RMSE_OLS$group<-"OLS"
+names(RMSE_OLS)<-c("RMSE","Method")
+ave_RMSE_OLS<-mean(as.vector(RMSE_OLS$RMSE)) ##
+
+Long_RMSE_arima<-rbind(RMSE_hierarchy_arima,RMSE_arima)
+Long_RMSE_ets<-rbind(RMSE_hierarchy_ets,RMSE_ets)
+Long_RMSE_OLS<-rbind(RMSE_hierarchy_OLS,RMSE_OLS)
+Long_RMSE<-rbind(RMSE_arima,RMSE_ets,RMSE_OLS)
+Long_RMSE_all<-rbind(RMSE_arima,RMSE_hierarchy_arima,RMSE_ets,RMSE_hierarchy_ets,RMSE_OLS,RMSE_hierarchy_OLS)
+
+long_error_arima<-melt(error_arima)
+long_error_arima$Method<-"arima"
+names(long_error_arima)<-c("Series","Error","Method")
+long_error_ets<-melt(error_ets)
+long_error_ets$Method<-"ets"
+names(long_error_ets)<-c("Series","Error","Method")
+long_error_OLS<-melt(error_OLS)
+long_error_OLS$Mrthod<-"OLS"
+names(long_error_OLS)<-c("Series","Error","Method")
+
+Long_Error_arima<-rbind(long_error_hierarchy_arima,long_error_arima)
+Long_Error_ets<-rbind(long_error_hierarchy_ets,long_error_ets)
+Long_Error_OLS<-rbind(long_error_hierarchy_OLS,long_error_OLS)
+Long_Error<-rbind(long_error_arima,long_error_ets,long_error_OLS)
+Long_Error_all<-rbind(long_error_arima,long_error_hierarchy_arima,
+                      long_error_ets,long_error_hierarchy_ets,
+                      long_error_OLS,long_error_hierarchy_OLS)
+```
+
+## TourismData: Comparing all methods - with and without hierarchy - mean(log(RMSE))
+
+```{r echo=FALSE, message = FALSE, results='asis',cache=TRUE}
+library(knitr)
+library(kableExtra)
+ave_RMSE_arima<-round(ave_RMSE_arima,3)
+ave_RMSE_hierarchy_arima<-round(ave_RMSE_hierarchy_arima,3)
+ave_RMSE_ets<-round(ave_RMSE_ets,3)
+ave_RMSE_hierarchy_ets<-round(ave_RMSE_hierarchy_ets,3)
+ave_RMSE_OLS<-round(ave_RMSE_OLS,3)
+ave_RMSE_hierarchy_OLS<-round(ave_RMSE_hierarchy_OLS,3)
+table1<-matrix(NA,nrow=6,ncol=2)
+colnames(table1)<-c("Method","Mean(log(RMSE))")
+table1[,1]<-c("arima","Hierarchy-arima","ets","Hierarchy-ets","OLS","Hierarchy-OLS")
+table1[,2]<-c(ave_RMSE_arima,ave_RMSE_hierarchy_arima,
+             ave_RMSE_ets,ave_RMSE_hierarchy_ets,
+             ave_RMSE_OLS,ave_RMSE_hierarchy_OLS)
+kable(table1, align =c('c','c'),format = "pandoc") 
+```
+
+## TourismData: Comparing three hierarchy methods - log(RMSE) Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot log(RMSE)
+ggplot() +
+  geom_density(data = Long_RMSE_hierarchy, aes(x = (RMSE), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("log(RMSE)") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-10, 10)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three hierarchy methods - log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot log(RMSE)
+ggplot() +
+  geom_boxplot(data = Long_RMSE_hierarchy,
+               aes(x = Method, y = (RMSE), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three hierarchy methods - Error Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot Error
+ggplot() +
+  geom_density(data = Long_Error_hierarchy , aes(x = (Error), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("Error") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-50, 50)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three hierarchy methods - Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot Error
+ggplot() +
+  geom_boxplot(data = Long_Error_hierarchy,
+               aes(x = Method, y = (Error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three hierarchy methods - Subtracted Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+cols_hierarchy_arima_ets <- sort(intersect(names(error_hierarchy_arima), names(error_hierarchy_ets)))
+subtract_hierarchy_arima_ets<-error_hierarchy_arima[cols_hierarchy_arima_ets] - error_hierarchy_ets[cols_hierarchy_arima_ets]
+long_subtract_hierarchy_arima_ets<-melt(subtract_hierarchy_arima_ets)
+long_subtract_hierarchy_arima_ets$Method<-"Sub-Hierarchy-arima-ets"
+names(long_subtract_hierarchy_arima_ets)<-c("Series","subtracted_error","Method")
+
+cols_hierarchy_arima_OLS <- sort(intersect(names(error_hierarchy_arima), names(error_hierarchy_OLS)))
+subtract_hierarchy_arima_OLS<-error_hierarchy_arima[cols_hierarchy_arima_OLS] - error_hierarchy_OLS[cols_hierarchy_arima_OLS]
+long_subtract_hierarchy_arima_OLS<-melt(subtract_hierarchy_arima_OLS)
+long_subtract_hierarchy_arima_OLS$Method<-"Sub-Hierarchy-arima-OLS"
+names(long_subtract_hierarchy_arima_OLS)<-c("Series","subtracted_error","Method")
+
+cols_hierarchy_ets_OLS <- sort(intersect(names(error_hierarchy_ets), names(error_hierarchy_OLS)))
+subtract_hierarchy_ets_OLS<-error_hierarchy_ets[cols_hierarchy_ets_OLS] - error_hierarchy_OLS[cols_hierarchy_ets_OLS]
+long_subtract_hierarchy_ets_OLS<-melt(subtract_hierarchy_ets_OLS)
+long_subtract_hierarchy_ets_OLS$Method<-"Sub-Hierarchy-ets-OLS"
+names(long_subtract_hierarchy_ets_OLS)<-c("Series","subtracted_error","Method")
+
+Long_subtract_hierarchy_arima_ets_OLS<-rbind(long_subtract_hierarchy_arima_ets,long_subtract_hierarchy_arima_OLS,long_subtract_hierarchy_ets_OLS)
+
+ggplot() +
+  geom_boxplot(data = Long_subtract_hierarchy_arima_ets_OLS,
+               aes(x = Method, y = (subtracted_error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three hierarchy methods - Forecasted Series Plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE, fig.width=8.3, fig.height=5}
+TourismData <-read.csv("Long_TourismData.csv", header = TRUE) 
+long_TourismData<-cbind.data.frame(TourismData$Category,TourismData$Value,TourismData$Split)
+names(long_TourismData)<-c("category","Value","Method")
+m<-split.data.frame(long_TourismData,long_TourismData$Method)
+long_TourismData<-as.data.frame(m[[2]])
+long_TourismData$Time<-rep(1:12,304)
+
+long_forecast_hierarchy_arima<-melt(forecast_hierarchy_arima)
+long_forecast_hierarchy_arima$Method<-"Hierarchy_arima"
+names(long_forecast_hierarchy_arima)<-c("category","Value","Method")
+long_forecast_hierarchy_arima$Time<-rep(1:12,304)
+
+long_forecast_hierarchy_OLS<-melt(forecast_hierarchy_OLS)
+long_forecast_hierarchy_OLS$Method<-"Hierarchy_OLS"
+names(long_forecast_hierarchy_OLS)<-c("category","Value","Method")
+long_forecast_hierarchy_OLS$Time<-rep(1:12,304)
+
+long_forecast_hierarchy_ets<-melt(forecast_hierarchy_ets)
+long_forecast_hierarchy_ets$Method<-"Hierarchy_ets"
+names(long_forecast_hierarchy_ets)<-c("category","Value","Method")
+long_forecast_hierarchy_ets$Time<-rep(1:12,304)
+
+long_forecast_hierarchy<-rbind(long_TourismData,long_forecast_hierarchy_arima,long_forecast_hierarchy_ets,long_forecast_hierarchy_OLS)
+
+long_forecast_hierarchy_split<-split.data.frame(long_forecast_hierarchy,long_forecast_hierarchy$category)
+sample_series_hierarchy<-rbind.data.frame(long_forecast_hierarchy_split[[1]],long_forecast_hierarchy_split[[10]],                                       long_forecast_hierarchy_split[[50]],long_forecast_hierarchy_split[[100]],
+                  long_forecast_hierarchy_split[[200]],
+                  long_forecast_hierarchy_split[[300]])
+
+ggplot(sample_series_hierarchy, aes(x = Time, y = Value, color = Method)) + geom_line(size=1) + 
+  scale_colour_manual(values=c(validation='black', Hierarchy_arima='blue', Hierarchy_ets='green', Hierarchy_OLS='red'))+
+  facet_wrap( ~ category, ncol = 3,scales = 'free')+ 
+theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom")
+
+```
+
+## TourismData: Comparing three methods - without hierarchy - log(RMSE) Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot log(RMSE)
+ggplot() +
+  geom_density(data = Long_RMSE, aes(x = (RMSE), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("log(RMSE)") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-10, 10)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three methods - without hierarchy - log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot log(RMSE)
+ggplot() +
+  geom_boxplot(data = Long_RMSE,
+               aes(x = Method, y = (RMSE), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three methods - without hierarchy - Error Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot Error
+ggplot() +
+  geom_density(data = Long_Error, aes(x = (Error), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("Error") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-50, 50)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three methods - without hierarchy - Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot Error
+ggplot() +
+  geom_boxplot(data = Long_Error,
+               aes(x = Method, y = (Error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three methods - without hierarchy- Subtracted Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+cols_arima_ets <- sort(intersect(names(error_arima), names(error_ets)))
+subtract_arima_ets<-error_arima[cols_arima_ets] - error_ets[cols_arima_ets]
+long_subtract_arima_ets<-melt(subtract_arima_ets)
+long_subtract_arima_ets$Method<-"Sub-arima-ets"
+names(long_subtract_arima_ets)<-c("Series","subtracted_error","Method")
+
+cols_arima_OLS <- sort(intersect(names(error_arima), names(error_OLS)))
+subtract_arima_OLS<-error_arima[cols_arima_OLS] - error_OLS[cols_arima_OLS]
+long_subtract_arima_OLS<-melt(subtract_arima_OLS)
+long_subtract_arima_OLS$Method<-"Sub-arima-OLS"
+names(long_subtract_arima_OLS)<-c("Series","subtracted_error","Method")
+
+cols_ets_OLS <- sort(intersect(names(error_ets), names(error_OLS)))
+subtract_ets_OLS<-error_ets[cols_ets_OLS] - error_OLS[cols_ets_OLS]
+long_subtract_ets_OLS<-melt(subtract_ets_OLS)
+long_subtract_ets_OLS$Method<-"Sub-ets-OLS"
+names(long_subtract_ets_OLS)<-c("Series","subtracted_error","Method")
+
+Long_subtract_arima_ets_OLS<-rbind(long_subtract_arima_ets,long_subtract_arima_OLS,long_subtract_ets_OLS)
+
+ggplot() +
+  geom_boxplot(data = Long_subtract_arima_ets_OLS,
+               aes(x = Method, y = (subtracted_error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing three methods - without hierarchy - Forecasted Series Plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE, fig.width=8.3, fig.height=5}
+long_forecast_arima<-melt(forecast_arima)
+long_forecast_arima$Method<-"arima"
+names(long_forecast_arima)<-c("category","Value","Method")
+long_forecast_arima$Time<-rep(1:12,304)
+
+long_forecast_OLS<-melt(forecast_OLS)
+long_forecast_OLS$Method<-"OLS"
+names(long_forecast_OLS)<-c("category","Value","Method")
+long_forecast_OLS$Time<-rep(1:12,304)
+
+long_forecast_ets<-melt(forecast_ets)
+long_forecast_ets$Method<-"ets"
+names(long_forecast_ets)<-c("category","Value","Method")
+long_forecast_ets$Time<-rep(1:12,304)
+
+long_forecast<-rbind(long_TourismData,long_forecast_arima,long_forecast_ets,long_forecast_OLS)
+
+long_forecast_split<-split.data.frame(long_forecast,long_forecast$category)
+sample_series<-rbind.data.frame(long_forecast_split[[1]],long_forecast_split[[10]],long_forecast_split[[50]],long_forecast_split[[100]],
+                  long_forecast_split[[200]],
+                  long_forecast_split[[300]]
+                                    )
+
+ggplot(sample_series, aes(x = Time, y = Value, color = Method)) + geom_line(size=1) + 
+  scale_colour_manual(values=c(validation='black', arima='blue', ets='green', OLS='red'))+
+  facet_wrap( ~ category, ncol = 3,scales = 'free')+theme(text  = element_text(size = 12),legend.direction = "horizontal",
+    legend.position = "bottom")
+
+```
+
+## TourismData: Comparing arima methods - with and without hierarchy - log(RMSE) Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot log(RMSE)
+ggplot() +
+  geom_density(data = Long_RMSE_arima, aes(x = (RMSE), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("log(RMSE)") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-10, 10)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing arima methods - with and without hierarchy - log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot log(RMSE)
+ggplot() +
+  geom_boxplot(data = Long_RMSE_arima,
+               aes(x = Method, y = (RMSE), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing arima methods - with and without hierarchy - Error Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot Error
+ggplot() +
+  geom_density(data = Long_Error_arima , aes(x = (Error), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("Error") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-50, 50)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing arima methods - with and without hierarchy - Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot Error
+ggplot() +
+  geom_boxplot(data = Long_Error_arima,
+               aes(x = Method, y = (Error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing arima methods - with and without hierarchy - Subtracted Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+cols_arima_arima_hierarchy <- sort(intersect(names(error_arima), names(error_hierarchy_arima)))
+subtract_arima_arima_hierarchy<-error_arima[cols_arima_arima_hierarchy] - error_hierarchy_arima[cols_arima_arima_hierarchy]
+long_subtract_arima_arima_hierarchy<-melt(subtract_arima_arima_hierarchy)
+long_subtract_arima_arima_hierarchy$Method<-"Sub-arima-hierarchy-arima"
+names(long_subtract_arima_arima_hierarchy)<-c("Series","subtracted_error","Method")
+
+ggplot() +
+  geom_boxplot(data = long_subtract_arima_arima_hierarchy,
+               aes(x = Method, y = (subtracted_error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing arima methods - with and without hierarchy - Forecasted Series Plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE, fig.width=8.3, fig.height=5}
+long_forecast_arima<-rbind(long_TourismData,long_forecast_arima,long_forecast_hierarchy_arima)
+
+long_forecast_arima_split<-split.data.frame(long_forecast_arima,long_forecast_arima$category)
+sample_series_arima<-rbind.data.frame(long_forecast_arima_split[[1]],long_forecast_arima_split[[10]],long_forecast_arima_split[[50]],long_forecast_arima_split[[100]],long_forecast_arima_split[[200]],
+                  long_forecast_arima_split[[300]]
+                                    )
+
+ggplot(sample_series_arima, aes(x = Time, y = Value, color = Method)) + geom_line(size=1) + 
+  scale_colour_manual(values=c(validation='black', arima='blue', Hierarchy_arima='green'))+
+  facet_wrap( ~ category, ncol = 3,scales = 'free')+theme(text  = element_text(size = 12),legend.direction = "horizontal",
+    legend.position = "bottom")
+
+```
+
+## TourismData: Comparing ets methods - with and without hierarchy - log(RMSE) Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot log(RMSE)
+ggplot() +
+  geom_density(data = Long_RMSE_ets, aes(x = (RMSE), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("log(RMSE)") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-10, 10)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing ets methods - with and without hierarchy - log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot log(RMSE)
+ggplot() +
+  geom_boxplot(data = Long_RMSE_ets,
+               aes(x = Method, y = (RMSE), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing ets methods - with and without hierarchy - Error Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot Error
+ggplot() +
+  geom_density(data = Long_Error_ets , aes(x = (Error), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("Error") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-50, 50)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing ets methods - with and without hierarchy - Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot Error
+ggplot() +
+  geom_boxplot(data = Long_Error_ets,
+               aes(x = Method, y = (Error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing ets methods - with and without hierarchy - Subtracted Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+cols_ets_ets_hierarchy <- sort(intersect(names(error_ets), names(error_hierarchy_ets)))
+subtract_ets_ets_hierarchy<-error_ets[cols_ets_ets_hierarchy] - error_hierarchy_ets[cols_ets_ets_hierarchy]
+long_subtract_ets_ets_hierarchy<-melt(subtract_ets_ets_hierarchy)
+long_subtract_ets_ets_hierarchy$Method<-"Sub-ets-hierarchy-ets"
+names(long_subtract_ets_ets_hierarchy)<-c("Series","subtracted_error","Method")
+
+ggplot() +
+  geom_boxplot(data = long_subtract_ets_ets_hierarchy,
+               aes(x = Method, y = (subtracted_error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing ets methods - with and without hierarchy - Forecasted Series Plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE, fig.width=8.3, fig.height=5}
+long_forecast_ets<-rbind(long_TourismData,long_forecast_ets,long_forecast_hierarchy_ets)
+
+long_forecast_ets_split<-split.data.frame(long_forecast_ets,long_forecast_ets$category)
+sample_series_ets<-rbind.data.frame(long_forecast_ets_split[[1]],long_forecast_ets_split[[10]],long_forecast_ets_split[[50]],long_forecast_ets_split[[100]],long_forecast_ets_split[[200]],
+                  long_forecast_ets_split[[300]]
+                                    )
+
+ggplot(sample_series_ets, aes(x = Time, y = Value, color = Method)) + geom_line(size=1) + 
+  scale_colour_manual(values=c(validation='black', ets='blue', Hierarchy_ets='green'))+
+  facet_wrap( ~ category, ncol = 3,scales = 'free')+theme(text  = element_text(size = 12),legend.direction = "horizontal",
+    legend.position = "bottom")
+```
+
+## Comparing OLS methods - with and without hierarchy - log(RMSE) Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot log(RMSE)
+ggplot() +
+  geom_density(data = Long_RMSE_OLS, aes(x = (RMSE), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("log(RMSE)") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-10, 10)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing OLS methods - with and without hierarchy - log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot log(RMSE)
+ggplot() +
+  geom_boxplot(data = Long_RMSE_OLS,
+               aes(x = Method, y = (RMSE), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing OLS methods - with and without hierarchy - Error Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot Error
+ggplot() +
+  geom_density(data = Long_Error_OLS , aes(x = (Error), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("Error") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-50, 50)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing OLS methods - with and without hierarchy - Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot Error
+ggplot() +
+  geom_boxplot(data = Long_Error_OLS,
+               aes(x = Method, y = (Error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing OLS methods - with and without hierarchy - Subtracted Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+cols_OLS_OLS_hierarchy <- sort(intersect(names(error_OLS), names(error_hierarchy_OLS)))
+subtract_OLS_OLS_hierarchy<-error_OLS[cols_OLS_OLS_hierarchy] - error_hierarchy_OLS[cols_OLS_OLS_hierarchy]
+long_subtract_OLS_OLS_hierarchy<-melt(subtract_OLS_OLS_hierarchy)
+long_subtract_OLS_OLS_hierarchy$Method<-"Sub-OLS-hierarchy-OLS"
+names(long_subtract_OLS_OLS_hierarchy)<-c("Series","subtracted_error","Method")
+
+ggplot() +
+  geom_boxplot(data = long_subtract_OLS_OLS_hierarchy,
+               aes(x = Method, y = (subtracted_error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing ets methods - with and without hierarchy - Forecasted Series Plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE, fig.width=8.3, fig.height=5}
+long_forecast_OLS<-rbind(long_TourismData,long_forecast_OLS,long_forecast_hierarchy_OLS)
+
+long_forecast_OLS_split<-split.data.frame(long_forecast_OLS,long_forecast_OLS$category)
+sample_series_OLS<-rbind.data.frame(long_forecast_OLS_split[[1]],long_forecast_OLS_split[[10]],long_forecast_OLS_split[[50]],long_forecast_OLS_split[[100]],long_forecast_OLS_split[[200]],
+                  long_forecast_OLS_split[[300]]
+                                    )
+
+ggplot(sample_series_OLS, aes(x = Time, y = Value, color = Method)) + geom_line(size=1) + 
+  scale_colour_manual(values=c(validation='black', OLS='blue', Hierarchy_OLS='green'))+
+  facet_wrap( ~ category, ncol = 3,scales = 'free')+theme(text  = element_text(size = 12),legend.direction = "horizontal",
+    legend.position = "bottom")
+```
+
+## TourismData: Comparing all methods - with and without hierarchy - log(RMSE) Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot log(RMSE)
+ggplot() +
+  geom_density(data = Long_RMSE_all, aes(x = (RMSE), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("log(RMSE)") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-10, 10)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing all methods - with and without hierarchy - log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot log(RMSE)
+ggplot() +
+  geom_boxplot(data = Long_RMSE_all,
+               aes(x = Method, y = (RMSE), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing all methods - with and without hierarchy - Error Density plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+#### density plot Error
+ggplot() +
+  geom_density(data = Long_Error_all , aes(x = (Error), fill = Method), alpha =
+                 0.4) +
+  xlab("Method") + ylab("Error") +
+  #facet_wrap( ~ Method, ncol = 1) +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() + xlim(c(-50, 50)) +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing all methods - with and without hierarchy - Error Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+###### boxplot Error
+ggplot() +
+  geom_boxplot(data = Long_Error_all,
+               aes(x = Method, y = (Error), fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Error") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing all methods - with and without hierarchy - Forecasted Series Plot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE, fig.width=8.3, fig.height=5}
+long_forecast_all<-rbind(long_TourismData,long_forecast_arima,long_forecast_ets,long_forecast_OLS,
+                           long_forecast_hierarchy_arima,long_forecast_hierarchy_ets,long_forecast_hierarchy_OLS)
+
+long_forecast_all_split<-split.data.frame(long_forecast_all,long_forecast_all$category)
+sample_series_all<-rbind.data.frame(long_forecast_all_split[[1]],long_forecast_all_split[[10]],long_forecast_all_split[[50]],long_forecast_all_split[[100]],long_forecast_all_split[[200]],
+                  long_forecast_all_split[[300]]
+                                    )
+
+ggplot(sample_series_all, aes(x = Time, y = Value, color = Method)) + geom_line(size=1) + 
+  scale_colour_manual(values=c(validation='black', arima='blue', ets='green',OLS='red',Hierarchy_arima='pink',Hierarchy_ets='yellow',Hierarchy_OLS='brown'))+
+  facet_wrap( ~ category, ncol = 3,scales = 'free')+theme(text  = element_text(size = 12),legend.direction = "horizontal",
+    legend.position = "bottom")
+
+```
+
