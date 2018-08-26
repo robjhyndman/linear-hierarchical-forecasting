@@ -92,11 +92,11 @@ set.seed(123)
 #### Hierarchical Method + ARIMA and ETS
 ##############################
 wikipedia_data <-read.csv("wikipedia_data.csv", header = TRUE)
-wikipedia_data$views[wikipedia_data$views==0] <- 0.0001
-wikipedia_data$views_log<-log(wikipedia_data$views)
+# wikipedia_data$views[wikipedia_data$views==0] <- 0.0001
+# wikipedia_data$views_log<-log(wikipedia_data$views)
 ##Data reshaping
 wikipedia_wide <-
-  as.data.frame(matrix(wikipedia_data$views_log, nrow = 394, ncol = 913)) #394: length of each series and 913: number of series
+  as.data.frame(matrix(wikipedia_data$views, nrow = 394, ncol = 913)) #394: length of each series and 913: number of series
 ##############
 names <- as.vector(unique(wikipedia_data$cat_column))
 names(wikipedia_wide) <- c(names)
@@ -159,8 +159,8 @@ error_forecast_hierarchy_arima_ets <- function(total_wikipedia) {
         method = "comb",
         weights = "sd"
       )
-    forecast_hierarchy_arima[[length(forecast_hierarchy_arima) + 1]] = as.data.frame(exp(fore_hts_arima$bts))
-    forecast_hierarchy_ets[[length(forecast_hierarchy_ets) + 1]] = as.data.frame(exp(fore_hts_ets$bts))
+    forecast_hierarchy_arima[[length(forecast_hierarchy_arima) + 1]] = as.data.frame(fore_hts_arima$bts)
+    forecast_hierarchy_ets[[length(forecast_hierarchy_ets) + 1]] = as.data.frame(fore_hts_ets$bts)
   }
   return(list(forecast_hierarchy_arima, forecast_hierarchy_ets))
 }
@@ -170,31 +170,33 @@ final_result_hierarchy_arima_ets <-
 ### saving hierarchy forecast and error results
 forecast_hierarchy_arima <-
   do.call("rbind", final_result_hierarchy_arima_ets[[1]])
+write.csv(forecast_hierarchy_arima,"forecast_hierarchy_arima_wiki.csv")
+forecast_hierarchy_arima[forecast_hierarchy_arima<0]<-0
 error_hierarchy_arima <-
-  as.data.frame(exp(validation_wikipedia)) - forecast_hierarchy_arima
+  as.data.frame(validation_wikipedia) - forecast_hierarchy_arima
+write.csv(error_hierarchy_arima,"error_hierarchy_arima_wiki.csv")
 forecast_hierarchy_ets <-
   do.call("rbind", final_result_hierarchy_arima_ets[[2]])
-error_hierarchy_ets <-
-  as.data.frame(exp(validation_wikipedia)) - forecast_hierarchy_ets
-###
-write.csv(forecast_hierarchy_arima,"forecast_hierarchy_arima_wiki.csv")
 write.csv(forecast_hierarchy_ets,"forecast_hierarchy_ets_wiki.csv")
-write.csv(error_hierarchy_arima,"error_hierarchy_arima_wiki.csv")
+forecast_hierarchy_ets[forecast_hierarchy_ets<0]<-0
+error_hierarchy_ets <-
+  as.data.frame(validation_wikipedia) - forecast_hierarchy_ets
 write.csv(error_hierarchy_ets,"error_hierarchy_ets_wiki.csv")
+
 ##############
 #OLS+Hierarchy
 ##############
 ## reading data
 wikipedia_data <-
   read.csv("wikipedia_data.csv", header = TRUE) #913 series
-wikipedia_data$views[wikipedia_data$views==0] <- 0.0001
-wikipedia_data$views_log<-log(wikipedia_data$views)
+# wikipedia_data$views[wikipedia_data$views==0] <- 0.0001
+# wikipedia_data$views_log<-log(wikipedia_data$views)
 ##validation set
 wikipedia_data.valid.train <-
   split.data.frame(wikipedia_data, wikipedia_data$Split, drop = FALSE)
 validation_set <-
   as.data.frame(matrix(
-    wikipedia_data.valid.train[[2]]$views_log,
+    wikipedia_data.valid.train[[2]]$views,
     nrow = 28,
     ncol = 913
   ))
@@ -213,7 +215,7 @@ g <- rbind(
   #purpose
   str_sub(names, start = name_length - 4, end = name_length - 2)
 )
-List_1 <- split(wikipedia_data$views_log, wikipedia_data$cat_column)
+List_1 <- split(wikipedia_data$views, wikipedia_data$cat_column)
 m1 <- do.call("cbind", List_1)
 m <- gts(m1, groups = g)
 ally_m <- aggts(m)
@@ -227,12 +229,12 @@ ally_m.data.frame_reshape$Split <-
   c(rep("training", times = 366), rep("Validation", times = 28))
 wikipedia_data_1 <- ally_m.data.frame_reshape
 names(wikipedia_data_1) <-
-  c("cat_column", "views_log", "Trend", "Seasonality", "Split")
+  c("cat_column", "views", "Trend", "Seasonality", "Split")
 category_uni <- (unique(wikipedia_data_1$cat_column))
 lag_making <- list()
 for (i in seq_along(category_uni))
   lag_making[[i]] <-
-  Lag(wikipedia_data_1$views_log[wikipedia_data_1$cat_column == category_uni[i]], 1:7)
+  Lag(wikipedia_data_1$views[wikipedia_data_1$cat_column == category_uni[i]], 1:7)
 lag_making <- do.call(rbind, lag_making)
 wikipedia_data_1 <- cbind(wikipedia_data_1, lag_making)
 wikipedia_data_1 <- na.omit(wikipedia_data_1)
@@ -244,17 +246,17 @@ f <- list()
 fore_error_hierarchy_OLS <- function(df) {
   k <- 28
   forecast_hierarchy_OLS<-c()
-    for (i in 1:k) {
+  for (i in 1:k) {
     n <- nrow(df)
     train.1 <- df[1:((n - k) + (i - 1)), ]
     valid.1 <- df[(n - k) + i, ]
     hierarchy_multiple_OLS_model <-
-      lm(views_log ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4 + Lag.5 + Lag.6 + Lag.7, 
+      lm(views ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4 + Lag.5 + Lag.6 + Lag.7, 
          data = train.1)
     fore_hierarchy_multiple_OLS <-
       predict.lm(hierarchy_multiple_OLS_model, newdata = valid.1,type = "response")
     forecast_hierarchy_OLS<-c(forecast_hierarchy_OLS,fore_hierarchy_multiple_OLS)
-    }
+  }
   f[[length(f) + 1]] <- forecast_hierarchy_OLS
   return(f)
 }
@@ -278,19 +280,21 @@ forecast_hierarchy_OLS<-as.data.frame(y.f$bts)
 library(data.table)
 setDT(forecast_hierarchy_OLS)
 forecast_hierarchy_OLS<-setcolorder(forecast_hierarchy_OLS, names(validation_set))
-forecast_hierarchy_OLS<-exp(forecast_hierarchy_OLS)
-error_hierarchy_OLS<-as.data.frame(exp(validation_set))-as.data.frame(forecast_hierarchy_OLS)
-
 write.csv(forecast_hierarchy_OLS,"forecast_hierarchy_OLS_wiki.csv")
+forecast_error_hierarchy_OLS[forecast_error_hierarchy_OLS<0]<-0
+error_hierarchy_OLS<-as.data.frame(validation_set)-as.data.frame(forecast_hierarchy_OLS)
 write.csv(error_hierarchy_OLS,"error_hierarchy_OLS_wiki.csv")
 ```
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
 forecast_hierarchy_arima_wiki<-read.csv("forecast_hierarchy_arima_wiki.csv",header = TRUE)
+forecast_hierarchy_arima_wiki[forecast_hierarchy_arima_wiki<0]<-0
 error_hierarchy_arima_wiki<-read.csv("error_hierarchy_arima_wiki.csv")
 forecast_hierarchy_ets_wiki<-read.csv("forecast_hierarchy_ets_wiki.csv",header = TRUE)
+forecast_hierarchy_ets_wiki[forecast_hierarchy_ets_wiki<0]<-0
 error_hierarchy_ets_wiki<-read.csv("error_hierarchy_ets_wiki.csv")
 forecast_hierarchy_OLS_wiki<-read.csv("forecast_hierarchy_OLS_wiki.csv",header = TRUE)
+forecast_hierarchy_OLS_wiki[forecast_hierarchy_OLS_wiki<0]<-0
 error_hierarchy_OLS_wiki<-read.csv("error_hierarchy_OLS_wiki.csv")
 #########################################
 #### computing RMSEs and plotting results
@@ -335,9 +339,9 @@ Long_Error_hierarchy_wiki<-rbind(long_error_hierarchy_arima_wiki,long_error_hier
 #### using long data made in hierarchy approach to keep same labels
 wikipedia_long <-
   read.csv("wikipedia_long_hierarchy.csv", header = TRUE)
-wikipedia_long[wikipedia_long==0]<-0.0001
-new_matrix <- log(wikipedia_long)
-new_matrix_T <- t(as.matrix(new_matrix))
+# wikipedia_long[wikipedia_long==0]<-0.0001
+# new_matrix <- log(wikipedia_long)
+new_matrix_T <- t(as.matrix(wikipedia_long))
 # each rows as one list member
 List_2 <- do.call(c, apply(new_matrix_T, 1, list))
 #List_2 <- convertColsToList(new_matrix)
@@ -362,16 +366,19 @@ forecast_error_arima_ets <- function(df) {
     #### forecast and error
     fit_arima <- auto.arima(train.ts)
     pred_arima <- forecast(fit_arima, h = 1)
+    fore_arima<-pred_arima$mean
+    forecast_arima[[length(forecast_arima) + 1]] = as.data.frame(fore_arima)
+    fore_arima[fore_arima<0]<-0
     error_arima_ <-
-      as.numeric(exp(valid.ts))- as.numeric(exp(pred_arima$mean))
+      as.numeric(valid.ts)- as.numeric(fore_arima)
+    error_arima[[length(error_arima) + 1]] = as.data.frame(error_arima_)
     fit_ets <- ets(train.ts)
     pred_ets <- forecast(fit_ets, h = 1)
+    fore_ets<-pred_ets$mean
+    fore_ets[fore_ets<0]<-0
+    forecast_ets[[length(forecast_ets) + 1]] = as.data.frame(fore_ets)
     error_ets_ <-
-      as.numeric(exp(valid.ts))- as.numeric(exp(pred_ets$mean))
-    
-    forecast_arima[[length(forecast_arima) + 1]] = as.data.frame(exp(pred_arima$mean))
-    error_arima[[length(error_arima) + 1]] = as.data.frame(error_arima_)
-    forecast_ets[[length(forecast_ets) + 1]] = as.data.frame(exp(pred_ets$mean))
+      as.numeric(valid.ts)- as.numeric(fore_ets)
     error_ets[[length(error_ets) + 1]] = as.data.frame(error_ets_)
   }
   return(list(forecast_arima, error_arima,forecast_ets,error_ets))
@@ -420,13 +427,13 @@ write.csv(error_ets,"error_ets_wiki.csv")
 #OLS without hierarchy
 ############
 wikipedia_data <- read.csv("wikipedia_data.csv", header = TRUE)
-wikipedia_data$views[wikipedia_data$views==0] <- 0.0001
-wikipedia_data$Views_log<-log(wikipedia_data$views)
+# wikipedia_data$views[wikipedia_data$views==0] <- 0.0001
+# wikipedia_data$Views_log<-log(wikipedia_data$views)
 category_uni <- (unique(wikipedia_data$cat_column))
 lag_making <- list()
 for (i in seq_along(category_uni))
   lag_making[[i]] <-
-  Lag(wikipedia_data$Views_log[wikipedia_data$cat_column == category_uni[i]], 1:7)
+  Lag(wikipedia_data$views[wikipedia_data$cat_column == category_uni[i]], 1:7)
 lag_making <- do.call(rbind, lag_making)
 ### dataset with lags
 wikipedia_data <- cbind(wikipedia_data, lag_making)
@@ -442,22 +449,21 @@ error_forecast_OLS <- function(df) {
     df.train <- df[1:((n - k) + (i - 1)),]
     df.valid <- df[(n - k) + i,]
     OLS_model <-
-      lm(Views_log ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4 + Lag.5 + Lag.6 + Lag.7,
+      lm(views ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4 + Lag.5 + Lag.6 + Lag.7,
          data = df.train)
     fore_OLS <-
       predict.lm(OLS_model, newdata = df.valid)
+    forecast_OLS[[length(forecast_OLS) + 1]] = as.data.frame(fore_OLS)
+    fore_OLS[fore_OLS<0]<-0
     error_OLS_ <-
-      as.vector((df.valid$views - exp(fore_OLS)))
-    forecast_OLS[[length(forecast_OLS) + 1]] = as.data.frame(exp(fore_OLS))
+      as.vector((df.valid$views - fore_OLS))
     error_OLS[[length(error_OLS) + 1]] = as.data.frame(error_OLS_)
   }
   return(list(forecast_OLS, error_OLS))
 }
-start.time <- Sys.time()
+
 final_result_OLS <-
   lapply(List_1, error_forecast_OLS)
-end.time <- Sys.time()
-end.time - start.time
 ##### forecast results
 ##### forecast arima
 List_forecast_OLS <- list()
@@ -482,10 +488,13 @@ write.csv(error_OLS,"error_OLS_wiki.csv")
 
 ```{r echo=FALSE, message = FALSE, results='asis',cache=TRUE}
 forecast_arima_wiki<-read.csv("forecast_arima_wiki.csv",header = TRUE)
+forecast_arima_wiki[forecast_arima_wiki<0]<-0
 error_arima_wiki<-read.csv("error_arima_wiki.csv")
 forecast_ets_wiki<-read.csv("forecast_ets_wiki.csv",header = TRUE)
+forecast_ets_wiki[forecast_ets_wiki<0]<-0
 error_ets_wiki<-read.csv("error_ets_wiki.csv")
 forecast_OLS_wiki<-read.csv("forecast_OLS_wiki.csv",header = TRUE)
+forecast_OLS_wiki[forecast_OLS_wiki<0]<-0
 error_OLS_wiki<-read.csv("error_OLS_wiki.csv")
 
 mean_error_arima_wiki<-apply(error_arima_wiki,2,mean)
@@ -585,6 +594,42 @@ ggplot() +
     legend.direction = "horizontal",
     legend.position = "bottom"
   )
+```
+
+## WikipediaData: Comparing three hierarchy methods - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+RMSE_hierarchy_arima_wiki<-RMSE_hierarchy_arima_wiki[match(rownames(RMSE_hierarchy_ets_wiki), rownames(RMSE_hierarchy_arima_wiki)), ]
+subtract_hierarchy_arima_ets_RMSE_wiki<-as.data.frame(RMSE_hierarchy_arima_wiki$RMSE - RMSE_hierarchy_ets_wiki$RMSE)
+subtract_hierarchy_arima_ets_RMSE_wiki$Method<-"Sub-Hierarchy-arima-ets-RMSE"
+names(subtract_hierarchy_arima_ets_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+RMSE_hierarchy_arima<-RMSE_hierarchy_arima_wiki[match(rownames(RMSE_hierarchy_OLS_wiki), rownames(RMSE_hierarchy_arima_wiki)), ]
+subtract_hierarchy_arima_OLS_RMSE_wiki<-as.data.frame(RMSE_hierarchy_arima_wiki$RMSE - RMSE_hierarchy_OLS_wiki$RMSE)
+subtract_hierarchy_arima_OLS_RMSE_wiki$Method<-"Sub-Hierarchy-arima-OLS-RMSE"
+names(subtract_hierarchy_arima_OLS_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+RMSE_hierarchy_ets<-RMSE_hierarchy_ets_wiki[match(rownames(RMSE_hierarchy_OLS_wiki), rownames(RMSE_hierarchy_ets_wiki)), ]
+subtract_hierarchy_ets_OLS_RMSE_wiki<-as.data.frame(RMSE_hierarchy_ets_wiki$RMSE - RMSE_hierarchy_OLS_wiki$RMSE)
+subtract_hierarchy_ets_OLS_RMSE_wiki$Method<-"Sub-Hierarchy-ets-OLS-RMSE"
+names(subtract_hierarchy_ets_OLS_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+Long_subtract_hierarchy_arima_ets_OLS_RMSE_wiki<-rbind(subtract_hierarchy_arima_ets_RMSE_wiki,subtract_hierarchy_arima_OLS_RMSE_wiki,subtract_hierarchy_ets_OLS_RMSE_wiki)
+
+ggplot() +
+  geom_boxplot(data = Long_subtract_hierarchy_arima_ets_OLS_RMSE_wiki,
+               aes(x = Method , y = (Long_subtract_hierarchy_arima_ets_OLS_RMSE_wiki$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+
 ```
 
 ## WikipediaData: Comparing three hierarchy methods - Error Density plot
@@ -740,6 +785,41 @@ ggplot() +
   )
 ```
 
+## WikipediaData: Comparing three methods - without hierarchy - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+RMSE_arima_wiki<-RMSE_arima_wiki[match(rownames(RMSE_ets_wiki), rownames(RMSE_arima_wiki)), ]
+subtract_arima_ets_RMSE_wiki<-as.data.frame(RMSE_arima_wiki$RMSE - RMSE_ets_wiki$RMSE)
+subtract_arima_ets_RMSE_wiki$Method<-"Sub-arima-ets-RMSE"
+names(subtract_arima_ets_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+RMSE_arima_wiki<-RMSE_arima_wiki[match(rownames(RMSE_OLS_wiki), rownames(RMSE_arima_wiki)), ]
+subtract_arima_OLS_RMSE_wiki<-as.data.frame(RMSE_arima_wiki$RMSE - RMSE_OLS_wiki$RMSE)
+subtract_arima_OLS_RMSE_wiki$Method<-"Sub-arima-OLS-RMSE"
+names(subtract_arima_OLS_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+RMSE_ets_wiki<-RMSE_ets_wiki[match(rownames(RMSE_OLS_wiki), rownames(RMSE_ets_wiki)), ]
+subtract_ets_OLS_RMSE_wiki<-as.data.frame(RMSE_ets_wiki$RMSE - RMSE_OLS_wiki$RMSE)
+subtract_ets_OLS_RMSE_wiki$Method<-"Sub-ets-OLS-RMSE"
+names(subtract_ets_OLS_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+Long_subtract_arima_ets_OLS_RMSE_wiki<-rbind(subtract_arima_ets_RMSE_wiki,subtract_arima_OLS_RMSE_wiki,subtract_ets_OLS_RMSE_wiki)
+
+ggplot() +
+  geom_boxplot(data = Long_subtract_arima_ets_OLS_RMSE_wiki,
+               aes(x = Method , y = (Long_subtract_arima_ets_OLS_RMSE_wiki$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
 ## WikipediaData: Comparing three methods - without hierarchy - Error Density plot
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -882,6 +962,29 @@ ggplot() +
   )
 ```
 
+## WikipediaData: Comparing arima methods - with and without hierarchy - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+RMSE_arima_wiki<-RMSE_hierarchy_arima_wiki[match(rownames(RMSE_arima_wiki), rownames(RMSE_hierarchy_arima_wiki)), ]
+subtract_hierarchy_arima_arima_RMSE_wiki<-as.data.frame(RMSE_arima_wiki$RMSE - RMSE_hierarchy_arima_wiki$RMSE)
+subtract_hierarchy_arima_arima_RMSE_wiki$Method<-"Sub-Hierarchy-arima-arima-RMSE"
+names(subtract_hierarchy_arima_arima_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+ggplot() +
+  geom_boxplot(data = subtract_hierarchy_arima_arima_RMSE_wiki,
+               aes(x = Method , y = (subtract_hierarchy_arima_arima_RMSE_wiki$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
 ## WikipediaData: Comparing arima methods - with and without hierarchy - Error Density plot
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -994,6 +1097,29 @@ ggplot() +
   )
 ```
 
+## WikipediaData: Comparing ets methods - with and without hierarchy - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+RMSE_ets_wiki<-RMSE_hierarchy_ets_wiki[match(rownames(RMSE_ets_wiki), rownames(RMSE_hierarchy_ets_wiki)), ]
+subtract_hierarchy_ets_ets_RMSE_wiki<-as.data.frame(RMSE_ets_wiki$RMSE - RMSE_hierarchy_ets_wiki$RMSE)
+subtract_hierarchy_ets_ets_RMSE_wiki$Method<-"Sub-Hierarchy-ets-ets-RMSE"
+names(subtract_hierarchy_ets_ets_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+ggplot() +
+  geom_boxplot(data = subtract_hierarchy_ets_ets_RMSE_wiki,
+               aes(x = Method , y = (subtract_hierarchy_ets_ets_RMSE_wiki$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
 ## WikipediaData: Comparing ets methods - with and without hierarchy - Error Density plot
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -1095,6 +1221,29 @@ ggplot() +
                aes(x = Method, y = (RMSE), fill = Method),
                alpha = 0.5) +
   xlab("Method") + ylab("log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## WikipediaData: Comparing OLS methods - with and without hierarchy - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+RMSE_OLS_wiki<-RMSE_hierarchy_OLS_wiki[match(rownames(RMSE_OLS_wiki), rownames(RMSE_hierarchy_OLS_wiki)), ]
+subtract_hierarchy_OLS_OLS_RMSE_wiki<-as.data.frame(RMSE_OLS_wiki$RMSE - RMSE_hierarchy_OLS_wiki$RMSE)
+subtract_hierarchy_OLS_OLS_RMSE_wiki$Method<-"Sub-Hierarchy-OLS-OLS-RMSE"
+names(subtract_hierarchy_OLS_OLS_RMSE_wiki)<-c("sublog(RMSE)","Method")
+
+ggplot() +
+  geom_boxplot(data = subtract_hierarchy_OLS_OLS_RMSE_wiki,
+               aes(x = Method , y = (subtract_hierarchy_OLS_OLS_RMSE_wiki$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() +
   theme(

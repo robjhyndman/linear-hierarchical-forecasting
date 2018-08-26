@@ -355,12 +355,14 @@ fore_error_arima_ets <- function(df) {
     fit_ets <-ets(train.ts)
     fore_arima <- forecast(fit_arima, h = 1)
     fore_ets<-forecast(fit_ets,h=1)
-    result_fore_arima[[length(result_fore_arima) + 1]] = as.data.frame(fore_arima$mean)
-    result_fore_arima[result_fore_arima<0]<-0
-    result_error_arima[[length(result_error_arima) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(fore_arima$mean))
-    result_fore_ets[[length(result_fore_ets) + 1]] = as.data.frame(fore_ets$mean)
-    result_fore_ets[result_fore_ets<0]<-0
-    result_error_ets[[length(result_error_ets) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(fore_ets$mean))
+    pred_arima<-fore_arima$mean
+    pred_ets<-fore_ets$mean
+    result_fore_arima[[length(result_fore_arima) + 1]] = as.data.frame(pred_arima)
+    pred_arima[pred_arima<0]<-0
+    result_error_arima[[length(result_error_arima) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(pred_arima))
+    result_fore_ets[[length(result_fore_ets) + 1]] = as.data.frame(pred_ets)
+    pred_ets[pred_ets<0]<-0
+    result_error_ets[[length(result_error_ets) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(pred_ets))
   }
   return(list(result_fore_arima, result_error_arima,result_fore_ets,result_error_ets))
 }
@@ -570,6 +572,42 @@ ggplot() +
   )
 ```
 
+## TourismData: Comparing three hierarchy methods - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+RMSE_hierarchy_arima<-RMSE_hierarchy_arima[match(rownames(RMSE_hierarchy_ets), rownames(RMSE_hierarchy_arima)), ]
+subtract_hierarchy_arima_ets_RMSE<-as.data.frame(RMSE_hierarchy_arima$RMSE - RMSE_hierarchy_ets$RMSE)
+subtract_hierarchy_arima_ets_RMSE$Method<-"Sub-Hierarchy-arima-ets-RMSE"
+names(subtract_hierarchy_arima_ets_RMSE)<-c("sublog(RMSE)","Method")
+
+RMSE_hierarchy_arima<-RMSE_hierarchy_arima[match(rownames(RMSE_hierarchy_OLS), rownames(RMSE_hierarchy_arima)), ]
+subtract_hierarchy_arima_OLS_RMSE<-as.data.frame(RMSE_hierarchy_arima$RMSE - RMSE_hierarchy_OLS$RMSE)
+subtract_hierarchy_arima_OLS_RMSE$Method<-"Sub-Hierarchy-arima-OLS-RMSE"
+names(subtract_hierarchy_arima_OLS_RMSE)<-c("sublog(RMSE)","Method")
+
+RMSE_hierarchy_ets<-RMSE_hierarchy_ets[match(rownames(RMSE_hierarchy_OLS), rownames(RMSE_hierarchy_ets)), ]
+subtract_hierarchy_ets_OLS_RMSE<-as.data.frame(RMSE_hierarchy_ets$RMSE - RMSE_hierarchy_OLS$RMSE)
+subtract_hierarchy_ets_OLS_RMSE$Method<-"Sub-Hierarchy-ets-OLS-RMSE"
+names(subtract_hierarchy_ets_OLS_RMSE)<-c("sublog(RMSE)","Method")
+
+Long_subtract_hierarchy_arima_ets_OLS_RMSE<-rbind(subtract_hierarchy_arima_ets_RMSE,subtract_hierarchy_arima_OLS_RMSE,subtract_hierarchy_ets_OLS_RMSE)
+
+ggplot() +
+  geom_boxplot(data = Long_subtract_hierarchy_arima_ets_OLS_RMSE,
+               aes(x = Method , y = (Long_subtract_hierarchy_arima_ets_OLS_RMSE$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+
+```
+
 ## TourismData: Comparing three hierarchy methods - Error Density plot
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -721,6 +759,41 @@ ggplot() +
   )
 ```
 
+## TourismData: Comparing three methods - without hierarchy - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+RMSE_arima<-RMSE_arima[match(rownames(RMSE_ets), rownames(RMSE_arima)), ]
+subtract_arima_ets_RMSE<-as.data.frame(RMSE_arima$RMSE - RMSE_ets$RMSE)
+subtract_arima_ets_RMSE$Method<-"Sub-arima-ets-RMSE"
+names(subtract_arima_ets_RMSE)<-c("sublog(RMSE)","Method")
+
+RMSE_arima<-RMSE_arima[match(rownames(RMSE_OLS), rownames(RMSE_arima)), ]
+subtract_arima_OLS_RMSE<-as.data.frame(RMSE_arima$RMSE - RMSE_OLS$RMSE)
+subtract_arima_OLS_RMSE$Method<-"Sub-arima-OLS-RMSE"
+names(subtract_arima_OLS_RMSE)<-c("sublog(RMSE)","Method")
+
+RMSE_ets<-RMSE_ets[match(rownames(RMSE_OLS), rownames(RMSE_ets)), ]
+subtract_ets_OLS_RMSE<-as.data.frame(RMSE_ets$RMSE - RMSE_OLS$RMSE)
+subtract_ets_OLS_RMSE$Method<-"Sub-ets-OLS-RMSE"
+names(subtract_ets_OLS_RMSE)<-c("sublog(RMSE)","Method")
+
+Long_subtract_arima_ets_OLS_RMSE<-rbind(subtract_arima_ets_RMSE,subtract_arima_OLS_RMSE,subtract_ets_OLS_RMSE)
+
+ggplot() +
+  geom_boxplot(data = Long_subtract_arima_ets_OLS_RMSE,
+               aes(x = Method , y = (Long_subtract_arima_ets_OLS_RMSE$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
 ## TourismData: Comparing three methods - without hierarchy - Error Density plot
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -863,6 +936,30 @@ ggplot() +
   )
 ```
 
+## TourismData: Comparing arima methods - with and without hierarchy - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+
+RMSE_arima<-RMSE_hierarchy_arima[match(rownames(RMSE_arima), rownames(RMSE_hierarchy_arima)), ]
+subtract_hierarchy_arima_arima_RMSE<-as.data.frame(RMSE_arima$RMSE - RMSE_hierarchy_arima$RMSE)
+subtract_hierarchy_arima_arima_RMSE$Method<-"Sub-Hierarchy-arima-arima-RMSE"
+names(subtract_hierarchy_arima_arima_RMSE)<-c("sublog(RMSE)","Method")
+
+ggplot() +
+  geom_boxplot(data = subtract_hierarchy_arima_arima_RMSE,
+               aes(x = Method , y = (subtract_hierarchy_arima_arima_RMSE$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
 ## TourismData: Comparing arima methods - with and without hierarchy - Error Density plot
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -975,6 +1072,30 @@ ggplot() +
   )
 ```
 
+## TourismData: Comparing ets methods - with and without hierarchy - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+
+RMSE_ets<-RMSE_hierarchy_ets[match(rownames(RMSE_ets), rownames(RMSE_hierarchy_ets)), ]
+subtract_hierarchy_ets_ets_RMSE<-as.data.frame(RMSE_ets$RMSE - RMSE_hierarchy_ets$RMSE)
+subtract_hierarchy_ets_ets_RMSE$Method<-"Sub-Hierarchy-ets-ets-RMSE"
+names(subtract_hierarchy_ets_ets_RMSE)<-c("sublog(RMSE)","Method")
+
+ggplot() +
+  geom_boxplot(data = subtract_hierarchy_ets_ets_RMSE,
+               aes(x = Method , y = (subtract_hierarchy_ets_ets_RMSE$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
 ## TourismData: Comparing ets methods - with and without hierarchy - Error Density plot
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -1077,6 +1198,30 @@ ggplot() +
                aes(x = Method, y = (RMSE), fill = Method),
                alpha = 0.5) +
   xlab("Method") + ylab("log(RMSE)") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_bw() +
+  theme(
+    text  = element_text(size = 12),
+    legend.direction = "horizontal",
+    legend.position = "bottom"
+  )
+```
+
+## TourismData: Comparing OLS methods - with and without hierarchy - Subtracted log(RMSE) Boxplot
+
+```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+
+RMSE_OLS<-RMSE_hierarchy_OLS[match(rownames(RMSE_OLS), rownames(RMSE_hierarchy_OLS)), ]
+subtract_hierarchy_OLS_OLS_RMSE<-as.data.frame(RMSE_OLS$RMSE - RMSE_hierarchy_OLS$RMSE)
+subtract_hierarchy_OLS_OLS_RMSE$Method<-"Sub-Hierarchy-OLS-OLS-RMSE"
+names(subtract_hierarchy_OLS_OLS_RMSE)<-c("sublog(RMSE)","Method")
+
+ggplot() +
+  geom_boxplot(data = subtract_hierarchy_OLS_OLS_RMSE,
+               aes(x = Method , y = (subtract_hierarchy_OLS_OLS_RMSE$`sublog(RMSE)`), 
+                   fill = Method),
+               alpha = 0.5) +
+  xlab("Method") + ylab("Subtracted-log(RMSE)") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() +
   theme(
