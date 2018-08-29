@@ -182,7 +182,6 @@ forecast_hierarchy_ets[forecast_hierarchy_ets<0]<-0
 error_hierarchy_ets <-
   as.data.frame(validation_wikipedia) - forecast_hierarchy_ets
 write.csv(error_hierarchy_ets,"error_hierarchy_ets_wiki.csv")
-
 ##############
 #OLS+Hierarchy
 ##############
@@ -201,7 +200,7 @@ validation_set <-
     ncol = 913
   ))
 names(validation_set) <-
-  unique(wikipedia_data.valid.train[[1]]$cat_column)
+  unique(wikipedia_data.valid.train[[2]]$cat_column)
 names <- unique(wikipedia_data$cat_column)
 #### group defining
 name_length <- str_length(names)
@@ -245,7 +244,7 @@ wikipedia_data_1.series <-
 f <- list()
 fore_error_hierarchy_OLS <- function(df) {
   k <- 28
-  forecast_hierarchy_OLS<-c()
+  fore_result<-matrix(NA,nrow = k,ncol=1)
   for (i in 1:k) {
     n <- nrow(df)
     train.1 <- df[1:((n - k) + (i - 1)), ]
@@ -254,8 +253,8 @@ fore_error_hierarchy_OLS <- function(df) {
       lm(views ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4 + Lag.5 + Lag.6 + Lag.7, 
          data = train.1)
     fore_hierarchy_multiple_OLS <-
-      predict.lm(hierarchy_multiple_OLS_model, newdata = valid.1,type = "response")
-    forecast_hierarchy_OLS<-c(forecast_hierarchy_OLS,fore_hierarchy_multiple_OLS)
+      predict.lm(hierarchy_multiple_OLS_model, newdata = valid.1)
+    fore_result[i,]<-fore_hierarchy_multiple_OLS
   }
   f[[length(f) + 1]] <- forecast_hierarchy_OLS
   return(f)
@@ -267,7 +266,7 @@ forecast_error_hierarchy_OLS <-
 allf <- do.call("cbind", forecast_error_hierarchy_OLS)
 allf <- as.data.frame(do.call("cbind", allf))
 names(allf)<-names(forecast_error_hierarchy_OLS)
-allf <- ts(allf, start = 360)
+allf <- ts(allf)
 y.f <-
   combinef(allf,
            groups = get_groups(m),
@@ -642,7 +641,7 @@ ggplot() +
   xlab("Method") + ylab("Error") +
   #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_bw() + xlim(c(-15, 15)) +
+  theme_bw() + xlim(c(-40, 40)) +
   theme(
     text  = element_text(size = 12),
     legend.direction = "horizontal",
@@ -830,7 +829,7 @@ ggplot() +
   xlab("Method") + ylab("Error") +
   #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_bw() + xlim(c(-15, 15)) +
+  theme_bw() + xlim(c(-40, 40)) +
   theme(
     text  = element_text(size = 12),
     legend.direction = "horizontal",
@@ -995,7 +994,7 @@ ggplot() +
   xlab("Method") + ylab("Error") +
   #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_bw() + xlim(c(-15, 15)) +
+  theme_bw() + xlim(c(-40, 40)) +
   theme(
     text  = element_text(size = 12),
     legend.direction = "horizontal",
@@ -1130,7 +1129,7 @@ ggplot() +
   xlab("Method") + ylab("Error") +
   #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_bw() + xlim(c(-15, 15)) +
+  theme_bw() + xlim(c(-40, 40)) +
   theme(
     text  = element_text(size = 12),
     legend.direction = "horizontal",
@@ -1263,7 +1262,7 @@ ggplot() +
   xlab("Method") + ylab("Error") +
   #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_bw() + xlim(c(-15, 15)) +
+  theme_bw() + xlim(c(-40, 40)) +
   theme(
     text  = element_text(size = 12),
     legend.direction = "horizontal",
@@ -1373,7 +1372,7 @@ ggplot() +
   xlab("Method") + ylab("Error") +
   #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_bw() + xlim(c(-15, 15)) +
+  theme_bw() + xlim(c(-40, 40)) +
   theme(
     text  = element_text(size = 12),
     legend.direction = "horizontal",
