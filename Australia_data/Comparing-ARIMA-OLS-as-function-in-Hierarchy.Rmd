@@ -93,8 +93,10 @@ set.seed(123)
 ## reading data
 TourismData <-
   read.csv("TourismData_v3.csv", header = TRUE)
-### deleting Year and Month columns
-names<-names(TourismData[,-c(1,2)])
+TourismData<-TourismData[,-c(1,2)]
+k<-12
+n<-nrow(TourismData)
+names<-names(TourismData)
 name_length <- str_length(names)
 grouping_hts <- rbind(
   #State
@@ -107,17 +109,14 @@ grouping_hts <- rbind(
   str_sub(names, start = name_length -2 , end = name_length)
 )
 total_tourist <-
-  ts(TourismData[,-c(1,2)],
+  ts(TourismData,
      start = c(1, 1),
-     end=c(1, 228),frequency = 4)
+     end=c(1, n),frequency = 4)
 validation_tourist <-
   window(total_tourist,
-         start = c(1, 217),
-         end = c(1, 228))
-error_forecast_hierarchy <- function(total_tourist) {
-  k <-
-    12 #### rolling window width
-  n <- nrow(total_tourist)
+         start = c(1, ((n-k)+1)),
+         end = c(1, n))
+ARIMAETSmodel_hierarchy <- function(total_tourist) {
    forecast_arima <- list()
    forecast_ets <- list()
     for (i in 1:k) {
@@ -131,8 +130,7 @@ error_forecast_hierarchy <- function(total_tourist) {
       window(total_tourist,
              start = c(1, (n - k) + i),
              end = c(1, (n - k) + i))
-    g_tourist_hts <-
-      gts(training_tourist, groups = grouping_hts)
+    g_tourist_hts <-gts(training_tourist, groups = grouping_hts)
     ### running the forecast
     fore_hts_arima <-
       forecast.gts(
@@ -156,7 +154,7 @@ error_forecast_hierarchy <- function(total_tourist) {
   return(list(forecast_arima,forecast_ets))
 }
 final_result_hierarchy <-
-  error_forecast_hierarchy(total_tourist)
+  ARIMAETSmodel_hierarchy(total_tourist)
 ### saving hierarchy forecast and error results
 forecast_hierarchy_arima <-
   do.call("rbind", final_result_hierarchy[[1]])
@@ -177,26 +175,11 @@ write.csv(error_hierarchy_ets,"error_hierarchy_ets.csv")
 ###################
 TourismData <-
   read.csv("TourismData_v3.csv", header = TRUE)
-TourismData.melt<-melt(TourismData[,-c(1,2)])
-TourismData.melt$Split<-c(rep("training", times = 216), rep("Validation", times = 12))
-TourismData<-TourismData.melt 
-names(TourismData)<-c("Category","Value","Split")
-# TourismData$State <- substring(category_unique, 1, 1)
-# TourismData$Zone <- substring(category_unique, 1, 2)
-# TourismData$Regions <- substring(category_unique, 1, 3)
-# TourismData$Purpose <- substring(category_unique, 4, 6)
-##validation set
-TourismData.valid.train <-
-  split.data.frame(TourismData, TourismData$Split, drop = FALSE)
-validation_set <-
-  as.data.frame(matrix(
-    TourismData.valid.train[[2]]$Value,
-    nrow = 12,
-    ncol = 304
-  ))
-names(validation_set) <-
-  unique(TourismData.valid.train[[2]]$Category)
-names <- unique(TourismData$Category)
+TourismData<-TourismData[,-c(1,2)]
+h<-12
+n<-nrow(TourismData)
+validation_set<-TourismData[((n-h)+1):n,]
+names <- names(TourismData)
 #### group defining
 name_length <- str_length(names)
 g <- rbind(
@@ -209,69 +192,39 @@ g <- rbind(
   #purpose
   str_sub(names, start = name_length -2 , end = name_length)
 )
-List_1 <- split(TourismData$Value, TourismData$Category)
-m1 <- do.call("cbind", List_1)
-m <- gts(m1, groups = g)
-ally_m <- aggts(m)
-ally_m.data.frame <- as.data.frame(ally_m)
-ally_m.data.frame_reshape <-
-  melt(ally_m.data.frame, mesure.vars = 1:ncol(ally_m.data.frame))
-ally_m.data.frame_reshape$Trend <- rep(1:228)
-ally_m.data.frame_reshape$Seasonality <-rep(1:4)
-ally_m.data.frame_reshape$Split <-
-  c(rep("training", times = 216), rep("Validation", times = 12))
-TourismData_1 <- ally_m.data.frame_reshape
-names(TourismData_1) <-
-  c("cat_column", "Value", "Trend", "Seasonality", "Split")
-category_uni <- (unique(TourismData_1$cat_column))
-lag_making <- list()
-for (i in seq_along(category_uni))
-  lag_making[[i]] <-
-  Lag(TourismData_1$Value[TourismData_1$cat_column == category_uni[i]], 1:4)
-lag_making <- do.call(rbind, lag_making)
-TourismData_1 <- cbind(TourismData_1, lag_making)
-TourismData_1 <- na.omit(TourismData_1)
-
-TourismData_1.series <-
-  split(TourismData_1, TourismData_1$cat_column)
-
-f <- list()
-fore_hierarchy_multiple_OLS <- function(df) {
-  k <- 12
-   fore_result<-matrix(NA,nrow = k,ncol=1)
-  for (i in 1:k) {
-    n <- nrow(df)
-    train.1 <- df[1:((n - k) + (i - 1)), ]
-    valid.1 <- df[(n - k) + i, ]
-    hierarchy_multiple_OLS_model <-
-      lm(Value ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4, data = train.1)
-    fore_hierarchy_multiple_OLS <-
-      predict.lm(hierarchy_multiple_OLS_model, newdata = valid.1)
-      fore_result[i,]<-fore_hierarchy_multiple_OLS
+gts_TourismData <- gts(TourismData, groups = g)
+ally_TourismData <- as.data.frame(aggts(gts_TourismData))
+List_2 <- do.call(c, apply(ally_TourismData, 2, list))
+OLSmodel<-function(X,freq,h){
+  trend<-seq(NROW(X))
+  season<-forecast::seasonaldummy(ts(X,frequency = freq))
+  Xlag<-quantmod::Lag(X,k=1:freq)
+  X_mat<-cbind.data.frame(X,trend,season,Xlag)
+  n <- nrow(X_mat)
+  fore_base_OLS<-matrix(NA,nrow = h,ncol=1)
+  for (i in 1:h) {
+    train.1 <- X_mat[1:((n - h) + (i - 1)), ]
+    valid.1 <- X_mat[(n - h) + i, ]
+    fit <- lm(X ~. , data = train.1)
+    fore <- predict.lm( fit , newdata = valid.1)
+    fore_base_OLS[i,]<-fore
   }
-  f[[length(f) + 1]] <- fore_result
-  return(f)
+  return(fore_base_OLS)
 }
-fore_hierarchy_multiple_OLS_results <-
-  lapply(TourismData_1.series, fore_hierarchy_multiple_OLS) 
-
-allf <- do.call("cbind", fore_hierarchy_multiple_OLS_results)
-allf <- as.data.frame(do.call("cbind", allf))
-names(allf)<-names(fore_hierarchy_multiple_OLS_results)
-allf <- ts(allf)
-y.f <-
-  combinef(allf,
-           groups = get_groups(m),
+result_fore_base_hierarchy_OLS<-sapply(List_2, OLSmodel,freq=4,h=12)
+y.f.recon <-
+  combinef(result_fore_base_hierarchy_OLS,
+           groups = get_groups(gts_TourismData),
            keep = "gts",
            algorithms = "lu")
-forecast_hierarchy_OLS<-as.data.frame(y.f$bts)
+forecast_hierarchy_OLS_recon<-as.data.frame(y.f.recon$bts)
 ### matching two data frames order to calculate the errors
-setDT(forecast_hierarchy_OLS)
-forecast_hierarchy_OLS<-setcolorder(forecast_hierarchy_OLS, names(validation_set))
-write.csv(forecast_hierarchy_OLS,"forecast_hierarchy_OLS.csv")
-forecast_hierarchy_OLS[forecast_hierarchy_OLS<0]<-0
-error_hierarchy_OLS<-as.data.frame(validation_set)-as.data.frame(forecast_hierarchy_OLS)
-write.csv(error_hierarchy_OLS,"error_hierarchy_OLS.csv")
+#setDT(forecast_hierarchy_OLS_recon)
+forecast_hierarchy_OLS_recon<-setcolorder(forecast_hierarchy_OLS_recon, names(validation_set))
+write.csv(forecast_hierarchy_OLS_recon,"forecast_hierarchy_OLS.csv")
+forecast_hierarchy_OLS_recon[forecast_hierarchy_OLS_recon<0]<-0
+error_hierarchy_OLS_recon<-as.data.frame(validation_set)-as.data.frame(forecast_hierarchy_OLS_recon)
+write.csv(error_hierarchy_OLS_recon,"error_hierarchy_OLS.csv")
 ```
 
 
@@ -329,12 +282,12 @@ Long_Error_hierarchy<-rbind(long_error_hierarchy_arima,long_error_hierarchy_ets,
 #########
 TourismData <-
   read.csv("TourismData_v3.csv", header = TRUE)
-# each rows as one list member
-List <- do.call(c, apply(TourismData[,-c(1,2)], 2, list))
-#List_2 <- convertColsToList(new_matrix)
-fore_error_arima_ets <- function(df) {
-  k <-
-    12 
+TourismData<-TourismData[,-c(1,2)]
+k<-12
+n<-nrow(TourismData)
+n.series<-ncol(TourismData)
+List <- do.call(c, apply(TourismData, 2, list))
+ARIMAETSmodel <- function(df) {
   result_fore_arima <- list()
   result_error_arima <- list()
   result_fore_ets <- list()
@@ -343,7 +296,7 @@ fore_error_arima_ets <- function(df) {
     n <- length(df)
     series.ts <- 
       ts(df,start = c(1, 1),
-         end = c(1, 228),
+         end = c(1, n),
          freq = 4)
     train.ts <-
       window(series.ts, end = c(1, (n - k) + (i - 1)))
@@ -362,50 +315,41 @@ fore_error_arima_ets <- function(df) {
     result_fore_ets[[length(result_fore_ets) + 1]] = as.data.frame(fore_ets$mean)
     result_fore_ets[result_fore_ets<0]<-0
     result_error_ets[[length(result_error_ets) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(fore_ets$mean))
-    pred_arima<-fore_arima$mean
-    pred_ets<-fore_ets$mean
-    result_fore_arima[[length(result_fore_arima) + 1]] = as.data.frame(pred_arima)
-    pred_arima[pred_arima<0]<-0
-    result_error_arima[[length(result_error_arima) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(pred_arima))
-    result_fore_ets[[length(result_fore_ets) + 1]] = as.data.frame(pred_ets)
-    pred_ets[pred_ets<0]<-0
-    result_error_ets[[length(result_error_ets) + 1]] = as.data.frame(as.numeric(valid.ts) - as.numeric(pred_ets))
-all-methods-without-log-scale
   }
   return(list(result_fore_arima, result_error_arima,result_fore_ets,result_error_ets))
 }
-forecast_error_arima_ets = lapply(List, fore_error_arima_ets) 
+forecast_error_arima_ets = lapply(List, ARIMAETSmodel) 
 ##### forecast arima
 List_forecast_arima <- list()
-for (i in 1:304) {
+for (i in 1:n.series) {
   List_forecast_arima[[length(List_forecast_arima) + 1]] = ldply (forecast_error_arima_ets[[i]][1], data.frame)
 }
 fore_arima<-unlist(List_forecast_arima)
-forecast_arima<-as.data.frame(matrix(fore_arima,nrow=12,ncol=304))
+forecast_arima<-as.data.frame(matrix(fore_arima,nrow=k,ncol=n.series))
 names(forecast_arima) <-as.vector(names(forecast_error_arima_ets))
 ## error arima
 List_error_arima <- list()
-for (i in 1:304) {
+for (i in 1:n.series) {
   List_error_arima[[length(List_error_arima) + 1]] = ldply (forecast_error_arima_ets[[i]][2], data.frame)
 }
 er_arima<-unlist(List_error_arima)
-error_arima<-as.data.frame(matrix(er_arima,nrow=12,ncol=304))
+error_arima<-as.data.frame(matrix(er_arima,nrow=k,ncol=n.series))
 names(error_arima) <-as.vector(names(forecast_error_arima_ets))
 ##### forecast ets
 List_forecast_ets <- list()
-for (i in 1:304) {
+for (i in 1:n.series) {
   List_forecast_ets[[length(List_forecast_ets) + 1]] = ldply (forecast_error_arima_ets[[i]][3], data.frame)
 }
 fore_ets<-unlist(List_forecast_ets)
-forecast_ets<-as.data.frame(matrix(fore_ets,nrow=12,ncol=304))
+forecast_ets<-as.data.frame(matrix(fore_ets,nrow=k,ncol=n.series))
 names(forecast_ets) <-as.vector(names(forecast_error_arima_ets))
 ## error ets
 List_error_ets <- list()
-for (i in 1:304) {
+for (i in 1:n.series) {
   List_error_ets[[length(List_error_ets) + 1]] = ldply (forecast_error_arima_ets[[i]][4], data.frame)
 }
 er_ets<-unlist(List_error_ets)
-error_ets<-as.data.frame(matrix(er_ets,nrow=12,ncol=304))
+error_ets<-as.data.frame(matrix(er_ets,nrow=k,ncol=n.series))
 names(error_ets) <-as.vector(names(forecast_error_arima_ets))
 ## saving results
 write.csv(forecast_arima,"forecast_arima.csv")
@@ -416,56 +360,36 @@ write.csv(error_ets,"error_ets.csv")
 #### OLS
 #########
 TourismData <-
-  read.csv("Long_TourismData.csv", header = TRUE)
-category_uni <- as.vector(TourismData$Category)
-lag_making <- list()
-for (i in seq_along(category_uni))
-  lag_making[[i]] <-
-  Lag(TourismData$Value[TourismData$Category == category_uni[i]], 1:4)
-lag_making <- do.call(rbind, lag_making)
-### dataset with lags
-TourismData <- cbind(TourismData, lag_making)
-TourismData <- na.omit(TourismData)
-List_OLS = split.data.frame(TourismData, TourismData$Category,drop = FALSE)
-error_forecast_OLS<- function(df) {
-  k <- 12
-  fore_result<-list()
-  error_result<-list()
-  for (i in 1:k) {
-    n <- nrow(df)
-    train.1 <- df[1:((n - k) + (i - 1)), ]
-    valid.1 <- df[(n - k) + i, ]
-    multiple_OLS_model <-
-      lm(Value ~ Trend + Seasonality + Lag.1 + Lag.2 + Lag.3 + Lag.4, data = train.1)
-    fore_multiple_OLS <-
-      predict.lm(multiple_OLS_model, newdata = valid.1)
-    fore_result[[length(fore_result)+1]]<-as.numeric(fore_multiple_OLS)
-    fore_multiple_OLS[fore_multiple_OLS<0]<-0
-    error_result[[length(error_result)+1]]<-valid.1$Value-as.numeric(fore_multiple_OLS)
+  read.csv("TourismData_v3.csv", header = TRUE)
+TourismData<-TourismData[,-c(1,2)]
+h<-12
+n<-nrow(TourismData)
+validation_set<-TourismData[((n-h)+1):n,]
+List_1 <- do.call(c, apply(TourismData, 2, list))
+OLSmodel<-function(X,freq,h){
+  trend<-seq(NROW(X))
+  season<-forecast::seasonaldummy(ts(X,frequency = freq))
+  Xlag<-quantmod::Lag(X,k=1:freq)
+  X_mat<-cbind.data.frame(X,trend,season,Xlag)
+  n <- nrow(X_mat)
+  fore_OLS<-matrix(NA,nrow = h,ncol=1)
+  for (i in 1:h) {
+    train.1 <- X_mat[1:((n - h) + (i - 1)), ]
+    valid.1 <- X_mat[(n - h) + i, ]
+    fit <- lm(X ~. , data = train.1)
+    fore <- predict.lm( fit , newdata = valid.1)
+    fore_OLS[i,]<-fore
   }
-  return(list(fore_result,error_result))
+  return(fore_OLS)
 }
 
-final_result_OLS <-
-  lapply(List_OLS, error_forecast_OLS)
-##### forecast results
-List_forecast_OLS <- list()
-for (i in 1:304) {
-  List_forecast_OLS[[length(List_forecast_OLS) + 1]] = ldply (final_result_OLS[[i]][1], data.frame)
-}
-fore_OLS<-unlist(List_forecast_OLS)
-forecast_OLS<-as.data.frame(matrix(fore_OLS,nrow=12,ncol=304))
-names(forecast_OLS) <-as.vector(names(final_result_OLS))
-## error 
-List_error_OLS <- list()
-for (i in 1:304) {
-  List_error_OLS[[length(List_error_OLS) + 1]] = ldply (final_result_OLS[[i]][2], data.frame)
-}
-er_OLS<-unlist(List_error_OLS)
-error_OLS<-as.data.frame(matrix(er_OLS,nrow=12,ncol=304))
-names(error_OLS) <-as.vector(names(final_result_OLS))
-## saving results
+result_fore_OLS<-as.data.frame(sapply(List_1, OLSmodel,freq=4,h=12))
+### matching two data frames order to calculate the errors
+#setDT(result_fore_OLS)
+forecast_OLS<-setcolorder(result_fore_OLS, names(validation_set))
 write.csv(forecast_OLS,"forecast_OLS.csv")
+forecast_OLS[forecast_OLS<0]<-0
+error_OLS<-validation_set-forecast_OLS
 write.csv(error_OLS,"error_OLS.csv")
 ```
 
@@ -552,7 +476,6 @@ ggplot() +
   geom_density(data = Long_RMSE_hierarchy, aes(x = (RMSE), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("log(RMSE)") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-10, 10)) +
   theme(
@@ -624,7 +547,6 @@ ggplot() +
   geom_density(data = Long_Error_hierarchy , aes(x = (Error), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("Error") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-50, 50)) +
   theme(
@@ -739,7 +661,6 @@ ggplot() +
   geom_density(data = Long_RMSE, aes(x = (RMSE), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("log(RMSE)") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-10, 10)) +
   theme(
@@ -810,7 +731,6 @@ ggplot() +
   geom_density(data = Long_Error, aes(x = (Error), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("Error") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-50, 50)) +
   theme(
@@ -916,7 +836,6 @@ ggplot() +
   geom_density(data = Long_RMSE_arima, aes(x = (RMSE), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("log(RMSE)") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-10, 10)) +
   theme(
@@ -948,7 +867,7 @@ ggplot() +
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
 
-RMSE_arima<-RMSE_hierarchy_arima[match(rownames(RMSE_arima), rownames(RMSE_hierarchy_arima)), ]
+RMSE_arima<-RMSE_arima[match(rownames(RMSE_arima), rownames(RMSE_hierarchy_arima)), ]
 subtract_hierarchy_arima_arima_RMSE<-as.data.frame(RMSE_arima$RMSE - RMSE_hierarchy_arima$RMSE)
 subtract_hierarchy_arima_arima_RMSE$Method<-"Sub-Hierarchy-arima-arima-RMSE"
 names(subtract_hierarchy_arima_arima_RMSE)<-c("sublog(RMSE)","Method")
@@ -976,7 +895,6 @@ ggplot() +
   geom_density(data = Long_Error_arima , aes(x = (Error), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("Error") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-50, 50)) +
   theme(
@@ -1052,7 +970,6 @@ ggplot() +
   geom_density(data = Long_RMSE_ets, aes(x = (RMSE), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("log(RMSE)") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-10, 10)) +
   theme(
@@ -1084,7 +1001,7 @@ ggplot() +
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
 
-RMSE_ets<-RMSE_hierarchy_ets[match(rownames(RMSE_ets), rownames(RMSE_hierarchy_ets)), ]
+RMSE_ets<-RMSE_ets[match(rownames(RMSE_ets), rownames(RMSE_hierarchy_ets)), ]
 subtract_hierarchy_ets_ets_RMSE<-as.data.frame(RMSE_ets$RMSE - RMSE_hierarchy_ets$RMSE)
 subtract_hierarchy_ets_ets_RMSE$Method<-"Sub-Hierarchy-ets-ets-RMSE"
 names(subtract_hierarchy_ets_ets_RMSE)<-c("sublog(RMSE)","Method")
@@ -1112,7 +1029,6 @@ ggplot() +
   geom_density(data = Long_Error_ets , aes(x = (Error), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("Error") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-50, 50)) +
   theme(
@@ -1187,7 +1103,6 @@ ggplot() +
   geom_density(data = Long_RMSE_OLS, aes(x = (RMSE), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("log(RMSE)") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-10, 10)) +
   theme(
@@ -1219,7 +1134,7 @@ ggplot() +
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
 
-RMSE_OLS<-RMSE_hierarchy_OLS[match(rownames(RMSE_OLS), rownames(RMSE_hierarchy_OLS)), ]
+RMSE_OLS<-RMSE_OLS[match(rownames(RMSE_OLS), rownames(RMSE_hierarchy_OLS)), ]
 subtract_hierarchy_OLS_OLS_RMSE<-as.data.frame(RMSE_OLS$RMSE - RMSE_hierarchy_OLS$RMSE)
 subtract_hierarchy_OLS_OLS_RMSE$Method<-"Sub-Hierarchy-OLS-OLS-RMSE"
 names(subtract_hierarchy_OLS_OLS_RMSE)<-c("sublog(RMSE)","Method")
@@ -1247,7 +1162,6 @@ ggplot() +
   geom_density(data = Long_Error_OLS , aes(x = (Error), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("Error") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-50, 50)) +
   theme(
@@ -1322,7 +1236,6 @@ ggplot() +
   geom_density(data = Long_RMSE_all, aes(x = (RMSE), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("log(RMSE)") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-10, 10)) +
   theme(
@@ -1358,7 +1271,6 @@ ggplot() +
   geom_density(data = Long_Error_all , aes(x = (Error), fill = Method), alpha =
                  0.4) +
   xlab("Method") + ylab("Error") +
-  #facet_wrap( ~ Method, ncol = 1) +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_bw() + xlim(c(-50, 50)) +
   theme(
