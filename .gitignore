@@ -3,6 +3,7 @@
 *.rdb
 *.rdx
 *.png
+*.Rmd
 
 Comparing-ARIMA-OLS-as-function-in-Hierarchy_cache/
 Comparing-ARIMA-OLS-as-function-in-Hierarchy_files/
