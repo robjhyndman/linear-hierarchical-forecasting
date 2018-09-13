@@ -3,12 +3,8 @@
 *.rdb
 *.rdx
 *.png
-*.Rmd
 
-Comparing-ARIMA-OLS-as-function-in-Hierarchy_cache/
-Comparing-ARIMA-OLS-as-function-in-Hierarchy_files/
-Comparing_ARIMA_ets_OLS_wikipedia_files/
-Comparing_ARIMA_ets_OLS_wikipedia_cache/ 
+
 
 # History files
 *.Rhistory

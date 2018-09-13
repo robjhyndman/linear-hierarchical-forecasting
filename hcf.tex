@@ -22,12 +22,13 @@
 \usepackage[unicode=true]{hyperref}
 \hypersetup{
             pdftitle={Improving forecasts with clustering and meta data},
-            pdfkeywords={blah, blah},
+            pdfkeywords={hierarchical forecasting, grouped forecasting, reconciled forecast,
+linear regression, \ldots{}},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
 \usepackage{geometry}
-\geometry{a4paper, text={16cm,24cm}}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
 \usepackage[style=authoryear-comp,]{biblatex}
 \addbibresource{references.bib}
 \usepackage{longtable,booktabs}
@@ -145,10 +146,9 @@
                 \Month~\Year\\[1cm]
                 Working Paper \@wp
         \end{center}}}
-\def\pageone{{\sffamily
-        \newpage%\blankpage
-        \thispagestyle{empty}
-        \vbox to 23cm{
+\def\pageone{{\sffamily\setstretch{1}%
+        \thispagestyle{empty}%
+        \vbox to \textheight{%
         \raggedright\baselineskip=1.2cm
      {\fontsize{24.88}{30}\sffamily\textbf{\expandafter{\@title}}}
         \vspace{2cm}\par
@@ -159,11 +159,11 @@
      \thispagestyle{plain}\raggedright\baselineskip=1.2cm
      {\fontsize{24.88}{30}\sffamily\textbf{\expandafter{\@title}}}\vspace{1cm}\par
         }}
-\def\titlepage{{\cover\newpage\setstretch{1}\pageone\newpage\blindtitle}}
+\def\titlepage{{\cover\newpage\pageone\newpage\blindtitle}}
 
 \def\blind{\def\titlepage{{\blindtitle}}\let\maketitle\blindtitle}
 \def\titlepageonly{\def\titlepage{{\pageone\end{document}}}}
-\def\nocover{\def\titlepage{{\newpage\setstretch{1}\pageone\newpage\blindtitle}}\let\maketitle\titlepage}
+\def\nocover{\def\titlepage{{\pageone\newpage\blindtitle}}\let\maketitle\titlepage}
 \let\maketitle\titlepage
 \makeatother
 
@@ -254,7 +254,7 @@
 \renewcommand*{\finalnamedelim}{%
   %\ifnumgreater{\value{liststop}}{2}{\finalandcomma}{}% there really should be no funny Oxford comma business here
   \addspace\&\space}
-  
+
 
 \wp{no/yr}
 \jel{C10,C14,C22}
@@ -278,17 +278,61 @@ Monash University, Clayton VIC 3800, Australia
 %% Any special functions or other packages can be loaded here.
 
 
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{proposition}{Proposition}[section]
+\theoremstyle{definition}
+\newtheorem{example}{Example}[section]
+\theoremstyle{definition}
+\newtheorem{exercise}{Exercise}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{solution}{Solution}
 \begin{document}
 \maketitle
 \begin{abstract}
 A brief summary of our ideas
 \end{abstract}
 \begin{keywords}
-blah, blah
+hierarchical forecasting, grouped forecasting, reconciled forecast,
+linear regression, \ldots{}
 \end{keywords}
 
+\section{Introduction}\label{introduction}
 
+\subsection{Hierarchical and grouped time
+series}\label{hierarchical-and-grouped-time-series}
 
-\printbibliography[title=Introduction]
+One of the consequences of increasing internet usage and life digitizing
+is increasing the amount of collected time series data. In some cases
+these time series data can be structured and disaggregated based on
+hierarchies or groups such as geographical location and gender. One
+example for hierarchical time series can be the amount of sales in
+restaurant chains which can be disaggregated into different branches and
+then foods or drinks.
+
+\subsection{Forecasting hierarchical and grouped time
+series}\label{forecasting-hierarchical-and-grouped-time-series}
+
+\subsection{Challenges and
+motivations}\label{challenges-and-motivations}
+
+\section{Proposed approach}\label{proposed-approach}
+
+\section{Applications}\label{applications}
+
+\subsection{Australian domestic tourism
+dataset}\label{australian-domestic-tourism-dataset}
+
+\subsection{Wikipedia pageview
+dataset}\label{wikipedia-pageview-dataset}
+
+\section{Conclusion}\label{conclusion}
+
+\printbibliography[title=Discussion and further research]
 
 \end{document}

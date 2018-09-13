@@ -11,7 +11,7 @@ author:
   address: Monash University, Clayton VIC 3800, Australia
   email: rob.hyndman@monash.edu
 abstract: "A brief summary of our ideas"
-keywords: "blah, blah"
+keywords: "hierarchical forecasting, grouped forecasting, reconciled forecast, linear regression, ..."
 wpnumber: no/yr
 jelcodes: C10,C14,C22
 blind: false
@@ -41,4 +41,28 @@ library(ggplot2)
 
 
 # Introduction
+
+## Hierarchical and grouped time series
+
+One of the consequences of increasing internet usage and life digitizing is increasing the amount of collected time series data. In some cases these time series data can be structured and disaggregated based on hierarchies or groups such as geographical location and gender. One example for hierarchical time series can be the amount of sales in restaurant chains which can be disaggregated into different branches and then foods or drinks. 
+
+## Forecasting hierarchical and grouped time series
+
+## Challenges and motivations
+
+# Proposed approach
+
+# Applications
+
+## Australian domestic tourism dataset
+
+## Wikipedia pageview dataset
+
+# Conclusion
+
+# Discussion and further research
+
+
+
+
 
