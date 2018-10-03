@@ -9,6 +9,8 @@ ausgts <- gts(aus, characters = list(c(1, 1, 1), 3),
                          "State x Purpose", "Zone x Purpose"))
 clusters_<-read.csv("Cluster_Tourism.csv",header = TRUE)
 clusters<-as.vector(clusters_$Cluster)
+# Recode clusters so they are ordered
+clusters <- as.numeric(factor(clusters, levels=unique(clusters)))
 ausgts$groups<-rbind(ausgts$groups[1:7,],Clusters=clusters,Bottom=ausgts$groups[8,])
 class(ausgts$groups) <- "gmatrix"
 ausgts$labels$Clusters<-paste("Cluster/",1:6)
