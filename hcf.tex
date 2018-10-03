@@ -34,6 +34,15 @@ linear regression, \ldots{}},
 \usepackage{longtable,booktabs}
 % Fix footnotes in tables (requires footnote package)
 \IfFileExists{footnote.sty}{\usepackage{footnote}\makesavenoteenv{long table}}{}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 \IfFileExists{parskip.sty}{%
 \usepackage{parskip}
 }{% else
@@ -304,32 +313,173 @@ linear regression, \ldots{}
 
 \section{Introduction}\label{introduction}
 
-\subsection{Hierarchical and grouped time
-series}\label{hierarchical-and-grouped-time-series}
+\subsection{Hierarchical time series}\label{hierarchical-time-series}
 
 One of the consequences of increasing internet usage and life digitizing
 is increasing the amount of collected time series data. In some cases
-these time series data can be structured and disaggregated based on
+these time series can be structured and disaggregated based on
 hierarchies or groups such as geographical location and gender. One
 example for hierarchical time series can be the amount of sales in
 restaurant chains which can be disaggregated into different branches and
-then foods or drinks.
+then foods or drinks. You can check a visualizing example of these time
+series structure in figure @ref(fig:example of hierarchy structure). In
+this example the hierarchy includes three levels. Top level, level 0, is
+the total series which is the aggregation of all the bottom level
+series, the middle level, level 1, series are aggregation of their own
+bottom level series for instance series A is the aggregation of AA and
+AB and finally the bottom level , level 2, series which includes the
+most disaggregated series.
+
+\includegraphics{Paper-Figures/hierarchical_example.jpg}\{\#fig:example
+of hierarchy structure\}
 
 \subsection{Forecasting hierarchical and grouped time
 series}\label{forecasting-hierarchical-and-grouped-time-series}
 
+For hierarchical or grouped time series ignoring the hierarchy or
+grouping structure and finding forecasts for all the series can result
+low accuracy level. Since the most disaggregated or bottom level series
+are highly noisy and then their forecasting results are not that
+accurate. On the other hand, the most aggregated or total series, is
+smoother and less noisy though forecasting them is easier
+\autocite{fliedner2001hierarchical}.
+
+In literature there are some methods which consider hierarchy structure
+information in forecasting time series including top-down
+\autocite{gross1990disaggregation}, bottom-up
+\autocite{kahn1998revisiting}, middle-out and optimal combination
+\autocite{hyndman2011optima} approaches. In top-down approach we first
+forecast the total series and then disaggregate the forecast to bottom
+level series based on a set of historical and forecasted proportions (
+details about proportions in \textcite{athanasopoulos2009hierarchical}).
+In bottom-up approach the forecasts in each level of hierarchy can be
+computed using aggregating the bottom level series forecast. In
+middle-out approach, the process can be started from one of the middle
+levels and other forecasted can be computed using aggregation for upper
+levels and disaggregation for lower levels. Finally optimal combination
+uses all the base forecasts, forecasts for all the series in the whole
+hierarchy structure, then applies some regression models to reconcile
+those base forecasts. The advantage of the latest methods in compare
+with other methods is that it considers the correlation among the series
+in all the levels of hierarchy.
+
 \subsection{Challenges and
 motivations}\label{challenges-and-motivations}
+
+In optimal combination approach we need to compute the base forecast for
+all the series first.
 
 \section{Proposed approach}\label{proposed-approach}
 
 \section{Applications}\label{applications}
 
+In this section we are illustrating our approach and its results using
+two examples, Australian domestic tourism and Wikipedia pageview
+datasets. We are also comparing the forecasting accuracy levels among
+our method, ETS and ARIMA with and without reconciliation effect on
+forecasting.
+
 \subsection{Australian domestic tourism
 dataset}\label{australian-domestic-tourism-dataset}
 
+This dataset is 19 years (1998-2017) quarterly and measured by
+Australians visitor nights spend away from home collected each month
+\autocite{wickramasuriya2018optimal}. In total this dataset includes 304
+time series with length 228. The hierarchy and grouping structure for
+this dataset is made using geographical and purpose information. In this
+dataset we have three levels geographical division for Australia. In the
+first level Australia was divided into seven `State' including New South
+Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA),
+Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In
+the second and third levels its divided into 27 `Zone' and 76 `Region'
+(details about Australia geographical division in Table
+@ref(Australia\_geographical\_division)). Also for `Purpose' we provided
+with four groups: Holiday (Hol), Visiting (Vis), Business (Bis) and
+Others (Oth).
+
+\begin{longtable}[]{@{}crccrc@{}}
+\toprule
+Series & Name & Lable & Series & Name & Lable\tabularnewline
+\midrule
+\endhead
+Total & & & Region & &\tabularnewline
+1 & Australia & Total & 55 & Lakes & BCA\tabularnewline
+State & & & 56 & Gippsland & BCB\tabularnewline
+2 & NSW & A & 57 & Phillip Island & BCC\tabularnewline
+3 & VIC & B & 58 & General Murray & BDA\tabularnewline
+4 & QLD & C & 59 & Goulburn & BDB\tabularnewline
+5 & SA & D & 60 & High Country & BDC\tabularnewline
+6 & WA & E & 61 & Merbourne East & BDD\tabularnewline
+7 & TAS & F & 62 & Upper Yarra & BDE\tabularnewline
+8 & NT & G & 63 & Murray East & BDF\tabularnewline
+Zone & & & 64 & Wimmera+Mallee & BEA\tabularnewline
+9 & Metro NSW & AA & 65 & Western Grampians & BEB\tabularnewline
+10 & Nth Coast NSW & AB & 66 & Bendigo Loddon & BEC\tabularnewline
+11 & Sth Coast NSW & AC & 67 & Macedon & BED\tabularnewline
+12 & Sth NSW & AD & 68 & Spa Country & BEE\tabularnewline
+13 & Nth NSW & AE & 69 & Ballarat & BEF\tabularnewline
+14 & ACT & AF & 70 & Central Highlands & BEG\tabularnewline
+15 & Metro VIC & BA & 71 & Gold Coast & CAA\tabularnewline
+16 & West Coast VIC & BB & 72 & Brisbane & CAB\tabularnewline
+17 & East Coast VIC & BC & 73 & Sunshine Coast & CAC\tabularnewline
+18 & Nth East VIC & BD & 74 & Central Queensland & CBA\tabularnewline
+19 & Nth West VIC & BE & 75 & Bundaberg & CBB\tabularnewline
+20 & Metro QLD & CA & 76 & Fraser Coast & CBC\tabularnewline
+21 & Central Coast QLD & CB & 77 & Mackay & CBD\tabularnewline
+22 & Nth Coast QLD & CC & 78 & Whitsundays & CCA\tabularnewline
+23 & Inland QLD & CD & 79 & Northern & CCB\tabularnewline
+24 & Metro SA & DA & 80 & Tropical North Queensland & CCC\tabularnewline
+25 & Sth Coast SA & DB & 81 & Darling Downs & CDA\tabularnewline
+26 & Inland SA & DC & 82 & Outback & CDB\tabularnewline
+27 & West Coast SA & DD & 83 & Adelaide & DAA\tabularnewline
+28 & West Coast WA & EA & 84 & Barrosa & DAB\tabularnewline
+29 & Nth WA & EB & 85 & Adelaide Hills & DAC\tabularnewline
+30 & Sth WA & EC & 86 & Limestone Coast & DBA\tabularnewline
+31 & Sth TAS & FA & 87 & Fleurieu Peninsula & DBB\tabularnewline
+32 & Nth East TAS & FB & 88 & Kangaroo Island & DBC\tabularnewline
+33 & Nth West TAS & FC & 89 & Murraylands & DCA\tabularnewline
+34 & Nth Coast NT & GA & 90 & Riverland & DCB\tabularnewline
+35 & Central NT & GB & 91 & Clare Valley & DCC\tabularnewline
+Region & & & 92 & Flinders Range and Outback & DCD\tabularnewline
+36 & Sydney & AAA & 93 & Eyre Peninsula & DDA\tabularnewline
+37 & Central Coast & AAB & 94 & Yorke Peninsula & DDB\tabularnewline
+38 & Hunter & ABA & 95 & Australia's Coral Coast & EAA\tabularnewline
+39 & North Coast NSW & ABB & 96 & Experience Perth & EAB\tabularnewline
+40 & Northern Rivers Tropical NSW & ABC & 97 & Australia's SouthWest &
+EAC\tabularnewline
+41 & South Coast & ACA & 98 & Australia's North West &
+EBA\tabularnewline
+42 & Snowy Mountains & ADA & 99 & Australia's Golden Outback &
+ECA\tabularnewline
+43 & Capital Country & ADB & 100 & Hobart and the South &
+FAA\tabularnewline
+44 & The Murray & ADC & 101 & East Coast & FBA\tabularnewline
+45 & Riverina & ADD & 102 & Launceston, Tamar and the North &
+FBB\tabularnewline
+46 & Central NSW & AEA & 103 & North West & FCA\tabularnewline
+47 & New England North West & AEB & 104 & Wilderness West &
+FCB\tabularnewline
+48 & Outback NSW & AEC & 105 & Darwin & GAA\tabularnewline
+49 & Blue Mountains & AED & 106 & Kakadu Arnhem & GAB\tabularnewline
+50 & Canberra & AFA & 107 & Katherine Daly & GAC\tabularnewline
+51 & Melbourne & BAA & 108 & Barkly & GBA\tabularnewline
+52 & Peninsula & BAB & 109 & Lasseter & GBB\tabularnewline
+53 & Geelong & BAc & 110 & Alice Springs & GBC\tabularnewline
+54 & Western & BBA & 111 & MacDonnell & GBD\tabularnewline
+\bottomrule
+\end{longtable}
+
 \subsection{Wikipedia pageview
 dataset}\label{wikipedia-pageview-dataset}
+
+The second dataset is one year daily data (2016-06-01 to 2017-06-29)
+consists of a collection of Wikipedia pageviews time series for the most
+popular social networks articles \autocite[.]{Ashouri}. Its grouping
+attributes are `Agent': Spider, User, `Access': Desktop, Mobile app,
+Mobile web, `Purpose': Blogging related, Business, Gaming, General
+purpose, Life style, Photo sharing, Reunion, Travel, Video and
+`Language': en (English), de (German), es (Spanish), zh (Chinese). The
+final dataset includes 913 time series, each with length 394.
 
 \section{Conclusion}\label{conclusion}
 

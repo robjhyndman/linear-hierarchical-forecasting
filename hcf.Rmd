@@ -31,38 +31,73 @@ output:
     citation_package: biblatex
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE,message=FALSE}
 knitr::opts_chunk$set(echo = FALSE, cache=TRUE, messages=FALSE, warning=FALSE)
 # Make sure you have the latest version of rmarkdown and bookdown
 #devtools::install_github("rstudio/rmarkdown")
 #devtools::install_github("rstudio/bookdown")
 library(ggplot2)
+library(knitr)
+library(kableExtra)
+#devtools::install_github("haozhu233/kableExtra")
+
 ```
 
 
 # Introduction
 
-## Hierarchical and grouped time series
+## Hierarchical time series
 
-One of the consequences of increasing internet usage and life digitizing is increasing the amount of collected time series data. In some cases these time series data can be structured and disaggregated based on hierarchies or groups such as geographical location and gender. One example for hierarchical time series can be the amount of sales in restaurant chains which can be disaggregated into different branches and then foods or drinks. 
+One of the consequences of increasing internet usage and life digitizing is increasing the amount of collected time series data. In some cases these time series can be structured and disaggregated based on hierarchies or groups such as geographical location and gender. One example for hierarchical time series can be the amount of sales in restaurant chains which can be disaggregated into different branches and then foods or drinks. You can check a visualizing example of these time series structure in figure \@ref(fig:example of hierarchy structure). In this example the hierarchy includes three levels. Top level, level 0, is the total series which is the aggregation of all the bottom level series, the middle level, level 1, series are aggregation of their own bottom level series for instance series A is the aggregation of AA and AB and finally  the bottom level , level 2, series which includes the most disaggregated series. 
+
+![An example of two level hierarchy structure](Paper-Figures/hierarchical_example.jpg){#fig:example of hierarchy structure}
 
 ## Forecasting hierarchical and grouped time series
 
+For hierarchical or grouped time series ignoring the hierarchy or grouping structure and finding forecasts for all the series can result low accuracy level. Since the most disaggregated or bottom level series are highly noisy and then their forecasting results are not that accurate. On the other hand, the most aggregated or total series, is smoother and less noisy though forecasting them is easier [@fliedner2001hierarchical]. 
+
+In literature there are some methods which consider hierarchy structure information in forecasting time series including top-down [@gross1990disaggregation], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optima] approaches. In top-down approach we first forecast the total series and then disaggregate the forecast to bottom level series based on a set of historical and forecasted proportions ( details about proportions in @athanasopoulos2009hierarchical). In bottom-up approach the forecasts in each level of hierarchy can be computed using aggregating the bottom level series forecast. In middle-out approach, the process can be started from one of the middle levels and other forecasted can be computed using aggregation for upper levels and disaggregation for lower levels. Finally optimal combination uses all the base forecasts, forecasts for all the series in the whole hierarchy structure, then applies some regression models to reconcile those base forecasts. The advantage of the latest methods in compare with other methods is that it considers the correlation among the series in all the levels of hierarchy.     
+
 ## Challenges and motivations
+
+In optimal combination approach we need to compute the base forecast for all the series first. 
 
 # Proposed approach
 
 # Applications
 
+In this section we are illustrating our approach and its results using two examples, Australian domestic tourism and Wikipedia pageview datasets. We are also comparing the forecasting accuracy levels among our method, ETS and ARIMA with and without reconciliation effect on forecasting. 
+
 ## Australian domestic tourism dataset
 
+This dataset is 19 years (1998-2017) quarterly and measured by Australians visitor nights spend away from home collected each month [@wickramasuriya2018optimal]. In total this dataset includes 304 time series with length 228. The hierarchy and grouping structure for this dataset is made using geographical and purpose information. In this dataset we have three levels geographical division for Australia. In the first level Australia was divided into seven 'State' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels its divided into 27 'Zone' and 76 'Region' (details about Australia geographical division in Table \@ref(Australia_geographical_division)). Also for 'Purpose' we provided with four groups: Holiday (Hol), Visiting (Vis), Business (Bis) and Others (Oth).    
+
+```{r  Australia_geographical_division, echo=FALSE, message = FALSE, results='asis',cache=TRUE, fig.cap='Australia geographical hierarchy structure'}
+
+table1<-matrix(NA,nrow=58,ncol=6)
+
+colnames(table1)<-c("Series","Name","Lable","Series","Name","Lable")
+
+table1[,1]<-c("Total","1","State","2","3","4","5","6","7","8","Zone","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","Region","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54")
+
+table1[,2]<-c("","Australia","","NSW","VIC","QLD","SA","WA","TAS","NT","","Metro NSW","Nth Coast NSW","Sth Coast NSW","Sth NSW","Nth NSW","ACT","Metro VIC","West Coast VIC","East Coast VIC","Nth East VIC","Nth West VIC","Metro QLD","Central Coast QLD","Nth Coast QLD","Inland QLD","Metro SA","Sth Coast SA","Inland SA","West Coast SA","West Coast WA","Nth WA","Sth WA","Sth TAS","Nth East TAS","Nth West TAS","Nth Coast NT","Central NT","","Sydney","Central Coast","Hunter","North Coast NSW","Northern Rivers Tropical NSW","South Coast","Snowy Mountains","Capital Country","The Murray","Riverina","Central NSW","New England North West","Outback NSW","Blue Mountains","Canberra","Melbourne","Peninsula","Geelong","Western")
+
+table1[,3]<-c("","Total","","A","B","C","D","E","F","G","","AA","AB","AC","AD","AE","AF","BA","BB","BC","BD","BE","CA","CB","CC","CD","DA","DB","DC","DD","EA","EB","EC","FA","FB","FC","GA","GB","","AAA","AAB","ABA","ABB","ABC","ACA","ADA","ADB","ADC","ADD","AEA","AEB","AEC","AED","AFA","BAA","BAB","BAc","BBA")
+
+table1[,4]<-c("Region","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109","110","111")
+
+table1[,5]<-c("","Lakes","Gippsland","Phillip Island","General Murray","Goulburn","High Country","Merbourne East","Upper Yarra","Murray East","Wimmera+Mallee","Western Grampians","Bendigo Loddon","Macedon","Spa Country","Ballarat","Central Highlands","Gold Coast","Brisbane","Sunshine Coast","Central Queensland","Bundaberg","Fraser Coast","Mackay","Whitsundays","Northern","Tropical North Queensland","Darling Downs","Outback","Adelaide","Barrosa","Adelaide Hills","Limestone Coast","Fleurieu Peninsula","Kangaroo Island","Murraylands","Riverland","Clare Valley","Flinders Range and Outback","Eyre Peninsula","Yorke Peninsula","Australia's Coral Coast","Experience Perth","Australia's SouthWest","Australia's North West","Australia's Golden Outback","Hobart and the South","East Coast","Launceston, Tamar and the North","North West","Wilderness West","Darwin","Kakadu Arnhem","Katherine Daly","Barkly","Lasseter","Alice Springs","MacDonnell")
+
+table1[,6]<-c("","BCA","BCB","BCC","BDA","BDB","BDC","BDD","BDE","BDF","BEA","BEB","BEC","BED","BEE","BEF","BEG","CAA","CAB","CAC","CBA","CBB","CBC","CBD","CCA","CCB","CCC","CDA","CDB","DAA","DAB","DAC","DBA","DBB","DBC","DCA","DCB","DCC","DCD","DDA","DDB","EAA","EAB","EAC","EBA","ECA","FAA","FBA","FBB","FCA","FCB","GAA","GAB","GAC","GBA","GBB","GBC","GBD")
+
+kable(table1, align =c('c','r','c','c','r','c'),format = "pandoc")
+
+```
+
 ## Wikipedia pageview dataset
+
+The second dataset is one year daily data (2016-06-01 to 2017-06-29) consists of a collection of Wikipedia pageviews time series for the most popular social networks articles [@Ashouri....]. Its grouping attributes are 'Agent': Spider, User, 'Access': Desktop, Mobile app, Mobile web, 'Purpose': Blogging related, Business, Gaming, General purpose, Life style, Photo sharing, Reunion, Travel, Video and 'Language': en (English), de (German), es (Spanish), zh (Chinese). The final dataset includes 913 time series, each with length 394.  
 
 # Conclusion
 
 # Discussion and further research
-
-
-
-
-
