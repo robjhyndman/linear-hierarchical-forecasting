@@ -497,9 +497,9 @@ computed by Equation \eqref{eq:reconciledcoefficients}.
 
 As an example for the \(\mathbf{X}\) matrix in Equation
 \eqref{eq:linearmodel}, we can refer the set of predictors proposed in
-\textcite{Ashourietal}\ldots{} In this paper they suggested using linear
-trend, dummy seasonality and time series lags as a set of predictors in
-linear model to forecast large collection of time series. Equation
+\textcite{ashouri2018} In this paper they suggested using linear trend,
+dummy seasonality and time series lags as a set of predictors in linear
+model to forecast large collection of time series. Equation
 \eqref{eq:linearmodelexample} shows this linear equation where \(y_t\)
 represent series at time \(t\), and \(Season_j\) is a dummy variable
 taking value 1 if time \(j\) is in season \(j\). Further, \(y_{t-j}\) is
@@ -811,9 +811,9 @@ in computation time.
 \cmidrule(l{2pt}r{2pt}){2-3} \cmidrule(l{2pt}r{2pt}){4-5}
  & Unreconciled & Reconciled & Unreconciled & Reconciled\\
 \midrule
-ets & 11688.28 & 11688.46 & 683.49 & 682.33\\
-ARIMA & 50409.26 & 50409.79 & 2700.84 & 2701.03\\
-OLS & 72.12 & 74.41 & 45.33 & 45.45\\
+ets & 10924.57 & 10924.60 & 407.10 & 407.15\\
+ARIMA & 31146.38 & 31146.52 & 1116.15 & 1116.19\\
+OLS & 48.40 & 48.31 & 16.66 & 16.85\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -823,18 +823,18 @@ dataset}\label{wikipedia-pageview-dataset}
 
 The second dataset is one year daily data (2016-06-01 to 2017-06-29)
 consists of a collection of Wikipedia pageviews time series for the most
-popular social networks articles \autocite[.]{Ashourietal}. This dataset
-is noisier in compare with the first one and forecasting its series
-would be more challenging. Its grouping attributes are `Agent': Spider,
-User, `Access': Desktop, Mobile app, Mobile web, `Language': en
-(English), de (German), es (Spanish), zh (Chinese) and `Purpose':
-Blogging related, Business, Gaming, General purpose, Life style, Photo
-sharing, Reunion, Travel, Video (check Table
-\ref{tab:wikipediagroupingstructure}). The final dataset includes 913
-time series, each with length 394. The group structure, different
-levels, which will be used in the tables ad figures in this example
-includes level0 = Total, level1 = Agent, level2 = Access, level3 =
-Language, level4 = Purpose and level5 = bottom level series.\\
+popular social networks articles \autocite{ashouri2018}. This dataset is
+noisier in compare with the first one and forecasting its series would
+be more challenging. Its grouping attributes are `Agent': Spider, User,
+`Access': Desktop, Mobile app, Mobile web, `Language': en (English), de
+(German), es (Spanish), zh (Chinese) and `Purpose': Blogging related,
+Business, Gaming, General purpose, Life style, Photo sharing, Reunion,
+Travel, Video (check Table \ref{tab:wikipediagroupingstructure}). The
+final dataset includes 913 time series, each with length 394. The group
+structure, different levels, which will be used in the tables ad figures
+in this example includes level0 = Total, level1 = Agent, level2 =
+Access, level3 = Language, level4 = Purpose and level5 = bottom level
+series.\\
 For this daily dataset we have linear trend, 7 seasonal dummies and 7
 time series lags in our predictor matrix.
 
@@ -980,9 +980,9 @@ reconciliation step cause not any tangible effect in computation time.
 \cmidrule(l{2pt}r{2pt}){2-3} \cmidrule(l{2pt}r{2pt}){4-5}
  & Unreconciled & Reconciled & Unreconciled & Reconciled\\
 \midrule
-ets & 13979.12 & 13979.25 & 654.15 & 654.26\\
-ARIMA & 21168.05 & 21168.25 & 690.90 & 690.92\\
-OLS & 84.29 & 83.94 & 43.89 & 43.97\\
+ets & 13963.93 & 13963.96 & 450.89 & 450.92\\
+ARIMA & 10327.02 & 10327.15 & 670.40 & 670.44\\
+OLS & 82.55 & 82.62 & 35.39 & 35.43\\
 \bottomrule
 \end{tabular}
 \end{table}

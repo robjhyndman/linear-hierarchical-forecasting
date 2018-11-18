@@ -19,6 +19,38 @@
 
 \refsection{0}
   \datalist[entry]{nyt/global//global/global}
+    \entry{ashouri2018}{article}{}
+      \name{author}{2}{}{%
+        {{hash=8d486bcd77d592534900c01f4f917056}{%
+           family={Ashouri\bibnamedelima M},
+           familyi={A\bibinitperiod\bibinitdelim M\bibinitperiod},
+           given={Shmueli\bibnamedelima G},
+           giveni={S\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+        {{hash=75dc041a2b20f2cdefe55fb27799b8a0}{%
+           family={Y},
+           familyi={Y\bibinitperiod},
+           given={Sin\bibnamedelima C},
+           giveni={S\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Vienna, Austria}%
+      }
+      \strng{namehash}{4a90dff3d8f53a0fd1c7cd9239219e65}
+      \strng{fullhash}{4a90dff3d8f53a0fd1c7cd9239219e65}
+      \strng{bibnamehash}{4a90dff3d8f53a0fd1c7cd9239219e65}
+      \strng{authorbibnamehash}{4a90dff3d8f53a0fd1c7cd9239219e65}
+      \strng{authornamehash}{4a90dff3d8f53a0fd1c7cd9239219e65}
+      \strng{authorfullhash}{4a90dff3d8f53a0fd1c7cd9239219e65}
+      \field{sortinit}{A}
+      \field{sortinithash}{d77c7cdd82ff690d4c3ef13216f92f0b}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the 2018 Data Science, Statistics \& Visualization (DSSV)}
+      \field{title}{Clustering time series by domain-relevant features using model-based trees}
+      \field{year}{2018}
+    \endentry
     \entry{athanasopoulos2009hierarchical}{article}{}
       \name{author}{3}{}{%
         {{hash=95cfbf5a8396e08b434cc6f7f5b18dc8}{%
@@ -126,6 +158,46 @@
       \field{year}{1990}
       \field{pages}{233\bibrangedash 254}
       \range{pages}{22}
+    \endentry
+    \entry{hyndman2015hts}{article}{}
+      \name{author}{4}{}{%
+        {{hash=2f709db8a046ae1d056e75c1f3aad31c}{%
+           family={Hyndman},
+           familyi={H\bibinitperiod},
+           given={Rob\bibnamedelima J},
+           giveni={R\bibinitperiod\bibinitdelim J\bibinitperiod}}}%
+        {{hash=f22236c5bf7360a5e2fa68b02acb440b}{%
+           family={Ahmed},
+           familyi={A\bibinitperiod},
+           given={Roman\bibnamedelima A},
+           giveni={R\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=b04e2dfce5c6209480039ee24f93c954}{%
+           family={Shang},
+           familyi={S\bibinitperiod},
+           given={Han\bibnamedelima Lin},
+           giveni={H\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=b34333e5f9c0f67666147aff986b29ef}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={E},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{ccc2789bf08f9c87acbe5bd693e108ea}
+      \strng{fullhash}{7735052362366201902c4c1030dd8111}
+      \strng{bibnamehash}{7735052362366201902c4c1030dd8111}
+      \strng{authorbibnamehash}{7735052362366201902c4c1030dd8111}
+      \strng{authornamehash}{ccc2789bf08f9c87acbe5bd693e108ea}
+      \strng{authorfullhash}{7735052362366201902c4c1030dd8111}
+      \field{sortinit}{H}
+      \field{sortinithash}{5f15a7bc777ad49ff15aa4d2831b1681}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{year}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{R package version}
+      \field{title}{hts: Hierarchical and grouped time series}
+      \field{volume}{4}
+      \field{year}{2015}
     \endentry
     \entry{hyndman2016fast}{article}{}
       \name{author}{3}{}{%
@@ -268,7 +340,6 @@
       \range{pages}{45}
     \endentry
   \enddatalist
-  \missing{Ashourietal}
   \missing{hyndman2011optima}
 \endrefsection
 \endinput

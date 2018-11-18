@@ -2008,12 +2008,14 @@
     <bcf:citekey order="10">athanasopoulos2009hierarchical</bcf:citekey>
     <bcf:citekey order="11">hyndman2016fast</bcf:citekey>
     <bcf:citekey order="12">hyndman2015hts</bcf:citekey>
+    <bcf:citekey order="13">hyndman2015hts</bcf:citekey>
     <bcf:citekey order="14">team2013r</bcf:citekey>
     <bcf:citekey order="15">team2013r</bcf:citekey>
-    <bcf:citekey order="16">Ashourietal</bcf:citekey>
+    <bcf:citekey order="16">ashouri2018</bcf:citekey>
+    <bcf:citekey order="17">ashouri2018</bcf:citekey>
     <bcf:citekey order="18">wickramasuriya2018optimal</bcf:citekey>
     <bcf:citekey order="19">wickramasuriya2018optimal</bcf:citekey>
-    <bcf:citekey order="20">Ashourietal</bcf:citekey>
+    <bcf:citekey order="20">ashouri2018</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="nyt">
