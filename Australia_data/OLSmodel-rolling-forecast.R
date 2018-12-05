@@ -113,9 +113,9 @@ dimnames(fc.OLS.base) <- list(
 for(i in seq(NCOL(ally)))
 {
   # OLS forecasts
-  fc.OLS.base[,i,"OLS"] <- OLSmodel(ally[,i],12,4,24)
+  fc.OLS.base[,i,"OLS"] <- OLSmodel(ally[,i],12,12,24)
   # OLS forecasts using logs
-  fc.OLS.base[,i,"OLSlog"] <- exp(OLSmodel(log(ally[,i]+1),12,4,24))-1
+  fc.OLS.base[,i,"OLSlog"] <- exp(OLSmodel(log(ally[,i]+1),12,12,24))-1
 }
 ### setting negative base forecasts zero
 fc.OLS.base[fc.OLS.base<0]<-0
@@ -144,9 +144,9 @@ dimnames(fc.OLS.un) <- list(
 for(i in seq(NCOL(TourismData)))
 {
   # OLS forecasts
-  fc.OLS.un[,i,"OLS","unreconciled"] <- OLSmodel(TourismData[,i],12,4,24)
+  fc.OLS.un[,i,"OLS","unreconciled"] <- OLSmodel(TourismData[,i],12,12,24)
   # OLS forecasts using logs
-  fc.OLS.un[,i,"OLSlog","unreconciled"] <- exp(OLSmodel(log(TourismData[,i]+1),12,4,24))-1
+  fc.OLS.un[,i,"OLSlog","unreconciled"] <- exp(OLSmodel(log(TourismData[,i]+1),12,12,24))-1
 }
 ## combining OLS arrays
 fc.OLS<-abind::abind(fc.OLS.rec,fc.OLS.un)

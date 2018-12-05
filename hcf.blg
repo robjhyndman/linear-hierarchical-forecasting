@@ -1,17 +1,15 @@
 [0] Config.pm:304> INFO - This is Biber 2.12
 [2] Config.pm:307> INFO - Logfile is 'hcf.blg'
-[44] biber-MSWIN32:315> INFO - === 
-[171] Biber.pm:371> INFO - Reading 'hcf.bcf'
-[307] Biber.pm:889> INFO - Found 10 citekeys in bib section 0
-[356] Biber.pm:4093> INFO - Processing section 0
-[390] Biber.pm:4254> INFO - Looking for bibtex format file 'references.bib' for section 0
-[446] bibtex.pm:1523> INFO - LaTeX decoding ...
-[491] bibtex.pm:1340> INFO - Found BibTeX data source 'references.bib'
-[598] Utils.pm:193> WARN - I didn't find a database entry for 'hyndman2011optima' (section 0)
-[625] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
-[626] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
-[626] Biber.pm:3921> INFO - Sorting list 'nyt/global//global/global' of type 'entry' with template 'nyt' and locale 'en-US'
-[627] Biber.pm:3927> INFO - No sort tailoring available for locale 'en-US'
-[649] bbl.pm:636> INFO - Writing 'hcf.bbl' with encoding 'UTF-8'
-[659] bbl.pm:739> INFO - Output to hcf.bbl
-[660] Biber.pm:110> INFO - WARNINGS: 1
+[47] biber-MSWIN32:315> INFO - === 
+[184] Biber.pm:371> INFO - Reading 'hcf.bcf'
+[312] Biber.pm:889> INFO - Found 14 citekeys in bib section 0
+[358] Biber.pm:4093> INFO - Processing section 0
+[376] Biber.pm:4254> INFO - Looking for bibtex format file 'references.bib' for section 0
+[428] bibtex.pm:1523> INFO - LaTeX decoding ...
+[471] bibtex.pm:1340> INFO - Found BibTeX data source 'references.bib'
+[616] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[616] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[617] Biber.pm:3921> INFO - Sorting list 'nyt/global//global/global' of type 'entry' with template 'nyt' and locale 'en-US'
+[617] Biber.pm:3927> INFO - No sort tailoring available for locale 'en-US'
+[634] bbl.pm:636> INFO - Writing 'hcf.bbl' with encoding 'UTF-8'
+[648] bbl.pm:739> INFO - Output to hcf.bbl
