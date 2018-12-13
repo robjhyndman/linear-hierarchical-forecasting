@@ -2,8 +2,12 @@
 
 *.rdb
 *.rdx
-*.png
-
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.out
+*.run.xml
 
 
 # History files
@@ -42,3 +46,4 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+.Rproj.user
