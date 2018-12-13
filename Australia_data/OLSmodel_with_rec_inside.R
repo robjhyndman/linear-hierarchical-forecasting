@@ -11,11 +11,11 @@ OLSmodel.rec.com<-function(X,freq,maxlag,h,g){
     season<-forecast::seasonaldummy(ts(Y,frequency = freq))
     if(maxlag>0)
     {
-      Xlag<-quantmod::Lag(X,k=1:maxlag)
-      X_mat<-cbind.data.frame(X,trend,season,Xlag)
+      Xlag<-quantmod::Lag(Y,k=1:maxlag)
+      X_mat<-cbind.data.frame(Y,trend,season,Xlag)
     }
     else
-      X_mat<-cbind.data.frame(X,trend,season)
+      X_mat<-cbind.data.frame(Y,trend,season)
     n <- nrow(X_mat)
     fore_base_OLS<-matrix(NA,nrow = h,ncol=1)
     for (i in 1:h) 
@@ -28,8 +28,8 @@ OLSmodel.rec.com<-function(X,freq,maxlag,h,g){
      }
    fc[,j]<-pmax(fore_base_OLS,0)
   }
-  colnames(fore_base_total)<-colnames(X)
-  fc.rec<-combinef(fore_base_total, groups=g)$bts
+  colnames(fc)<-colnames(X)
+  fc.rec<-combinef(fc, groups=g)$bts
   return(fc.rec)
 }
 
@@ -49,11 +49,11 @@ OLSmodel.rec<-function(X,freq,maxlag,h,g){
     season<-forecast::seasonaldummy(ts(X,frequency = freq))
     if(maxlag>0)
     {
-      Xlag<-quantmod::Lag(X,k=1:maxlag)
-      X_mat<-cbind.data.frame(X,trend,season,Xlag)
+      Xlag<-quantmod::Lag(Y,k=1:maxlag)
+      X_mat<-cbind.data.frame(Y,trend,season,Xlag)
     }
     else
-      X_mat<-cbind.data.frame(X,trend,season)
+      X_mat<-cbind.data.frame(Y,trend,season)
     n <- nrow(X_mat)
     for (i in 1:h) {
       train.1 <- X_mat[1:((n - h) + (i - 1)), ]

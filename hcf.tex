@@ -560,7 +560,11 @@ week seasonality, \(m\) would be 7 (6 seasonal dummies and 7 the
 violaton of lags).
 
 \begin{equation}\label{eq:linearmodelexample}
-   y_t = \alpha_0 + \alpha_1 t + \beta_1 Season_{1t} + \beta_2 Season_{2t} + \cdots + \beta_{m-1} Season_{(m-1)t} + \gamma_1 y_{t-1} + \gamma_2 y_{t-2} + \cdots + \gamma_m y_{t-m} + \delta z_t\epsilon_t 
+   \begin{split}
+   y_t = \alpha_0 + \alpha_1 t + \beta_1 Season_{1t} + \beta_2 Season_{2t} + \cdots + \beta_{m-1} Season_{(m-1)t} + 
+   \\
+   \gamma_1 y_{t-1} + \gamma_2 y_{t-2} + \cdots + \gamma_m y_{t-m} + \delta z_t + \epsilon_t 
+   \end{split}
 \end{equation}
 
 While OLS is popular in practice for forecasting time series, it is
@@ -658,14 +662,14 @@ training set.
 \caption{Australia geographical hierarchy structure}\label{fig:Australiahierarchystructure}
 \end{figure}
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:Australiageographicaldivision}Australia geographical hierarchy structure}
 \centering
 \fontsize{9}{11}\selectfont
-\begin{tabular}[t]{crccrc}
+\begin{tabular}{crccrc}
 \toprule
-Series & Name & Lable & Series & Name & Lable\\
+Series & Name & Label & Series & Name & Label\\
 \midrule
 Total &  &  & Region &  & \\
 1 & Australia & Total & 55 & Lakes & BCA\\
@@ -729,11 +733,11 @@ Region &  &  & 92 & Flinders Range and Outback & DCD\\
 \end{tabular}
 \end{table}
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:Australiageographicalpurposedivision}Number of Australian domestic tourism series in each level of hierarchy and group structure}
 \centering
-\begin{tabular}[t]{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}}
+\begin{tabular}{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}}
 \toprule
 Geographical devision & \# of series (geographical devision) & \# of series (purpose of travel) & Total\\
 \midrule
@@ -765,11 +769,11 @@ usefulness of the reconciliation in decreasing the average RMSE in all
 the three methods. Except for the total series, reconciliation can help
 in forecasting all the hierarchy levels.
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:Tourismdataresulrolling}Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 1-step-ahead - Tourism dataset}
 \centering
-\begin{tabular}[t]{ccccccc}
+\begin{tabular}{ccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
 \cmidrule(l{2pt}r{2pt}){2-7}
@@ -819,11 +823,11 @@ distributed around zero.
 \caption{Density plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead tourism demand using interval (-1000,3000)}\label{fig:densityplotrollingtourism}
 \end{figure}
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:TourismdataresultRMSE}Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 24-step-ahead - Tourism dataset}
 \centering
-\begin{tabular}[t]{ccccccc}
+\begin{tabular}{ccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
 \cmidrule(l{2pt}r{2pt}){2-7}
@@ -861,34 +865,17 @@ Level 7 & 59.12 & 58.81 & 62.54 & 58.54 & 58.71 & 62.55\\
 \caption{Density plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 24-step-ahead tourism demand using interval (-1000,3000)}\label{fig:densityplottourism}
 \end{figure}
 
-Figure \ref{fig:forecstrolling24tourism} shows the 1-step-ahead and
-24-step-ahead forecast results for one of the bottom level series,
-BACBus (Geelong - Business). In these plots we have both reconciled
-(solid lines) and unreconciled (dashed lines) forecasts and we see that
-the reconciliation step improves the forecasts in this series. We also
-see that the OLS model forecast accuracy is similar to the other two
-methods.
-
-\begin{figure}
-
-{\centering \includegraphics[width=400px,height=300px]{hcf_files/figure-latex/forecstrolling24tourism-1} 
-
-}
-
-\caption{Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for BACBus bottom level series for 1-step-ahead and  24-step-ahead tourism demand}\label{fig:forecstrolling24tourism}
-\end{figure}
-
 Table \ref{tab:Tourismdatacomputationtime} compares the three methods,
 computation time for 1-step-ahead and 24-step-ahead forecasting. We see
 that the OLS forecasting model is much faster compared with the other
 methods. Also, since reconciliation is a linear process, in all methods,
 it is very fast and does not affect computation time significantly.
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:Tourismdatacomputationtime}Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - 1- and 24-step-ahead - Tourism dataset}
 \centering
-\begin{tabular}[t]{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}cc}
+\begin{tabular}{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}cc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{4}{c}{Computation time (secs)} \\
 \cmidrule(l{2pt}r{2pt}){2-5}
@@ -902,6 +889,82 @@ OLS & 48.40 & 48.31 & 16.66 & 16.85\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Now since we are using linear model for forecasting, in this part we are
+including the `easter' information to check its effect on forecasting
+results. We also add this information on ARIMA models and compare with
+OLS forecasting model. In Tables \ref{tab:easterroolingRMSE} and
+\ref{tab:easterRMSE}, we display the average RMSE of ARIMA and OLS
+including the easter information, ARIMAX and OLSX, across different
+levels with and without reconceliation. These tables are for
+1-step-ahead and 24-step-ahead forecasts. Figure
+\ref{fig:forecstrolling24tourism} shows the 1-step-ahead and
+24-step-ahead forecast results for one of the bottom level series,
+BACBus (Geelong - Business). In these plots we have both reconciled
+(solid lines) and unreconciled (dashed lines) forecasts and we see that
+the reconciliation step improves the forecasts in this series. We also
+see that the OLS model forecast accuracy is similar to the other two
+methods. As you can see from the results adding this external data could
+not change the forecasting results significantly. However in different
+cases, trying different external data can be helpful in improwing the
+forecasting results.
+
+\begin{table}[t]
+
+\caption{\label{tab:easterroolingRMSE}Mean(RMSE) for ARIMAX and OLSX, adding easter information, with and without reconciliation - 1-step-ahead - Tourism dataset}
+\centering
+\begin{tabular}{ccccccccc}
+\toprule
+\multicolumn{1}{c}{} & \multicolumn{8}{c}{Mean(RMSE)} \\
+\cmidrule(l{2pt}r{2pt}){2-9}
+\multicolumn{1}{c}{} & \multicolumn{4}{c}{Unreconciled} & \multicolumn{4}{c}{Reconciled} \\
+\cmidrule(l{2pt}r{2pt}){2-5} \cmidrule(l{2pt}r{2pt}){6-9}
+ & ARIMA & OLS & ARIMAX & OLSX & ARIMA & OLS & ARIMAX & OLSX\\
+\midrule
+Level 0 & 1445.49 & 1415.06 & 1564.95 & 1444.49 & 1453.44 & 1454.39 & 1546.53 & 1487.23\\
+Level 1 & 493.14 & 510.83 & 500.66 & 514.29 & 457.65 & 488.33 & 472.03 & 492.68\\
+Level 2 & 219.01 & 224.50 & 220.91 & 225.82 & 207.52 & 212.44 & 210.47 & 213.48\\
+Level 3 & 125.08 & 123.97 & 125.85 & 123.69 & 120.52 & 119.52 & 121.02 & 119.44\\
+Level 4 & 709.22 & 694.50 & 702.78 & 680.56 & 679.74 & 678.54 & 682.92 & 662.45\\
+Level 5 & 220.08 & 216.11 & 222.07 & 215.15 & 209.39 & 211.13 & 211.45 & 209.55\\
+Level 6 & 102.41 & 101.03 & 103.04 & 100.93 & 99.77 & 98.56 & 100.53 & 98.49\\
+Level 7 & 58.20 & 58.17 & 58.60 & 58.05 & 57.68 & 57.20 & 58.04 & 57.15\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+
+\caption{\label{tab:easterRMSE}Mean(RMSE) for ARIMAX and OLSX, adding easter information, with and without reconciliation - 24-step-ahead - Tourism dataset}
+\centering
+\begin{tabular}{ccccccccc}
+\toprule
+\multicolumn{1}{c}{} & \multicolumn{8}{c}{Mean(RMSE)} \\
+\cmidrule(l{2pt}r{2pt}){2-9}
+\multicolumn{1}{c}{} & \multicolumn{4}{c}{Unreconciled} & \multicolumn{4}{c}{Reconciled} \\
+\cmidrule(l{2pt}r{2pt}){2-5} \cmidrule(l{2pt}r{2pt}){6-9}
+ & ARIMA & OLS & ARIMAX & OLSX & ARIMA & OLS & ARIMAX & OLSX\\
+\midrule
+Level 0 & 3553.99 & 4194.26 & 3528.13 & 4215.36 & 3179.39 & 4194.21 & 3114.40 & 4215.28\\
+Level 1 & 570.13 & 827.67 & 509.84 & 828.10 & 626.32 & 827.67 & 603.66 & 828.09\\
+Level 2 & 229.64 & 275.99 & 235.06 & 276.75 & 242.46 & 275.99 & 243.76 & 276.75\\
+Level 3 & 129.40 & 144.01 & 129.39 & 144.86 & 129.40 & 144.02 & 129.63 & 144.86\\
+Level 4 & 824.00 & 1274.00 & 811.08 & 1292.03 & 958.24 & 1274.01 & 930.72 & 1292.03\\
+Level 5 & 241.18 & 285.63 & 232.88 & 289.12 & 236.94 & 285.63 & 229.59 & 289.12\\
+Level 6 & 105.38 & 112.20 & 104.73 & 113.01 & 103.93 & 112.19 & 104.50 & 113.00\\
+Level 7 & 58.81 & 62.54 & 59.22 & 62.97 & 58.71 & 62.55 & 59.02 & 62.99\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}
+
+{\centering \includegraphics[width=450px,height=300px]{hcf_files/figure-latex/forecstrolling24tourism-1} 
+
+}
+
+\caption{Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for BACBus bottom level series for 1-step-ahead and  24-step-ahead tourism demand}\label{fig:forecstrolling24tourism}
+\end{figure}
 
 \subsection{Wikipedia pageviews}\label{wikipedia-pageviews}
 
@@ -942,11 +1005,11 @@ predictor matrix a linear trend, 6 seasonal dummies and 7 lags. We
 partitioned the data into two parts training and test sets. We used the
 last 28 days for our test set and the rest for the training set.
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:wikipediagroupingstructure}Social networking Wikipedia article grouping structure}
 \centering
-\begin{tabular}[t]{crcr}
+\begin{tabular}{crcr}
 \toprule
 Series & Name & Series & Name\\
 \midrule
@@ -999,11 +1062,11 @@ forecast errors across ETS, ARIMA and the OLS forecasting model. Except
 for the Total series which ETS works better, in all the other levels are
 the models have similar structure for the forecast errors.
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:wikipediadataresulrolling}Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 1-step-ahead - Wikipedia dataset}
 \centering
-\begin{tabular}[t]{ccccccc}
+\begin{tabular}{ccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
 \cmidrule(l{2pt}r{2pt}){2-7}
@@ -1039,11 +1102,11 @@ Level 5 & 358.90 & 238.97 & 254.98 & 362.25 & 241.60 & 256.11\\
 \caption{Density plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead Wikipedia pageviews}\label{fig:densityplotrollingwiki}
 \end{figure}
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:wikipediadataresultRMSE}Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 28-step-ahead - Wikipedia dataset}
 \centering
-\begin{tabular}[t]{ccccccc}
+\begin{tabular}{ccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
 \cmidrule(l{2pt}r{2pt}){2-7}
@@ -1102,11 +1165,11 @@ more computationally heavy compared with OLS. As in the Australian
 tourism dataset, running reconciliation does not have much effect on
 computation time.
 
-\begin{table}
+\begin{table}[t]
 
 \caption{\label{tab:wikipediadatacomputationtime}Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - 1- and 28-step-ahead - Wikipedia dataset}
 \centering
-\begin{tabular}[t]{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}cc}
+\begin{tabular}{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}cc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{4}{c}{Computation time (secs)} \\
 \cmidrule(l{2pt}r{2pt}){2-5}

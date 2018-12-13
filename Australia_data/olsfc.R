@@ -58,3 +58,6 @@ olsfc <- function(x, h, maxlag = 0) {
   return(fc)
 }
 
+
+
+

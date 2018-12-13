@@ -13,16 +13,19 @@ ausgts <- gts(aus, characters = list(c(1, 1, 1), 3),
 austrain <- window(ausgts, end=c(2014,12))
 austest  <- window(ausgts, start=c(2015,1))
 
+easter.info<-as.data.frame(easter(aus,easter.mon = TRUE))
+easter.info.train<-easter.info[(1:204),]
+easter.info.test<- easter.info[(205:228),]
 # Construct matrix of all time series including aggregates
 ally <- aggts(austrain)
 
 # Set up array for forecasts
 h <- NROW(austest$bts)
-fc <- array(NA, c(Horizon=h, Series=NCOL(ally), Method=6))
+fc <- array(NA, c(Horizon=h, Series=NCOL(ally), Method=8))
 dimnames(fc) <- list(
   Horizon = paste0("h=",seq(h)),
   Series = colnames(ally),
-  Method = c("ETS","ETSlog","ARIMA","ARIMAlog","OLS","OLSlog")
+  Method = c("ETS","ETSlog","OLSX","ARIMA","ARIMAlog","ARIMAX","OLS","OLSlog")
 )
 
 # Create forecasts for all methods
@@ -36,10 +39,14 @@ for(i in seq(NCOL(ally)))
   fc[,i,"ARIMA"] <- pmax(forecast(auto.arima(ally[,i]), h=h)$mean,0)
   # ARIMA forecasts using logs
   fc[,i,"ARIMAlog"] <- pmax(exp(forecast(auto.arima(log(ally[,i]+1)), h=h)$mean)-1,0)
+  # ARIMAX forecasts 
+  fc[,i,"ARIMAX"] <- pmax(forecast(auto.arima(ally[,i],xreg = easter.info.train), xreg=easter.info.test, h=h)$mean,0)
   # OLS forecasts
   fc[,i,"OLS"] <- pmax(olsfc(ally[,i], h=h),0)
   # OLS forecasts using logs
   fc[,i,"OLSlog"] <- pmax(exp(olsfc(log(ally[,i]+1), h=h)-1),0)
+  # OLSX forecasts
+  fc[,i,"OLSX"] <- pmax(olsfc.external(ally[,i], externaldata=easter.info, h=h),0)
 }
 
 ## Set up array for errors (bottom level only)
