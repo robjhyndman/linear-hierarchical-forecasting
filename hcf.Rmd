@@ -101,6 +101,33 @@ We therefore propose a new approach to compute the base forecasts that is both c
 
 # Proposed approach
 
+Our proposed approach is based on using linear regression models for computing base forecasts. We use $\bm{X}_{Z}$ to denote the matrix of $k$ predictors corresponding to the series at node $Z$. Then we can write
+\begin{equation}\label{eq:linearmodel}
+  \bm{y}_Z = \bm{X}_Z \bm{\beta}_Z+\bm{\varepsilon}_Z
+\end{equation}
+where $\bm{y}_Z = \{y_{Z,1},\dots,y_{Z,T}\}, \bm{\beta}_Z$ is a vector of coefficients and $\bm{\varepsilon}_Z$ is an error term with mean zero and variance matrix $\sigma^2_Z\bm{I}$. Then using standard regression results [@SeberLee], the OLS estimate of $\bm{\beta}_Z$ is given by
+\begin{equation}\label{eq:linearcoefficientstwosteps}
+  \hat{\bm{\beta}}_Z = (\bm{X}_{Z}'\bm{X}_Z)^{-1}\bm{X}_Z'\bm{y}_Z,
+\end{equation}
+and the base forecasts at horizon $h$ can be written as
+\begin{equation}
+  \hat{y}_{Z,T+h} = \bm{x}_{Z,T+h}'(\bm{X}_{Z}'\bm{X}_Z)^{-1}\bm{X}_Z'\bm{y}_Z,
+\end{equation}
+with corresponding variance
+$$
+\hat\sigma^2\left[1 + \bm{x}_{Z,T+h}'(\bm{X}_{Z}'\bm{X}_Z)^{-1}\bm{x}_{Z,T+h}\right],
+$$
+where $\bm{x}_{Z,T+h}$ denotes the $k$-vector of predictors for time period $T+h$ and
+$$
+\hat\sigma^2 = \frac{1}{T-k-1}(\bm{y}_Z - \bm{X}_Z\hat{\bm{\beta}}_Z)'(\bm{y}_Z - \bm{X}_Z\hat{\bm{\beta}}_Z).
+$$
+
+\todo[inline]{Now we need to write this for all $\hat{y}_Z$, perhaps using multivariate linear regression.}
+
+
+
+# Previous proposed approach
+
 Our proposed approach is based on using linear regression models for computing base forecasts. We begin with partitioning the dataset into training and test sets. We denote by $\bm{y}_t=\{y_1,y_2,\dots,y_t\}$ and $\bm{y}_h=\{y_{t+1},y_{t+2},\dots,y_h\}$ the vector of time series in the training and test set for $h$-step-ahead forecasts in all the levels of hierarchy. The $h$-step-ahead base forecasts and reconciled vectors are denoted by $\hat{\bm{y}}_{h}$ and $\tilde{\bm{y}}_{h}$, respectively. We also use $\bm{X}_t$ and $\bm{X}_h$ to denote the matrices of predictors in the training and test set, respectively.
 
 The linear forecasting Ordinary Least Square (OLS) model is given by:
@@ -124,7 +151,8 @@ This single-step reconciliation approach is more parsimonious and elegant.
 
 ## OLS predictors
 
-As an example of the $\bm{X}_t$ matrix in Equation \@ref(eq:linearmodel), we can refer to the set of predictors proposed in @ashouri2018 for modeling trend, seasonality and autocorrelation by using lagged values ($y_{t-1}$, $y_{t-2}$, \dots), trend variables and seasonal dummy variables as a set of predictors in the linear model. Equation \@ref(eq:linearmodelexample) shows a linear equation of this type which models linear trend, additive seasonality with $m$ seasons, autocorrelation and external data. Here, $t$ is the running index ($t=1,2,\dots$), and $s_{jt}$ is a dummy variable taking value 1 if time $t$ ($j=1, 2, \dots, m$) is in season $j$, $y_{t-k}$ is the $k$th lagged value for $y_t$ and $z_t$ is the external data. For instance, if we have daily data with day of week seasonality, $m$ would be 7 (6 seasonal dummies and 7 the violation of lags).\todo{This could cause problems with seasonality modelled with both dummies and an AR process. Perhaps use fewer lags than $m$?}
+As an example of the $\bm{X}_t$ matrix in Equation \@ref(eq:linearmodel), we can refer to the set of predictors proposed in @ashouri2018 for modeling trend, seasonality and autocorrelation by using lagged values ($y_{t-1}$, $y_{t-2}$, \dots), trend variables and seasonal dummy variables as a set of predictors in the linear model. Equation \@ref(eq:linearmodelexample) shows a linear equation of this type which models linear trend, additive seasonality with $m$ seasons, autocorrelation and external data. Here, $t$ is the running index ($t=1,2,\dots$), and $s_{jt}$ is a dummy variable taking value 1 if time $t$ ($j=1, 2, \dots, m$) is in season $j$, $y_{t-k}$ is the $k$th lagged value for $y_t$ and $z_t$ is the external data. For instance, if we have daily data with day of week seasonality, $m$ would be 7 (6 seasonal dummies and 7 the violation of lags).
+\todo[inline]{This could cause problems with seasonality modelled with both dummies and an AR process. Perhaps use fewer lags than $m$?}
 \begin{equation}\label{eq:linearmodelexample}
     y_t = \alpha_0 + \alpha_1 t + \beta_1 s_{1,t} + \beta_2 s_{2,t} + \cdots + \beta_{m-1} s_{m-1,t} + \gamma_1 y_{t-1} + \gamma_2 y_{t-2} + \dots + \gamma_m y_{t-m} + \delta z_t + \varepsilon_t.
 \end{equation}
