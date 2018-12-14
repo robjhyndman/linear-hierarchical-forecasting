@@ -36,7 +36,7 @@ output:
 ---
 
 ```{r setup, include=FALSE,message=FALSE}
-knitr::opts_chunk$set(echo = FALSE, cache=TRUE, messages=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE, messages = FALSE, warning = FALSE)
 library(ggplot2)
 library(knitr)
 library(kableExtra)
@@ -44,58 +44,60 @@ library(kableExtra)
 
 # Introduction
 
+
+Modern data collection tools have dramatically increased the amount of available time series data. For example, the Internet of Things (IoT) and point-of-sale scanning produce huge volumes of time series in a short period of time. Naturally, there is an interest in forecasting these time series, yet forecasting large collections of time series is computationally challenging.
+
 ## Hierarchical and grouped time series
 
-The increasing internet usage and digitization has dramatically is increased the amount of collected time series data. For example, the Internet of Things (IoT) produces huge amount of series in short period of time. Forecasting large collections of time series is computationally heavy and challenging. In some cases these time series can be structured and disaggregated based on hierarchies or groups such as geographical location and gender. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different branches and then different foods or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure. In this example the hierarchy includes three levels: Top level, level 0, is the total series which is the aggregation of all the bottom level series. In the middle level, level 1, series are aggregation of their own bottom level series. For instance, series A is the aggregation of AA and AB. Finally, the bottom level series, level 2, include the most disaggregated series.
+In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AA and AB. Finally, the bottom level series (level 2), includes the most disaggregated series.
 
 ```{r hierarchicalexample, echo=FALSE, out.width = "280px", out.height= "180px", fig.align="center", fig.cap="An example of a two level hierarchy structure"}
 knitr::include_graphics("Paper-Figures/hierarchical_example.jpg")
 ```
 
-Grouped time series are more complicated aggregation structures compared with hierarchical time series. They  can be defined as hierarchical time series without unique hierarchy structure [@hyndman2015hts]. A schematic of a grouped time series structure is shown in Figure \@ref(fig:groupexample). Series in this structure can be split first into group A and B and then into C and D (left side) or first in C and D and then in A and B (right side) [@hyndman2016fast]. In the following, we use the same notation for both hierarchy and grouped time series.
-
 ```{r groupexample, echo=FALSE, out.width = "280px", out.height= "180px", fig.align="center", fig.cap="An example of two level grouped structure"}
 library(png)
 library(grid)
 library(gridExtra)
-G1 <-  rasterGrob(as.raster(readPNG("Paper-Figures/Group_1.png")), interpolate = FALSE)
-G2 <-  rasterGrob(as.raster(readPNG("Paper-Figures/Group_2.png")), interpolate = FALSE)
+G1 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_1.png")), interpolate = FALSE)
+G2 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_2.png")), interpolate = FALSE)
 grid.arrange(G1, G2, ncol = 2)
 ```
 
-Using the notations in @hyndman2016fast, we denote the total series at time $t$ by $y_t$, and the series in node $Z$ at time $t$ is denoted by $y_{Z,t}$. For generating different levels of series from the bottom level series, we use an $n\times n_k$ matrix, called the 'summing matrix', denoted by $S$, in which $n$ is the overall number of nodes and $n_k$ is the number of bottom level nodes. For example in Figure \@ref(fig:hierarchicalexample), $n = 7$ and  $n_k = 4$. This summing matrix can be partitioned based on different levels of the hierarchy. Using the 'summing matrix', generating a hierarchy structure at time $t$ is given by $\mathbf{y_t}=\mathbf{Sb_t}$, where $\mathbf{y_t}$ is a vector of all the level nodes at time $t$ and $\mathbf{b_t}$ is the vector of all the bottom level nodes at time $t$. For the example shown in Figure \@ref(fig:hierarchicalexample), the hierarchy equation involving the $S_{7\times 4}$ matrix can be written as follows:
+Grouped time series involve more complicated aggregation structures compared to strictly hierarchical time series. To take the simplest example, suppose we have two grouping factors which are not nested; for example, sex (Male/Female) and city (New York/San Francisco). The disaggregated series for each combination of sex and city can be combined to form city sub-totals, or sex sub-totals. These sub-totals can be combined to give the overall total. Both sub-totals are of interest.
+
+We can think of such structures as hierarchical time series without a unique hierarchy. A schematic of this grouped time series structure is shown in Figure \@ref(fig:groupexample) with two grouping factors, each of two levels (A/B and C/D). The series in this structure can be split first into groups A and B and then subdivided further into C and D (left side), or split first into C and D and then subdivided into A and B (right side). The final disaggregation is identical in both cases, but the middle level aggregates are different.
+
+We use the same notation [following @fpp2] for both hierarchical and grouped time series. We denote the total series at time $t$ by $y_t$, and the series at node $Z$ and time $t$ by $y_{Z,t}$. For describing the relationships between series, we use an $n\times m$ matrix, called the 'summing matrix', denoted by $\bm{S}$, in which $n$ is the overall number of nodes and $m$ is the number of bottom level nodes. For example in Figure \@ref(fig:hierarchicalexample), $n = 7$ and $m = 4$, while in Figure \@ref(fig:groupexample), $n=9$ and $m=4$. Then we can write $\bm{y}_t=\bm{S}\bm{b}_t$, where $\bm{y}_t$ is a vector of all the level nodes at time $t$ and $\bm{b}_t$ is the vector of all the bottom level nodes at time $t$. For the example shown in Figure \@ref(fig:groupexample), the equation can be written as follows:
 \begin{equation}\label{eq:Smatrixexample}
-\left(\begin{array}{c}
-y_{t}\\y_{A,t}\\y_{B,t}\\y_{AA,t}\\y_{AB,t}\\y_{BA,t}\\y_{BB,t}\\
-\end{array}\right)
-=\left(\begin{array}{cccc}
-1&1&1&1\\1&1&0&0\\0&0&1&1\\1&0&0&0\\0&1&0&0\\0&0&1&0\\0&0&0&1\\
-\end{array}\right)
-\left(\begin{array}{c}
-y_{AA,t}\\y_{AB,t}\\y_{BA,t}\\y_{BB,t}\\
-\end{array}\right)
+\begin{pmatrix}
+  y_{t}\\y_{A,t}\\y_{B,t}\\y_{C,t}\\y_{D,t}\\y_{AC,t}\\y_{AD,t}\\y_{BC,t}\\y_{BD,t}
+\end{pmatrix} =
+\begin{pmatrix}
+  1&1&1&1\\1&1&0&0\\0&0&1&1\\1&0&1&0\\0&1&0&1\\1&0&0&0\\0&1&0&0\\0&0&1&0\\0&0&0&1\\
+\end{pmatrix}
+\begin{pmatrix}
+  y_{AC,t}\\y_{AD,t}\\y_{BC,t}\\y_{BD,t}\\
+\end{pmatrix}
 \end{equation}
 
 ## Forecasting hierarchical time series
 
-In hierarchical time series, because the most disaggregated or bottom level series are highly noisy their forecasting results are less accurate. At the same time, the most aggregated (total) series is smoother and less noisy and therefore forecasting it is easier [@fliedner2001hierarchical]. If we just forecast each series individually, we are ignoring the hierarchy or grouping structure [@hyndman2016fast]. The result is that, summing forecast values from lower levels does not necessarily coincide with the higher level (more aggregated) forecasts. Also, forecasting the most disaggregated level series and computing other level series by summing forecasts can result in poor forecasts at higher levels.
+If we just forecast each series individually, we are ignoring the hierarchical or grouping structure, and the forecasts will not be "coherent" (they will not add up appropriately).
 
-In the literature there are several methods that consider the hierarchy structure information in forecasting time series. These include the top-down [@gross1990disaggregation], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to lower level series based on a set of historical and forecasted proportions (for details see @athanasopoulos2009hierarchical). In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $n$ forecasts for all of the series in the entire hierarchy structure, and then uses regression models to reconcile the resulting forecasts. The advantage of the optimal combination method compared with the other methods is that it considers the interactions and correlation among the series in all the levels of hierarchy. This method also provides forecast uncertainty and is flexible for ad hoc adjustment.
+There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts.  However, we may not get good upper-level forecasts because the most disaggregated series are highly noisy and so their forecasts are usually inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $n$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any  correlations among the series.
 
-In the optimal combination method, base forecasts can be computed using the following linear model:
-\begin{equation}\label{eq:baseforecasts}
-   \mathbf{\hat{y}_h} = \mathbf{S}\boldsymbol{\beta_h}+\epsilon_h,
+In the optimal combination method, reconciled forecasts can be computed using [@mint2018]
+\begin{equation}\label{mint}
+  \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}^{-1}\hat{\bm{y}}_h
 \end{equation}
-where $\mathbf{\hat{y}_h}$ represents a vector of $h$-step-ahead base forecasts for all levels of the hierarchy, $\boldsymbol{\beta_h}$ is the unknown conditional mean of the bottom level series, and $\epsilon_h$ is the aggregation error which has mean equal to zero and variance equal to $\sum_h$ [@hyndman2016fast]. Using Equation \@ref(eq:baseforecasts) and estimating $\boldsymbol{\beta_h}$, forecasts in all levels of the hierarchy can be computed. Since estimating $\boldsymbol{\beta_h}$ using Generalized Least Squares (GLS) requires knowledge of $\sum_h$, Ordinary Least Squares (OLS) can be used and then a vector of reconciled forecast can be calculated using Equation \@ref(eq:reconciledforecasts):
-\begin{equation}\label{eq:reconciledforecasts}
-   \mathbf{\tilde{y}_{h}}=\mathbf{S(S'S)^{-1}S'}\mathbf{\hat{y}_h}
-\end{equation}
+where $\hat{\bm{y}}_h$ represents a vector of $h$-step-ahead base forecasts for all levels of the hierarchy, and $\bm{W}_h$ is the variance matrix of forecast errors for the $h$-step-ahead base forecasts.
 
-## Challenges and motivation
+The most difficult task is to compute $\bm{W}_h$, but @mint2018 and @hyndman2016fast argue that replacing it by the diagonal of $\bm{W}_1$ gives good results in practice. This is easy to obtain because it is simply the diagonal matrix comprising the residual variances from each of the base forecasts.
 
-@hyndman2015hts implemented a package called **hts** in R (R core @team2013r) for forecasting hierarchical time series including all the approaches mentioned in Section [Forecasting hierarchical time series](#forecasting-hierarchical-time-series). In this package, two functions, *hts* and *gts*, produce forecasts for hierarchical and grouped time series, respectively. Inputs for these functions include base forecasts and hierarchy and group structure. Here base forecasts are forecasts in all levels of hierarchy using only the history of each series and ignoring hierarchy or group structure. In the optimal combination method, there are two steps to determine the reconciled forecasts: first, computing base forecasts and second reconciling those forecasts. Currently options for computing the base forecasts are Random Walk (RW), Exponential Smoothing (ETS) and Autoregressive Integrated Moving Average (ARIMA).
+The most computationally challenging part of the optimal combination method is to produce all the base forecasts that make up $\hat{\bm{y}}_h$. In many applications, there may be thousands or even millions of individual series, and each of them must be forecast independently. The most popular time series forecasting methods such as ETS and ARIMA models [@fpp2] involve non-linear optimization routines to estimate the parameters via Maximum Likelihood Estimation. Usually, multiple models are fitted for each series, and the best is select by minimizing Akaike's Information Citerion [@akaike1998information]. This computational challenges increases with the number of lower level series as well as in the number of aggregations of interest.
 
-When we encounter a large collection of time series computing base forecasts using ETS or ARIMA can be computationally expensive. ETS (function "ets()" in forecast package [@hyndman2007automatic]) optimizing the likelihood function and since we can not specify trend and seasonal components, it needs to search over all the possibilities of the trend and seasonal components (non, additive and multiplicative). Also ARIMA (function "auto.arima()" in forecast package [@hyndman2007automatic]) combines unit root tests, minimization of the Akaike information criterion (AICc) [@akaike1998information] and Maximum Likelihood Estimation (MLE) to obtain an estimated ARIMA model [@hyndman2018forecasting]. Again, in ARIMA if we can not specify the order of the models for all the series, the procedure searches over all the order combination possibilities which make it computationally expensive. This computational challenges increases in the number of lower level series as well as in the number of hierarchies. We therefore propose  a new approach to compute the base forecasts that is both computationally fast while maintaining an acceptable forecasting accuracy level.
+We therefore propose a new approach to compute the base forecasts that is both computationally fast while maintaining an acceptable forecasting accuracy level.
 
 # Proposed approach
 
