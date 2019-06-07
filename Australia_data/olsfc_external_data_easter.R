@@ -78,4 +78,4 @@ olsfc.external <- function(x, externaldata=NULL , h, maxlag = 0) {
   return(fc)
 }
 
-test.mahsa <- pmax(olsfc.external(ally[,1], h=h, maxlag = 12, externaldata =easter.info),0)
+test <- pmax(olsfc.external(ally[,1], h=h, maxlag = 12, externaldata =easter.info),0)

@@ -88,7 +88,7 @@ If we just forecast each series individually, we are ignoring the hierarchical o
 There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts.  However, we may not get good upper-level forecasts because the most disaggregated series are highly noisy and so their forecasts are usually inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $n$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any  correlations among the series.
 
 In the optimal combination method, reconciled forecasts can be computed using [@mint2018]
-\begin{equation}\label{mint}
+\begin{equation}\label{eq:mint}
   \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}^{-1}\hat{\bm{y}}_h
 \end{equation}
 where $\hat{\bm{y}}_h$ represents a vector of $h$-step-ahead base forecasts for all levels of the hierarchy, and $\bm{W}_h$ is the variance matrix of forecast errors for the $h$-step-ahead base forecasts.
@@ -101,11 +101,11 @@ We therefore propose a new approach to compute the base forecasts that is both c
 
 # Proposed approach
 
-Our proposed approach is based on using linear regression models for computing base forecasts. We use $\bm{X}_{Z}$ to denote the matrix of $k$ predictors corresponding to the series at node $Z$. Then we can write
+<!-- Our proposed approach is based on using OLS-LR models for computing base forecasts. We use $\bm{X}_{Z}$ to denote the matrix of $k$ predictors corresponding to the series at node $Z$. Then we can write
 \begin{equation}\label{eq:linearmodel}
   \bm{y}_Z = \bm{X}_Z \bm{\beta}_Z+\bm{\varepsilon}_Z
 \end{equation}
-where $\bm{y}_Z = \{y_{Z,1},\dots,y_{Z,T}\}, \bm{\beta}_Z$ is a vector of coefficients and $\bm{\varepsilon}_Z$ is an error term with mean zero and variance matrix $\sigma^2_Z\bm{I}$. Then using standard regression results [@SeberLee], the OLS estimate of $\bm{\beta}_Z$ is given by
+where $\bm{y}_Z = \{y_{Z,1},\dots,y_{Z,T}\}, \bm{\beta}_Z$ is a vector of coefficients and $\bm{\varepsilon}_Z$ is an error term with mean zero and variance matrix $\sigma^2_Z\bm{I}$. Then using standard regression results \citep{SeberLee}, the OLS estimate of $\bm{\beta}_Z$ is given by
 \begin{equation}\label{eq:linearcoefficientstwosteps}
   \hat{\bm{\beta}}_Z = (\bm{X}_{Z}'\bm{X}_Z)^{-1}\bm{X}_Z'\bm{y}_Z,
 \end{equation}
@@ -122,32 +122,182 @@ $$
 \hat\sigma^2 = \frac{1}{T-k-1}(\bm{y}_Z - \bm{X}_Z\hat{\bm{\beta}}_Z)'(\bm{y}_Z - \bm{X}_Z\hat{\bm{\beta}}_Z).
 $$
 
-\todo[inline]{Now we need to write this for all $\hat{y}_Z$, perhaps using multivariate linear regression.}
+\todo[inline]{Not complete - Matrix notation: we need to write this for all $\hat{y}_Z$.} -->
 
 
+Our proposed approach is based on using linear regression models for computing base forecasts. Suppose we have a linear model that we use for forecasting, and we wish to apply it in to $N$ different series which have some aggregation constraints. We have observations $y_{t,i}$  from times $t=1,\dots,T$ and $i=1,\dots,N$ series
+\begin{equation}
+y_{t,i} = \beta_{i}' x_{t}^i + \epsilon_{t,i}
+\end{equation}
+where $x_{t}^{i}$ is a $p$-vector of regression variables, and $\epsilon_{t,i}\sim NID(0,\sigma_i^2)$. This equation for all the observations in matrix form can be written as follows  
 
-# Previous proposed approach
-
-Our proposed approach is based on using linear regression models for computing base forecasts. We begin with partitioning the dataset into training and test sets. We denote by $\bm{y}_t=\{y_1,y_2,\dots,y_t\}$ and $\bm{y}_h=\{y_{t+1},y_{t+2},\dots,y_h\}$ the vector of time series in the training and test set for $h$-step-ahead forecasts in all the levels of hierarchy. The $h$-step-ahead base forecasts and reconciled vectors are denoted by $\hat{\bm{y}}_{h}$ and $\tilde{\bm{y}}_{h}$, respectively. We also use $\bm{X}_t$ and $\bm{X}_h$ to denote the matrices of predictors in the training and test set, respectively.
-
-The linear forecasting Ordinary Least Square (OLS) model is given by:
 \begin{equation}\label{eq:linearmodel}
-  \bm{y}_t = \bm{X}_t \bm{\alpha}_h+\delta_h,
-\end{equation}
-where $\bm{\alpha}_h$ is the vector of coefficients and $\delta_h$ is the error term with mean zero and constant variance. We can estimate the reconciled coefficients in two ways: in two steps, **two-step**, or in single step, **single-step**. The two-step approach we should first estimate $\bm{\alpha}_h$ using OLS estimation :
-\begin{equation}\label{eq:linearcoefficientstwosteps}
-  \hat{\bm{\alpha}}_h = (\bm{X}_t'\bm{X}_t)^{-1}\bm{X}_t'\bm{y}_t,
-\end{equation}
-and then using Equations \@ref(eq:linearcoefficientstwosteps) and \@ref(eq:reconciledforecasts), we can find the reconciled forecasts:
-\begin{equation}\label{eq:reconciledforecaststwosteps}
-  \tilde{\bm{y}}_h = \bm{S}(\bm{S}'\bm{S})^{-1}\bm{S}'\bm{X}_h\hat{\bm{\alpha}}_h.
+\left(\begin{array}{c} 
+{\bf{y}}_1\\
+{\bf{y}}_2\\
+\vdotswithin{\ldots}\\
+{\bf{y}}_N
+\end{array}\right)= %diag ({\bf{X}}^1, {\bf{X}}^2,\dots, {\bf{X}}^N)
+\left(\begin{array}{ccccc} 
+{\bf{X}}^1 & 0 & 0 & \dots & 0\\
+0 & {\bf{X}}^2 & 0 & \dots & 0\\
+0 & 0 & {\bf{X}}^3 & \dots & \vdotswithin{\ddots}\\
+\vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & \ddots & 0\\
+0 & 0 & 0 & \dots & {\bf{X}}^N
+\end{array}\right)
+\left(\begin{array}{c} 
+{\bm{\beta}}_1\\
+{\bm{\beta}}_2\\
+\vdotswithin{\ldots}\\
+{\bm{\beta}}_N
+\end{array}\right)+
+\left(\begin{array}{c} 
+{\bm{\epsilon}}_1\\
+{\bm{\epsilon}}_2\\
+\vdotswithin{\ldots}\\
+{\bm{\epsilon}}_N
+\end{array}\right)
 \end{equation}
 
-We can use Equations \@ref(eq:linearcoefficientstwosteps) and \@ref(eq:reconciledforecaststwosteps) to compute the base forecasts using an OLS forecasting model and then to apply the reconciled forecasts. However because both OLS and reconciliation steps are linear, we can combine these two steps and compute the reconciled forecasts in one step:
-\begin{equation}\label{eq:reconciledforecastsonestep}
-  \tilde{\bm{y}}_h = \bm{S}(\bm{S}'\bm{S})^{-1}\bm{S}'\bm{X}_h(\bm{X}_t'\bm{X}_t)^{-1}\bm{X}_t'\bm{y}_t
+where ${\bf{y}}_i = \{y_{1,i}, y_{2,i}, \dots, y_{T,i}\}$ is a $T-$vector, ${\bm{\beta}}_i = \{\beta_{0,i}, \beta_{1,i}, \beta_{2,i}, \dots, \beta_{p,i}\}$ is a $(p+1)-$vector, ${\bm{\epsilon}}_i = \{\epsilon_{1,i}, \epsilon_{2,i}, \dots, \epsilon_{T,i}\}$ is a $T-$vector and ${\bf{X}}^i$ is a $T\times (p+1)$-matrix which can be defined as follows
+\begin{equation}
+{\bf{X}}^i = \left(\begin{array}{ccccc} 
+1 & X_{11}^{i} & X_{12}^{i} & \dots & X_{1p}^{i}\\
+1 & X_{21}^{i} & X_{22}^{i} & \dots & X_{2p}^{i}\\
+\vdotswithin{\ldots}\\
+1 & X_{T1}^{i} & X_{T2}^{i} & \dots & X_{Tp}^{i}\\
+\end{array}\right)
 \end{equation}
-This single-step reconciliation approach is more parsimonious and elegant.
+
+Equation \@ref(eq:linearmodel) can be written as the following equation
+\begin{equation}\label{eq:linearmodelmatrix}
+{\bf Y}= {\bf X} {\bf B} + {\bf E}
+\end{equation}
+
+And using Equation \@ref(eq:linearmodelmatrix), parameter estimates are given by
+
+\begin{equation}
+{\bf \hat B} = ({\bf X' X})^{-1} {\bf X' Y}
+\end{equation}
+
+Now we need the base forecasts which can be written as
+\begin{equation}\label{eq:baseforecats}
+{\hat{\bf y}}_{t+h} = {\bf X}_{t+h}^* {\bf \hat B}
+\end{equation}
+where ${\hat{\bf y}}_{t+h}$ is an $N-$vector of forecasts, ${\bf \hat B}$, similar to the above equations includes $N$ $(p+1)-$vector of estimated coefficients and 
+
+\begin{equation}
+{\bf X}_{t+h}^* 
+= diag({\bf X}^{1*}_{t+h}, {\bf X}^{2*}_{t+h}, \dots, {\bf X}^{N*}_{t+h})
+\end{equation}
+where ${\bf X}^{i*}_{t+h} = \{ X^{i*}_{t+h,1}, X^{i*}_{t+h,2}, \dots, X^{i*}_{t+h,p}\}$. Note that we use ${\bf X}^*_t$ to distinguish this matrix, which combines $x_{t,i}$ across all series for one time from ${\bf X}_i$ which combines $x_{t,i}$ across all time for one series. 
+
+The reconciliation (of the WLS variety), using Equation \@ref(eq:mint) can be written as
+
+\begin{equation}\label{eq:recforecasts}
+{\tilde{\bf y}}_{t+h} = {(\bf S'WS)}^{-1}{\bf S'W} {\hat{\bf y}_{t+h}}
+\end{equation}
+where $\bf W$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bf S$ is the summation matrix containing the aggregation constraints.
+
+Finally, we can combine two linear equations for computing base forecasts and reconciliation (Equations \@ref(eq:baseforecats) and \@ref(eq:recforecasts)) to obtain the reconciled forecasts  with a single equation
+
+\begin{equation}\label{eq:singlestep}
+{\tilde{\bf y}}_{t+h} = {(\bf S'WS)}^{-1}{\bf S'W} 
+                        ({\bf X}_{t+h}^* {\bf \hat B}) 
+                        = {(\bf S'WS)}^{-1}{\bf S'W} 
+                        ({\bf X}_{t+h}^* ({\bf X' X})^{-1} {\bf X' Y})
+\end{equation}
+
+## Proposed approach with same set of $\bf {X}$
+
+If we have same set of regression variables, $\bf {X}$,  for all the series we can write the above equations easier using multivariate multiple regression equations and we can all the reconciled forecasts for all the series in one equation.  In that case Equation \@ref(eq:linearmodel) can be specified as follows
+
+\begin{equation}\label{eq:linearmodelsameX}
+\begin{split}
+\left(\begin{array}{cccc}  
+ y_{11} & y_{12} & \dots & y_{1N}\\
+ y_{21} & y_{22} & \dots & y_{2N}\\
+ \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ y_{T1} & y_{T2} & \dots & y_{TN}
+ \end{array}\right) =
+ \left(\begin{array}{ccccc}
+ 1 & X_{11} & X_{12} & \dots & X_{1p}\\
+ 1 & X_{21} & X_{22} & \dots & X_{2p}\\
+ \vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ 1 & X_{T1} & X_{T2} & \dots & X_{Tp}
+ \end{array}\right)
+ \left(\begin{array}{cccc}
+ \beta_{01} & \beta_{02} & \dots & \beta_{0N}\\
+ \beta_{11} & \beta_{12} & \dots & \beta_{1N}\\
+ \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ \beta_{p1} & \beta_{p2} & \dots & \beta_{pN}
+ \end{array}\right) \\
+ +\left(\begin{array}{cccc} 
+ \epsilon_{11} & \epsilon_{12} & \dots & \epsilon_{1N}\\
+ \epsilon_{21} & \epsilon_{22} & \dots & \epsilon_{2N}\\
+ \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ \epsilon_{T1} & \epsilon_{T2} & \dots & \epsilon_{TN}
+ \end{array}\right)
+ \end{split}
+ \end{equation}
+
+We can represent the Equation \@ref(eq:linearmodelsameX) as follows
+
+\begin{equation}\label{eq:linearmodelmatrixsameX}
+{\bf Y}= {\bf X} {\bf B} + {\bf E}
+\end{equation}
+
+where  $\bf Y$, $\bf X$, $\bf B$ and $\bf E$ are  $T\times N$-matrix, $T\times (p+1)$-matrix, $(p+1)\times N$-matrix and $T \times N$-matrix, respectively. Using Equation \@ref(eq:linearmodelmatrixsameX), parameter estimates are given by
+
+\begin{equation}
+{\bf \hat B} = ({\bf X' X})^{-1} {\bf X' Y}
+\end{equation}
+
+Then the base forecasts can be written as
+
+\begin{equation}
+\left(\begin{array}{cccc}  
+ \hat{y}_{t+1,1} & \hat{y}_{t+1,2} & \dots & \hat{y}_{t+1,N}\\
+ \hat{y}_{t+2,1} & \hat{y}_{t+2,2} & \dots & \hat{y}_{t+2,N}\\
+ \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ \hat{y}_{t+h,1} & \hat{y}_{t+h,2} & \dots & \hat{y}_{t+h,N}\\
+ \end{array}\right) = 
+ \left(\begin{array}{ccccc}
+ 1 & X_{t+1,1} & X_{t+1,2} & \dots & X_{t+1,p}\\
+ 1 & X_{t+2,1} & X_{t+2,2} & \dots & X_{t+2,p}\\
+ \vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ 1 & X_{t+h,1} & X_{t+h,2} & \dots & X_{t+h,p}
+ \end{array}\right)
+ \left(\begin{array}{cccc}
+ \beta_{01} & \beta_{02} & \dots & \beta_{0N}\\
+ \beta_{11} & \beta_{12} & \dots & \beta_{1N}\\
+ \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ \beta_{p1} & \beta_{p2} & \dots & \beta_{pN}
+ \end{array}\right)
+\end{equation}
+
+We can write the above equation in shorter term as
+
+\begin{equation}\label{eq:baseforecatssameX}
+{\hat{\bf Y}} = {\bf X}^* {\bf \hat B}
+\end{equation}
+
+Then the reconciliationfor all the forecasted points, $h$, and all the series, $N$,  can be written as
+
+\begin{equation}\label{eq:recforecastssameX}
+{\tilde{\bf Y}} = {(\bf S'WS)}^{-1}{\bf S'W} {\hat{\bf Y}}
+\end{equation}
+Where again $\bf W$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bf S$ is the summation matrix containing the aggregation constraints. Also in the above equation, ${\tilde{\bf Y}}$ includes all the reconciled forecasts for all the bottom level series.  
+
+At the end, we can combine two linear equations for computing base forecasts and reconciliation (Equations \@ref(eq:baseforecatssameX) and \@ref(eq:recforecastssameX)) to obtain the reconciled forecasts  with a single equation
+
+\begin{equation}\label{eq:singlestepsameX}
+{\tilde{\bf Y}} = {(\bf S'WS)}^{-1}{\bf S'W} 
+                        ({\bf X}^* {\bf \hat B}) 
+                        = {(\bf S'WS)}^{-1}{\bf S'W} 
+                        ({\bf X}^* ({\bf X' X})^{-1} {\bf X' Y})
+\end{equation}
+
 
 ## OLS predictors
 
@@ -164,6 +314,8 @@ While OLS is popular in practice for forecasting time series, it is often frown 
 In this section we illustrate our approach two examples, forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. We compare the forecasting accuracy levels of ETS, ARIMA and the proposed linear OLS forecasting model, with and without the reconciliation step. For comparing these methods we use the average of Root Mean Square Error (RMSE) across all series and also display box and density plots for forecast errors along with the raw forecast errors.
 
 Since we are using time series lags ($1, \dots, m$) in the linear forecasting model, we cant forecast multiple steps ahead. We therefore apply two methods for generating $h$-step-ahead forecast: In the first model we use 1-step-ahead forecasts and for forecasting the following periods ($t+2,t+3,\dots$) we replace the previous periods with the actual values. This value is known to us because it is in the test set. In our applications, we call this approach '1-step-ahead'. In the second method, we again use 1-step-ahead forecasts but for forecasting the following periods we use the earlier forecasted values. In our applications, we call this approach '$h$-step-ahead forecast'. We also show the computation challenges in all the methods.
+
+<!--Finally, regarding solving Equations \@ref(eq:singlestep) and \@ref(eq:singlestepsameX) in R, instead of directly solving the equations which needs to invert big matrices we used multiple single linear models by for loops. --> 
 
 ## Australian domestic tourism
 
@@ -182,7 +334,7 @@ In this dataset we have three levels of geographic divisions in Australia. In th
 
 We report the forecast results for all these hierarchy levels, as well as the average RMSE across all the levels of hierarchy.
 
-In the predictor matrix, for the OLS forecasting model we apply linear trend, 11 dummy variables, and 12 time series lags^[Since the forecasting results are better without the lags, we just use a linear trend and dummy seasonality variables in our linear model for 24-step-ahead model.]. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into two parts, training and test sets. We keep the last 24 months periods (2 years) as our test set to forecast and we use the rest as our training set.
+In the predictor matrix, for the OLS forecasting model we apply linear trend, 11 dummy variables, and 12 time series lags^[Since the forecasting results are better with the less number of lags, we use a linear trend and dummy seasonality variables and four lags in our linear model for 24-step-ahead model.]. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into two parts, training and test sets. We keep the last 24 months periods (2 years) as our test set to forecast and we use the rest as our training set.
 
 ```{r Australiahierarchystructure, echo=FALSE, out.width = "450px", out.height= "180px", fig.align="center", fig.cap="Australia geographic hierarchy structure"}
 knitr::include_graphics("Paper-Figures/Australian_hierarchy_structure.jpg")
@@ -237,6 +389,7 @@ kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", bo
   kable_styling(position = "center")
 ```
 
+
 In Figures \@ref(fig:boxplotrollingtourism), \@ref(fig:boxplottourism), \@ref(fig:densityplotrollingtourism) and \@ref(fig:densityplottourism) we display the error box plots for both reconciled and unreconciled forecasts, and error density plots for reconciled forecasts using all three methods, for 1-step-ahead and 24-step-ahead. In all these figures we see the error distribution similarity across all the models, as well as usefulness of the reconciliation step in improving the forecasts. By comparing density plots \@ref(fig:densityplotrollingtourism) and \@ref(fig:densityplottourism), as could be expected, we see that by applying 1-step-ahead forecasts, the error densities are closer and more distributed around zero.
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -261,10 +414,12 @@ ggplot() +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c("ETS.rec" = "green", "ETS.unrec" = "lightgreen", "ARIMA.rec" = "blue", "ARIMA.unrec" = "lightblue", "OLS.rec" = "pink4", "OLS.unrec" = "pink")) +
+  theme_light()+
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1), axis.text = element_text(size = 10),
+    axis.text.x = element_text(angle = 45, hjust = 1, size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
     axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
   )
+  
 # ggplot(error.tourism.1, aes(x=order.id, y=Value, color=id)) +
 #   geom_jitter( width=0.1) +
 #   geom_point(stat="summary", fun.y="mean",color="black") +
@@ -277,23 +432,40 @@ ggplot() +
 #         axis.title=element_text(size=12,face="bold"),legend.position="none")
 dev.off()
 pdf("Paper-Figures/results_Tourism/densityplot_1.pdf", width = 10, height = 10)
-ggplot() +
-  geom_density(
-    data = error.tourism.1.rec, aes(x = (Value), fill = order.id), alpha =
-      0.3
-  ) +
+
+
+ggplot(data = error.tourism.1.rec, aes(x = (Value), linetype = order.id)) +
+  geom_density(aes(x = (Value), color = order.id),size = 0.5,show_guide=FALSE) +
+  stat_density(aes(x = (Value), color=order.id), geom="line",position="identity", size = 0.5)+
+  geom_hline(yintercept=0, colour="gray90", size=0.8)+
+  scale_linetype_manual(name = "Method",values = c( 1,1,1))+
+  scale_color_manual( name = "Method", values = c( "green","blue","red"))+
   xlab("Method") + ylab("Error") +
-  guides(fill = guide_legend(nrow = 1, byrow = TRUE, title = "Method")) +
-  facet_wrap(~Level, ncol = 1, scales = "free_y") +
-  theme_minimal() +
+  facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+ 
+  theme_light() + 
+  xlim(c(-3000, 3000)) +
   theme(
-    text = element_text(size = 12, face = "bold"),
-    legend.direction = "vertical",
-    legend.position = "bottom"
-  ) +
-  scale_fill_manual(values = c("ETS.rec" = "green", "ARIMA.rec" = "blue", "OLS.rec" = "pink4")) +
-  xlim(c(-1000, 3000))
+    axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
+    axis.title = element_text(size = 12, face = "bold"), legend.position = "bottom", legend.text=element_text(size=12) )
 dev.off()
+# ggplot() +
+#   geom_density(
+#     data = error.tourism.1.rec, aes(x = (Value), fill = order.id), alpha =
+#       0.3
+#   ) +
+#   xlab("Method") + ylab("Error") +
+#   guides(fill = guide_legend(nrow = 1, byrow = TRUE, title = "Method")) +
+#   facet_wrap(~Level, ncol = 1, scales = "free_y") +
+#   theme_minimal() +
+#   theme(
+#     text = element_text(size = 12, face = "bold"),
+#     legend.direction = "vertical",
+#     legend.position = "bottom"
+#   ) +
+#   scale_fill_manual(values = c("ETS.rec" = "green", "ARIMA.rec" = "blue", "OLS.rec" = "pink4")) +
+#   xlim(c(-1000, 3000))
+#dev.off()
 forecast.tourism <- read.csv("Paper-Figures/results_Tourism/forecast.tourism.csv", header = TRUE)
 forecast.tourism.1 <- forecast.tourism[forecast.tourism$ForecastInterval == "1Step", ]
 ### one of the bottom level series
@@ -327,7 +499,7 @@ dev.off()
 knitr::include_graphics("Paper-Figures/results_Tourism/boxplot_1.pdf")
 ```
 
-```{r densityplotrollingtourism, echo=FALSE, out.width = "450px", out.height= "550px", fig.align="center", fig.cap="Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead tourism demand using interval (-1000,3000)"}
+```{r densityplotrollingtourism, echo=FALSE, out.width = "450px", out.height= "550px", fig.align="center", fig.cap="Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead tourism demand using interval (-3000,3000)"}
 knitr::include_graphics("Paper-Figures/results_Tourism/densityplot_1.pdf")
 ```
 
@@ -336,10 +508,10 @@ table3 <- matrix(NA, nrow = 8, ncol = 7)
 table3[, 1] <- c("Level 0", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6", "Level 7")
 table3[, 2] <- c("2238.58", "593.57", "239.52", "132.58", "766.78", "226.74", "103.02", "59.12")
 table3[, 3] <- c("3553.99", "570.13", "229.64", "129.40", "824.00", "241.18", "105.38", "58.81")
-table3[, 4] <- c("4194.26", "827.67", "275.99", "144.01", "1274.00", "285.63", "112.20", "62.54")
+table3[, 4] <- c("5050.33", "900.10", "278.84", "142.78", "1306.97", "298.24", "110.91", "60.90")
 table3[, 5] <- c("2250.22", "553.76", "234.21", "126.74", "795.48", "222.48", "101.95", "58.54")
 table3[, 6] <- c("3179.39", "626.32", "242.46", "129.40", "958.24", "236.94", "103.93", "58.71")
-table3[, 7] <- c("4194.21", "827.67", "275.99", "144.02", "1274.01", "285.63", "112.19", "62.55")
+table3[, 7] <- c("4671.05", "902.99", "290.95", "146.32", "1434.05", "308.39", "115.35", "62.64")
 kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", booktabs = T, linesep = "", caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 24-step-ahead - Tourism dataset", col.names = c("", "ETS", "ARIMA", "OLS", "ETS", "ARIMA", "OLS")) %>%
   add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
   add_header_above(c("", "Mean(RMSE)" = 6)) %>%
@@ -371,29 +543,30 @@ ggplot() +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c("ETS.rec" = "green", "ETS.unrec" = "lightgreen", "ARIMA.rec" = "blue", "ARIMA.unrec" = "lightblue", "OLS.rec" = "pink4", "OLS.unrec" = "pink")) +
+  theme_light()+
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1), axis.text = element_text(size = 10),
+    axis.text.x = element_text(angle = 45, hjust = 1, size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
     axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
   )
 dev.off()
 pdf("Paper-Figures/results_Tourism/densityplot_24.pdf", width = 10, height = 10)
-ggplot() +
-  geom_density(
-    data = error.tourism.24.rec, aes(x = (Value), fill = order.id), alpha =
-      0.3
-  ) +
+
+ggplot(data = error.tourism.24.rec, aes(x = (Value), linetype = order.id)) +
+  geom_density(aes(x = (Value), color = order.id),size = 0.5,show_guide=FALSE) +
+  stat_density(aes(x = (Value), color=order.id), geom="line",position="identity", size = 0.5)+
+  geom_hline(yintercept=0, colour="gray90", size=0.8)+
+  scale_linetype_manual(name = "Method",values = c( 1,1,1))+
+  scale_color_manual( name = "Method", values = c( "green","blue","red"))+
   xlab("Method") + ylab("Error") +
-  guides(fill = guide_legend(nrow = 1, byrow = TRUE, title = "Method")) +
-  facet_wrap(~Level, ncol = 1, scales = "free_y") +
-  theme_minimal() +
+  facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+ 
+  theme_light() + 
+  xlim(c(-3000, 3000)) +
   theme(
-    text = element_text(size = 12, face = "bold"),
-    legend.direction = "vertical",
-    legend.position = "bottom"
-  ) +
-  scale_fill_manual(values = c("ETS.rec" = "green", "ARIMA.rec" = "blue", "OLS.rec" = "pink4")) +
-  xlim(c(-1000, 3000))
+    axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
+    axis.title = element_text(size = 12, face = "bold"), legend.position = "bottom", legend.text=element_text(size=12) )
 dev.off()
+
 forecast.tourism <- read.csv("Paper-Figures/results_Tourism/forecast.tourism.csv", header = TRUE)
 forecast.tourism.24 <- forecast.tourism[forecast.tourism$ForecastInterval == "24Step", ]
 ### one of the bottom level series
@@ -427,7 +600,7 @@ dev.off()
 knitr::include_graphics("Paper-Figures/results_Tourism/boxplot_24.pdf")
 ```
 
-```{r densityplottourism, echo=FALSE, out.width = "450px", out.height= "550px", fig.align="center", fig.cap="Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 24-step-ahead tourism demand using interval (-1000,3000)"}
+```{r densityplottourism, echo=FALSE, out.width = "450px", out.height= "550px", fig.align="center", fig.cap="Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 24-step-ahead tourism demand using interval (-3000,3000)"}
 knitr::include_graphics("Paper-Figures/results_Tourism/densityplot_24.pdf")
 ```
 
@@ -482,13 +655,13 @@ table3 <- matrix(NA, nrow = 8, ncol = 9)
 table3[, 1] <- c("Level 0", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6", "Level 7")
 
 table3[, 2] <- c("3553.99", "570.13", "229.64", "129.40", "824.00", "241.18", "105.38", "58.81")
-table3[, 3] <- c("4194.26", "827.67", "275.99", "144.01", "1274.00", "285.63", "112.20", "62.54")
+table3[, 3] <- c("5050.33", "900.10", "278.84", "142.78", "1306.97", "298.24", "110.91", "60.90")
 table3[, 4] <- c("3528.13", "509.84", "235.06", "129.39", "811.08", "232.88", "104.73", "59.22")
-table3[, 5] <- c("4215.36", "828.10", "276.75", "144.86", "1292.03", "289.12", "113.01", "62.97")
+table3[, 5] <- c("5032.41", "910.73", "280.06", " 143.66", "1324.70", "304.55", "111.85", "61.41")
 table3[, 6] <- c("3179.39", "626.32", "242.46", "129.40", "958.24", "236.94", "103.93", "58.71")
-table3[, 7] <- c("4194.21", "827.67", "275.99", "144.02", "1274.01", "285.63", "112.19", "62.55")
+table3[, 7] <- c("4671.05", "902.99", "290.95", "146.32", "1434.05", "308.39", "115.35", "62.64")
 table3[, 8] <- c("3114.40", "603.66", "243.76", "129.63", "930.72", "229.59", " 104.50", "59.02")
-table3[, 9] <- c("4215.28", "828.09", "276.75", "144.86", "1292.03", "289.12", "113.00", "62.99")
+table3[, 9] <- c("4677.99", "907.33", "291.62", "147.19", "1444.75", "313.48", "116.28", "63.12")
 
 kable(table3, align = c("c", "c", "c", "c", "c", "c", "c", "c", "c"), format = "latex", booktabs = T, linesep = "", caption = "Mean(RMSE) for ARIMAX and OLSX, adding easter information, with and without reconciliation - 24-step-ahead - Tourism dataset", col.names = c("", "ARIMA", "OLS", "ARIMAX", "OLSX", "ARIMA", "OLS", "ARIMAX", "OLSX")) %>%
   add_header_above(c("", "Unreconciled" = 4, "Reconciled" = 4)) %>%
@@ -570,32 +743,31 @@ ggplot() +
     alpha = 0.5
   ) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 3, scales = "free_y") +
+  facet_wrap(~Level, ncol = 2, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c("ETS.rec" = "green", "ETS.unrec" = "lightgreen", "ARIMA.rec" = "blue", "ARIMA.unrec" = "lightblue", "OLS.rec" = "pink4", "OLS.unrec" = "pink")) +
+  theme_light()+
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1), axis.text = element_text(size = 10),
+    axis.text.x = element_text(angle = 45, hjust = 1, size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
     axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
   )
 dev.off()
 pdf("Paper-Figures/results_Wikipedia/densityplot_1.pdf", width = 10, height = 10)
-ggplot() +
-  geom_density(
-    data = error.wiki.1.rec, aes(x = (Value), fill = order.id), alpha =
-      0.3
-  ) +
+ggplot(data = error.wiki.1.rec, aes(x = (Value), linetype = order.id)) +
+  geom_density(aes(x = (Value), color = order.id),size = 0.5,show_guide=FALSE) +
+  stat_density(aes(x = (Value), color=order.id), geom="line",position="identity", size = 0.5)+
+  geom_hline(yintercept=0, colour="gray90", size=0.8)+
+  scale_linetype_manual(name = "Method",values = c( 1,1,1))+
+  scale_color_manual( name = "Method", values = c( "green","blue","red"))+
   xlab("Method") + ylab("Error") +
-  guides(fill = guide_legend(nrow = 1, byrow = TRUE, title = "Method")) +
-  facet_wrap(~Level, ncol = 1, scales = "free_y") +
-  theme_minimal() +
+  facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+ 
+  theme_light() + 
+  #xlim(c(-3000, 3000)) +
   theme(
-    text = element_text(size = 12, face = "bold"),
-    legend.direction = "vertical",
-    legend.position = "bottom"
-  ) +
-  scale_fill_manual(values = c("ETS.rec" = "green", "ARIMA.rec" = "blue", "OLS.rec" = "pink4")) #+
-# xlim(c(-3000, 4000))
+    axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
+    axis.title = element_text(size = 12, face = "bold"), legend.position = "bottom", legend.text=element_text(size=12) )
 dev.off()
 forecast.wiki <- read.csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv", header = TRUE)
 forecast.wiki.1 <- forecast.wiki[forecast.wiki$ForecastingInterval == "1Step", ]
@@ -666,32 +838,31 @@ ggplot() +
     alpha = 0.5
   ) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 3, scales = "free_y") +
+  facet_wrap(~Level, ncol = 2, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c("ETS.rec" = "green", "ETS.unrec" = "lightgreen", "ARIMA.rec" = "blue", "ARIMA.unrec" = "lightblue", "OLS.rec" = "pink4", "OLS.unrec" = "pink")) +
+  theme_light()+
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1), axis.text = element_text(size = 10),
+    axis.text.x = element_text(angle = 45, hjust = 1, size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
     axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
   )
 dev.off()
 pdf("Paper-Figures/results_Wikipedia/densityplot_28.pdf", width = 10, height = 10)
-ggplot() +
-  geom_density(
-    data = error.wiki.28.rec, aes(x = (Value), fill = order.id), alpha =
-      0.3
-  ) +
+ggplot(data = error.wiki.28.rec, aes(x = (Value), linetype = order.id)) +
+  geom_density(aes(x = (Value), color = order.id),size = 0.5,show_guide=FALSE) +
+  stat_density(aes(x = (Value), color=order.id), geom="line",position="identity", size = 0.5)+
+  geom_hline(yintercept=0, colour="gray90", size=0.8)+
+  scale_linetype_manual(name = "Method",values = c( 1,1,1))+
+  scale_color_manual( name = "Method", values = c( "green","blue","red"))+
   xlab("Method") + ylab("Error") +
-  guides(fill = guide_legend(nrow = 1, byrow = TRUE, title = "Method")) +
-  facet_wrap(~Level, ncol = 1, scales = "free_y") +
-  theme_minimal() +
+  facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+ 
+  theme_light() + 
+  #xlim(c(-3000, 3000)) +
   theme(
-    text = element_text(size = 12, face = "bold"),
-    legend.direction = "vertical",
-    legend.position = "bottom"
-  ) +
-  scale_fill_manual(values = c("ETS.rec" = "green", "ARIMA.rec" = "blue", "OLS.rec" = "pink4")) #+
-# xlim(c(-3000, 4000))
+    axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
+    axis.title = element_text(size = 12, face = "bold"), legend.position = "bottom", legend.text=element_text(size=12) )
 dev.off()
 forecast.wiki <- read.csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv", header = TRUE)
 forecast.wiki.28 <- forecast.wiki[forecast.wiki$ForecastingInterval == "28Step", ]
