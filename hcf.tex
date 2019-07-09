@@ -22,8 +22,7 @@
 \usepackage[unicode=true]{hyperref}
 \hypersetup{
             pdftitle={A fast and elegant method for forecast reconciliation using linear forecasting models},
-            pdfkeywords={hierarchical forecasting, grouped forecasting, reconciling forecast,
-linear regression},
+            pdfkeywords={hierarchical forecasting, grouped forecasting, reconciling forecast, linear regression},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
@@ -51,8 +50,7 @@ linear regression},
 \makeatother
 
 
-\title{A fast and elegant method for forecast reconciliation using linear
-forecasting models}
+\title{A fast and elegant method for forecast reconciliation using linear forecasting models}
 
 %% MONASH STUFF
 
@@ -112,7 +110,7 @@ forecasting models}
   {\thesubsection}
   {0.4em}{}
 \titlespacing{\section}{0pt}{*5}{*1}
-\titlespacing{\section}{0pt}{*2}{*0.2}
+\titlespacing{\subsection}{0pt}{*2}{*0.2}
 
 
 %% TITLE PAGE
@@ -129,12 +127,19 @@ forecasting models}
 \def\nojel{\def\showjel{}}
 \def\addresses#1{\gdef\@addresses{#1}}\def\@addresses{??}
 \def\cover{{\sffamily\setcounter{page}{0}
-        \thispagestyle{empty}%
-        \vspace*{-2cm}
-        \centerline{\raisebox{-1.8cm}{\includegraphics[width=5cm]{MBSportrait}}\hspace*{9cm} ISSN 1440-771X}\vspace{0.99cm}
+        \thispagestyle{empty}
+        \placefig{2}{1.5}{width=5cm}{monash2}
+        \placefig{16.9}{1.5}{width=2.1cm}{MBusSchool}
+        \begin{textblock}{4}(16.9,4)ISSN 1440-771X\end{textblock}
+        \begin{textblock}{7}(12.7,27.9)\hfill
+        \includegraphics[height=0.7cm]{AACSB}~~~
+        \includegraphics[height=0.7cm]{EQUIS}~~~
+        \includegraphics[height=0.7cm]{AMBA}
+        \end{textblock}
+        \vspace*{2cm}
         \begin{center}\Large
         Department of Econometrics and Business Statistics\\[.5cm]
-        \scriptsize http://business.monash.edu/econometrics-and-business-statistics/research/publications
+        \footnotesize http://monash.edu/business/ebs/research/publications
         \end{center}\vspace{2cm}
         \begin{center}
         \fbox{\parbox{14cm}{\begin{onehalfspace}\centering\Huge\vspace*{0.3cm}
@@ -146,7 +151,7 @@ forecasting models}
                 \begin{center}\Large
                 \Month~\Year\\[1cm]
                 Working Paper \@wp
-        \end{center}}}
+        \end{center}\vspace*{2cm}}}
 \def\pageone{{\sffamily\setstretch{1}%
         \thispagestyle{empty}%
         \vbox to \textheight{%
@@ -230,14 +235,8 @@ forecasting models}
 \DeclareFieldFormat[article]{volume}{\mkbibbold{#1}}
 \DeclareFieldFormat[article]{number}{\mkbibparens{#1}}
 \DeclareFieldFormat[article]{title}{\MakeCapital{#1}}
-\DeclareFieldFormat[article]{url}{}
-%\DeclareFieldFormat[book]{url}{}
-%\DeclareFieldFormat[inbook]{url}{}
-%\DeclareFieldFormat[incollection]{url}{}
-%\DeclareFieldFormat[inproceedings]{url}{}
 \DeclareFieldFormat[inproceedings]{title}{#1}
 \DeclareFieldFormat{shorthandwidth}{#1}
-%\DeclareFieldFormat{extrayear}{}
 % No dot before number of articles
 \usepackage{xpatch}
 \xpatchbibmacro{volume+number+eid}{\setunit*{\adddot}}{}{}{}
@@ -245,9 +244,6 @@ forecasting models}
 \renewbibmacro{in:}{%
   \ifentrytype{article}{}{%
   \printtext{\bibstring{in}\intitlepunct}}}
-
-\AtEveryBibitem{\clearfield{month}}
-\AtEveryCitekey{\clearfield{month}}
 
 \makeatletter
 \DeclareDelimFormat[cbx@textcite]{nameyeardelim}{\addspace}
@@ -259,6 +255,12 @@ forecasting models}
 
 \wp{no/yr}
 \jel{C10,C14,C22}
+
+\RequirePackage[absolute,overlay]{textpos}
+\setlength{\TPHorizModule}{1cm}
+\setlength{\TPVertModule}{1cm}
+\def\placefig#1#2#3#4{\begin{textblock}{.1}(#1,#2)\rlap{\includegraphics[#3]{#4}}\end{textblock}}
+
 
 \nocover
 
@@ -290,57 +292,27 @@ Institute of Service Science, National Tsing Hua University, Taiwan
 %\usepackage[backend=biber]{biblatex}
 %\usepackage[backend=biber, bibencoding=utf8, style=authoryear, citestyle=authoryear]{biblatex}
 
+\mathtoolsset{showonlyrefs=true}
+
 
 \begin{document}
 \maketitle
 \begin{abstract}
-Forecasting hierarchical or grouped time series involves two steps:
-computing base forecasts and reconciling the forecasts. Base forecasts
-can be computed by popular time series forecasting methods such as
-Exponential Smoothing (ETS) and Autoregressive Integrated Moving Average
-(ARIMA) models. The reconciliation step is a linear process that adjusts
-the base forecasts to ensure they are coherent. However using ETS or
-ARIMA for base forecasts can be computationally challenging when there
-are a large number of series to forecast, as each model must be
-numerically optimized for each series. We propose a linear model that
-avoids this computational problem, and uses a single-step approach to
-obtain the forecasts, rather than the usual two-step approach. The
-proposed method is very flexible in incorporating external data and
-handling missing values. We illustrate our approach using two datasets:
-monthly Australian domestic tourism and daily Wikipedia pageviews. We
-compare our approach to reconciliation using ETS and ARIMA, and show
-that our approach is much faster while providing similar levels of
-forecast accuracy.
+Forecasting hierarchical or grouped time series involves two steps: computing base forecasts and reconciling the forecasts. Base forecasts can be computed by popular time series forecasting methods such as Exponential Smoothing (ETS) and Autoregressive Integrated Moving Average (ARIMA) models. The reconciliation step is a linear process that adjusts the base forecasts to ensure they are coherent. However using ETS or ARIMA for base forecasts can be computationally challenging when there are a large number of series to forecast, as each model must be numerically optimized for each series. We propose a linear model that avoids this computational problem, and uses a single-step approach to obtain the forecasts, rather than the usual two-step approach. The proposed method is very flexible in incorporating external data and handling missing values. We illustrate our approach using two datasets: monthly Australian domestic tourism and daily Wikipedia pageviews. We compare our approach to reconciliation using ETS and ARIMA, and show that our approach is much faster while providing similar levels of forecast accuracy.
 \end{abstract}
 \begin{keywords}
-hierarchical forecasting, grouped forecasting, reconciling forecast,
-linear regression
+hierarchical forecasting, grouped forecasting, reconciling forecast, linear regression
 \end{keywords}
 
-\section{Introduction}\label{introduction}
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
 
-Modern data collection tools have dramatically increased the amount of
-available time series data. For example, the Internet of Things (IoT)
-and point-of-sale scanning produce huge volumes of time series in a
-short period of time. Naturally, there is an interest in forecasting
-these time series, yet forecasting large collections of time series is
-computationally challenging.
+Modern data collection tools have dramatically increased the amount of available time series data. For example, the Internet of Things and point-of-sale scanning produce huge volumes of time series in a short period of time. Naturally, there is an interest in forecasting these time series, yet forecasting large collections of time series is computationally challenging.
 
-\subsection{Hierarchical and grouped time
-series}\label{hierarchical-and-grouped-time-series}
+\hypertarget{hierarchical-and-grouped-time-series}{%
+\subsection{Hierarchical and grouped time series}\label{hierarchical-and-grouped-time-series}}
 
-In many cases, these time series can be structured and disaggregated
-based on hierarchies or groups such as geographic location, product
-type, gender, etc. An example of hierarchical time series is sales in
-restaurant chains, which can be disaggregated into different stores and
-then different types of food or drinks. Figure
-\ref{fig:hierarchicalexample} shows a schematic of such a hierarchical
-time series structure with three levels. The top level (level 0) is the
-total series, formed by aggregating all the bottom level series. In the
-middle level (level 1), series are aggregations of their own child
-series; for instance, series A is the aggregation of AA and AB. Finally,
-the bottom level series (level 2), includes the most disaggregated
-series.
+In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \ref{fig:hierarchicalexample} shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AA and AB. Finally, the bottom level series (level 2), includes the most disaggregated series.\todo{I suggest we label Level 2 with AW, AX, BY, BZ to avoid confusion.}
 
 \begin{figure}
 
@@ -351,47 +323,20 @@ series.
 \caption{An example of a two level hierarchy structure}\label{fig:hierarchicalexample}
 \end{figure}
 
+Grouped time series involve more complicated aggregation structures compared to strictly hierarchical time series. To take the simplest example, suppose we have two grouping factors which are not nested: sex (Male/Female) and city (New York/San Francisco). The disaggregated series for each combination of sex and city can be combined to form city sub-totals, or sex sub-totals. These sub-totals can be combined to give the overall total. Both sub-totals are of interest.
+
+We can think of such structures as hierarchical time series without a unique hierarchy. A schematic of this grouped time series structure is shown in Figure \ref{fig:groupexample} with two grouping factors, each of two levels (A/B and C/D). The series in this structure can be split first into groups A and B and then subdivided further into C and D (left side), or split first into C and D and then subdivided into A and B (right side). The final disaggregation is identical in both cases, but the middle level aggregates are different.
+
 \begin{figure}
 
-{\centering \includegraphics[width=280px,height=180px]{hcf_files/figure-latex/groupexample-1} 
+{\centering \includegraphics[width=330px,height=180px]{hcf_files/figure-latex/groupexample-1} 
 
 }
 
 \caption{An example of two level grouped structure}\label{fig:groupexample}
 \end{figure}
 
-Grouped time series involve more complicated aggregation structures
-compared to strictly hierarchical time series. To take the simplest
-example, suppose we have two grouping factors which are not nested; for
-example, sex (Male/Female) and city (New York/San Francisco). The
-disaggregated series for each combination of sex and city can be
-combined to form city sub-totals, or sex sub-totals. These sub-totals
-can be combined to give the overall total. Both sub-totals are of
-interest.
-
-We can think of such structures as hierarchical time series without a
-unique hierarchy. A schematic of this grouped time series structure is
-shown in Figure \ref{fig:groupexample} with two grouping factors, each
-of two levels (A/B and C/D). The series in this structure can be split
-first into groups A and B and then subdivided further into C and D (left
-side), or split first into C and D and then subdivided into A and B
-(right side). The final disaggregation is identical in both cases, but
-the middle level aggregates are different.
-
-We use the same notation \autocite[following][]{fpp2} for both
-hierarchical and grouped time series. We denote the total series at time
-\(t\) by \(y_t\), and the series at node \(Z\) and time \(t\) by
-\(y_{Z,t}\). For describing the relationships between series, we use an
-\(n\times m\) matrix, called the `summing matrix', denoted by
-\(\bm{S}\), in which \(n\) is the overall number of nodes and \(m\) is
-the number of bottom level nodes. For example in Figure
-\ref{fig:hierarchicalexample}, \(n = 7\) and \(m = 4\), while in Figure
-\ref{fig:groupexample}, \(n=9\) and \(m=4\). Then we can write
-\(\bm{y}_t=\bm{S}\bm{b}_t\), where \(\bm{y}_t\) is a vector of all the
-level nodes at time \(t\) and \(\bm{b}_t\) is the vector of all the
-bottom level nodes at time \(t\). For the example shown in Figure
-\ref{fig:groupexample}, the equation can be written as follows:
-
+We use the same notation \autocite[following][]{fpp2} for both hierarchical and grouped time series. We denote the total series at time \(t\) by \(y_t\), and the series at node \(Z\) and time \(t\) by \(y_{Z,t}\). For describing the relationships between series, we use an \(n\times m\) matrix, called the `summing matrix', denoted by \(\bm{S}\), in which \(n\) is the overall number of nodes and \(m\) is the number of bottom level nodes. For example in Figure \ref{fig:hierarchicalexample}, \(n = 7\) and \(m = 4\), while in Figure \ref{fig:groupexample}, \(n=9\) and \(m=4\). Then we can write \(\bm{y}_t=\bm{S}\bm{b}_t\), where \(\bm{y}_t\) is a vector of all the level nodes at time \(t\) and \(\bm{b}_t\) is the vector of all the bottom level nodes at time \(t\). For the example shown in Figure \ref{fig:groupexample}, the equation can be written as follows:
 \begin{equation}\label{eq:Smatrixexample}
 \begin{pmatrix}
   y_{t}\\y_{A,t}\\y_{B,t}\\y_{C,t}\\y_{D,t}\\y_{AC,t}\\y_{AD,t}\\y_{BC,t}\\y_{BD,t}
@@ -401,372 +346,220 @@ bottom level nodes at time \(t\). For the example shown in Figure
 \end{pmatrix}
 \begin{pmatrix}
   y_{AC,t}\\y_{AD,t}\\y_{BC,t}\\y_{BD,t}\\
-\end{pmatrix}
+\end{pmatrix}.
 \end{equation}
 
-\subsection{Forecasting hierarchical time
-series}\label{forecasting-hierarchical-time-series}
+\hypertarget{forecasting-hierarchical-time-series}{%
+\subsection{Forecasting hierarchical time series}\label{forecasting-hierarchical-time-series}}
 
-If we just forecast each series individually, we are ignoring the
-hierarchical or grouping structure, and the forecasts will not be
-``coherent'' (they will not add up appropriately).
+If we just forecast each series individually, we are ignoring the hierarchical or grouping structure, and the forecasts will not be ``coherent'' (they will not add up appropriately).
 
-There are several available methods that consider the hierarchical
-structure information when forecasting time series. These include the
-top-down \autocites{gross1990disaggregation}{fliedner2001hierarchical},
-bottom-up \autocite{kahn1998revisiting}, middle-out and optimal
-combination \autocite{hyndman2011optimal} approaches. In the top-down
-approach, we first forecast the total series and then disaggregate the
-forecast to form lower level series forecasts based on a set of
-historical and forecasted proportions \autocite[for details
-see][]{athanasopoulos2009hierarchical}. In the bottom-up approach, the
-forecasts in each level of the hierarchy can be computed by aggregating
-the bottom level series forecasts. However, we may not get good
-upper-level forecasts because the most disaggregated series are highly
-noisy and so their forecasts are usually inaccurate. In the middle-out
-approach, the process can be started from one of the middle levels and
-other forecasts can be computed using aggregation for upper levels and
-disaggregation for lower levels. Finally, optimal combination uses all
-the \(n\) forecasts for all of the series in the entire structure, and
-then uses an optimization process to reconcile the resulting forecasts.
-The advantage of the optimal combination method, compared with the other
-methods, is that it considers all information in the hierarchy,
-including any correlations among the series.
+There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down \autocites{gross1990disaggregation}{fliedner2001hierarchical}, bottom-up \autocite{kahn1998revisiting}, middle-out and optimal combination \autocite{hyndman2011optimal} approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions \autocite[for details see][]{athanasopoulos2009hierarchical}. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts. However, we may not get good upper-level forecasts because the most disaggregated series can be noisy and so their forecasts are often inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the \(n\) forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any correlations among the series.
 
-In the optimal combination method, reconciled forecasts can be computed
-using \autocite{mint2018}
-
+In the optimal combination method, reconciled forecasts can be computed using \autocite{mint2018}
 \begin{equation}\label{eq:mint}
-  \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}^{-1}\hat{\bm{y}}_h
+  \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}^{-1}\hat{\bm{y}}_h,
 \end{equation}
+where \(\hat{\bm{y}}_h\) represents a vector of \(h\)-step-ahead base forecasts for all levels of the hierarchy, and \(\bm{W}_h\) is the variance matrix of forecast errors for the \(h\)-step-ahead base forecasts.
 
-where \(\hat{\bm{y}}_h\) represents a vector of \(h\)-step-ahead base
-forecasts for all levels of the hierarchy, and \(\bm{W}_h\) is the
-variance matrix of forecast errors for the \(h\)-step-ahead base
-forecasts.
+The most difficult task is to compute \(\bm{W}_h\), but \textcite{mint2018} and \textcite{hyndman2016fast} argue that replacing it by the diagonal of \(\bm{W}_1\) gives good results in practice. This is easy to obtain because it is simply the diagonal matrix comprising the residual variances from each of the base forecasts.
 
-The most difficult task is to compute \(\bm{W}_h\), but
-\textcite{mint2018} and \textcite{hyndman2016fast} argue that replacing
-it by the diagonal of \(\bm{W}_1\) gives good results in practice. This
-is easy to obtain because it is simply the diagonal matrix comprising
-the residual variances from each of the base forecasts.
+The most computationally challenging part of the optimal combination method is to produce all the base forecasts that make up \(\hat{\bm{y}}_h\). In many applications, there may be thousands or even millions of individual series, and each of them must be forecast independently. The most popular time series forecasting methods such as ETS and ARIMA models \autocite{fpp2} involve non-linear optimization routines to estimate the parameters via maximum likelihood estimation. Usually, multiple models are fitted for each series, and the best is select by minimizing Akaike's Information Citerion \autocite{akaike1998information}. This computational challenges increases with the number of lower level series as well as in the number of aggregations of interest.
 
-The most computationally challenging part of the optimal combination
-method is to produce all the base forecasts that make up
-\(\hat{\bm{y}}_h\). In many applications, there may be thousands or even
-millions of individual series, and each of them must be forecast
-independently. The most popular time series forecasting methods such as
-ETS and ARIMA models \autocite{fpp2} involve non-linear optimization
-routines to estimate the parameters via Maximum Likelihood Estimation.
-Usually, multiple models are fitted for each series, and the best is
-select by minimizing Akaike's Information Citerion
-\autocite{akaike1998information}. This computational challenges
-increases with the number of lower level series as well as in the number
-of aggregations of interest.
+We therefore propose a new approach to compute the base forecasts that is both computationally fast while maintaining an acceptable forecasting accuracy level.
 
-We therefore propose a new approach to compute the base forecasts that
-is both computationally fast while maintaining an acceptable forecasting
-accuracy level.
+\hypertarget{proposed-approach}{%
+\section{Proposed approach}\label{proposed-approach}}
 
-\section{Proposed approach}\label{proposed-approach}
-
-Our proposed approach is based on using linear regression models for
-computing base forecasts. Suppose we have a linear model that we use for
-forecasting, and we wish to apply it in to \(N\) different series which
-have some aggregation constraints. We have observations \(y_{t,i}\) from
-times \(t=1,\dots,T\) and \(i=1,\dots,N\) series
-
+Our proposed approach is based on using linear regression models for computing base forecasts. Suppose we have a linear model that we use for forecasting, and we wish to apply it to \(N\) different series which have some aggregation constraints. We have observations \(y_{t,i}\) from times \(t=1,\dots,T\) and series \(i=1,\dots,N\). Then
 \begin{equation}
-y_{t,i} = \beta_{i}' x_{t}^i + \epsilon_{t,i}
+y_{t,i} = \bm{\beta}_{i}' \bm{x}_{t,i} + \varepsilon_{t,i}
 \end{equation}
-
-where \(x_{t}^{i}\) is a \(p\)-vector of regression variables, and
-\(\epsilon_{t,i}\sim NID(0,\sigma_i^2)\). This equation for all the
-observations in matrix form can be written as follows
-
+where \(\bm{x}_{t,i}=\{1, x_{t,i,1},\dots,x_{t,i,p}\}\) is a \((p+1)\)-vector of regression variables, and \(\varepsilon_{t,i}\sim \text{NID}(0,\sigma_i^2)\). This equation for all the observations in matrix form can be written as follows:
 \begin{equation}\label{eq:linearmodel}
-\left(\begin{array}{c} 
-{\bf{y}}_1\\
-{\bf{y}}_2\\
-\vdotswithin{\ldots}\\
-{\bf{y}}_N
-\end{array}\right)= %diag ({\bf{X}}^1, {\bf{X}}^2,\dots, {\bf{X}}^N)
-\left(\begin{array}{ccccc} 
-{\bf{X}}^1 & 0 & 0 & \dots & 0\\
-0 & {\bf{X}}^2 & 0 & \dots & 0\\
-0 & 0 & {\bf{X}}^3 & \dots & \vdotswithin{\ddots}\\
-\vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & \ddots & 0\\
-0 & 0 & 0 & \dots & {\bf{X}}^N
-\end{array}\right)
-\left(\begin{array}{c} 
-{\bm{\beta}}_1\\
-{\bm{\beta}}_2\\
-\vdotswithin{\ldots}\\
-{\bm{\beta}}_N
-\end{array}\right)+
-\left(\begin{array}{c} 
-{\bm{\epsilon}}_1\\
-{\bm{\epsilon}}_2\\
-\vdotswithin{\ldots}\\
-{\bm{\epsilon}}_N
-\end{array}\right)
+\begin{pmatrix}
+\bm{y}_1\\
+\bm{y}_2\\
+\bm{y}_3 \\
+\vdots\\
+\bm{y}_N
+\end{pmatrix}=
+\begin{pmatrix}
+\bm{X}_1 & 0        & 0       & \dots  & 0\\
+0        & \bm{X}_2 & 0        & \dots  & 0\\
+0        & 0        & \bm{X}_3 & \ddots & \vdots \\
+\vdots   & \vdots   & \ddots   & \ddots & 0\\
+0        & 0    & \dots    & 0      & \bm{X}_N
+\end{pmatrix}
+\begin{pmatrix}
+\bm{\beta}_1\\
+\bm{\beta}_2\\
+\bm{\beta}_3\\
+\vdots\\
+\bm{\beta}_N
+\end{pmatrix}+
+\begin{pmatrix}
+\bm{\varepsilon}_1\\
+\bm{\varepsilon}_2\\
+\bm{\varepsilon}_3\\
+\vdots \\
+\bm{\varepsilon}_N
+\end{pmatrix},
 \end{equation}
-
-where \({\bf{y}}_i = \{y_{1,i}, y_{2,i}, \dots, y_{T,i}\}\) is a
-\(T-\)vector,
-\({\bm{\beta}}_i = \{\beta_{0,i}, \beta_{1,i}, \beta_{2,i}, \dots, \beta_{p,i}\}\)
-is a \((p+1)-\)vector,
-\({\bm{\epsilon}}_i = \{\epsilon_{1,i}, \epsilon_{2,i}, \dots, \epsilon_{T,i}\}\)
-is a \(T-\)vector and \({\bf{X}}^i\) is a \(T\times (p+1)\)-matrix which
-can be defined as follows
-
+where \(\bm{y}_i = \{y_{1,i}, y_{2,i}, \dots, y_{T,i}\}\) is a \(T\)-vector, \({\bm{\beta}}_i = \{\beta_{0,i}, \beta_{1,i}, \beta_{2,i}, \dots, \beta_{p,i}\}\) is a \((p+1)\)-vector, \({\bm{\varepsilon}}_i = \{\varepsilon_{1,i}, \varepsilon_{2,i}, \dots, \varepsilon_{T,i}\}\) is a \(T\)-vector and \(\bm{X}_i\) is the \(T\times (p+1)\)-matrix
 \begin{equation}
-{\bf{X}}^i = \left(\begin{array}{ccccc} 
-1 & X_{11}^{i} & X_{12}^{i} & \dots & X_{1p}^{i}\\
-1 & X_{21}^{i} & X_{22}^{i} & \dots & X_{2p}^{i}\\
-\vdotswithin{\ldots}\\
-1 & X_{T1}^{i} & X_{T2}^{i} & \dots & X_{Tp}^{i}\\
-\end{array}\right)
+\bm{X}_i = \begin{pmatrix}
+1 & x_{1,i,1} & x_{1,i,2} & \dots & x_{1,i,p}\\
+1 & x_{2,i,1} & x_{2,i,2} & \dots & x_{2,i,p}\\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_{T,i,1} & x_{T,i,2} & \dots & x_{T,i,p}\\
+\end{pmatrix}.
 \end{equation}
 
-Equation \eqref{eq:linearmodel} can be written as the following equation
-
+Equation \eqref{eq:linearmodel} can be written as
 \begin{equation}\label{eq:linearmodelmatrix}
-{\bf Y}= {\bf X} {\bf B} + {\bf E}
+\bm{Y} = \bm{X} \bm{B} + \bm{E},
 \end{equation}
-
-And using Equation \eqref{eq:linearmodelmatrix}, parameter estimates are
-given by
-
+with parameter estimates given by
 \begin{equation}
-{\bf \hat B} = ({\bf X' X})^{-1} {\bf X' Y}
+\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
-
-Now we need the base forecasts which can be written as
-
+Then the base forecasts are obtained using
 \begin{equation}\label{eq:baseforecats}
-{\hat{\bf y}}_{t+h} = {\bf X}_{t+h}^* {\bf \hat B}
+\hat{\bm{y}}_{t+h} = \bm{X}_{t+h}^* \hat{\bm{B}},
 \end{equation}
-
-where \({\hat{\bf y}}_{t+h}\) is an \(N-\)vector of forecasts,
-\({\bf \hat B}\), similar to the above equations includes \(N\)
-\((p+1)-\)vector of estimated coefficients and
-
+where \(\hat{\bm{y}}_{t+h}\) is an \(N\)-vector of forecasts, \(\hat{\bm{B}}\) comprises \(N\) stacked \((p+1)\)-vectors of estimated coefficients, and \(\bm{X}_{t+h}^*\) is the \(N\times N(p+1)\) matrix
 \begin{equation}
-{\bf X}_{t+h}^* 
-= diag({\bf X}^{1*}_{t+h}, {\bf X}^{2*}_{t+h}, \dots, {\bf X}^{N*}_{t+h})
+\bm{X}_{t+h}^* =
+\begin{pmatrix}
+\bm{x}_{t+h,1}' & 0                & 0                & \dots  & 0\\
+0               & \bm{x}_{t+h,2}' & 0                & \dots  & 0\\
+0               & 0                & \bm{x}_{t+h,3}' & \ddots & \vdots \\
+\vdots          & \vdots           & \ddots           & \ddots & 0\\
+0               & 0                & \dots            & 0      & \bm{x}_{t+h,N}'
+\end{pmatrix}.
 \end{equation}
+Note that we use \(\bm{X}^*_{t}\) to distinguish this matrix, which combines \(\bm{x}_{t,i}\) across all series for one time from \(\bm{X}_i\) which combines \(\bm{x}_{t,i}\) across all time for one series.
 
-where
-\({\bf X}^{i*}_{t+h} = \{ X^{i*}_{t+h,1}, X^{i*}_{t+h,2}, \dots, X^{i*}_{t+h,p}\}\).
-Note that we use \({\bf X}^*_t\) to distinguish this matrix, which
-combines \(x_{t,i}\) across all series for one time from \({\bf X}_i\)
-which combines \(x_{t,i}\) across all time for one series.
-
-The reconciliation (of the WLS variety), using Equation \eqref{eq:mint}
-can be written as
-
+The reconciliation (of the WLS variety), using Equation \eqref{eq:mint} can be written as
 \begin{equation}\label{eq:recforecasts}
-{\tilde{\bf y}}_{t+h} = {(\bf S'WS)}^{-1}{\bf S'W} {\hat{\bf y}_{t+h}}
+\tilde{\bm{y}}_{t+h} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}\hat{\bm{y}}_{t+h},
 \end{equation}
+where \(\bm{W}\) is an \(N\times N\) diagonal matrix with \((i,i)\)th element \(\sigma_i^2\), and \(\bm{S}\) is the summation matrix containing the aggregation constraints.
 
-where \(\bf W\) is an \(N\times N\) diagonal matrix with \((i,i)\)th
-element \(\sigma_i^2\), and \(\bf S\) is the summation matrix containing
-the aggregation constraints.
-
-Finally, we can combine two linear equations for computing base
-forecasts and reconciliation (Equations \eqref{eq:baseforecats} and
-\eqref{eq:recforecasts}) to obtain the reconciled forecasts with a single
-equation
-
+Finally, we can combine the two linear equations for computing base forecasts and reconciled forecasts (Equations \eqref{eq:baseforecats} and \eqref{eq:recforecasts}) to obtain the reconciled forecasts with a single equation:
 \begin{equation}\label{eq:singlestep}
-{\tilde{\bf y}}_{t+h} = {(\bf S'WS)}^{-1}{\bf S'W} 
-                        ({\bf X}_{t+h}^* {\bf \hat B}) 
-                        = {(\bf S'WS)}^{-1}{\bf S'W} 
-                        ({\bf X}_{t+h}^* ({\bf X' X})^{-1} {\bf X' Y})
+\tilde{\bm{y}}_{t+h} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}_{t+h}^* \hat{\bm{B}})
+                        = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}_{t+h}^* \bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
 
-\subsection{\texorpdfstring{Proposed approach with same set of
-\(\bf {X}\)}{Proposed approach with same set of \textbackslash{}bf \{X\}}}\label{proposed-approach-with-same-set-of-bf-x}
+\hypertarget{proposed-approach-with-same-set-of-bmx}{%
+\subsection{\texorpdfstring{Proposed approach with same set of \(\bm{X}\)}{Proposed approach with same set of \textbackslash{}bm\{X\}}}\label{proposed-approach-with-same-set-of-bmx}}
 
-If we have same set of regression variables, \(\bf {X}\), for all the
-series we can write the above equations easier using multivariate
-multiple regression equations and we can all the reconciled forecasts
-for all the series in one equation. In that case Equation
-\eqref{eq:linearmodel} can be specified as follows
-
+If we have same set of regression variables, \(\bm{X}\), for all the series, we can write the above equations more easily using multivariate regression equations, and we can obtain all the reconciled forecasts for all the series in one equation. In that case Equation \eqref{eq:linearmodel} can be specified as follows:
 \begin{equation}\label{eq:linearmodelsameX}
 \begin{split}
-\left(\begin{array}{cccc}  
+\begin{pmatrix}
  y_{11} & y_{12} & \dots & y_{1N}\\
  y_{21} & y_{22} & \dots & y_{2N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  y_{T1} & y_{T2} & \dots & y_{TN}
- \end{array}\right) =
- \left(\begin{array}{ccccc}
+ \end{pmatrix} =
+ \begin{pmatrix}
  1 & X_{11} & X_{12} & \dots & X_{1p}\\
  1 & X_{21} & X_{22} & \dots & X_{2p}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  1 & X_{T1} & X_{T2} & \dots & X_{Tp}
- \end{array}\right)
- \left(\begin{array}{cccc}
+ \end{pmatrix}
+ \begin{pmatrix}
  \beta_{01} & \beta_{02} & \dots & \beta_{0N}\\
  \beta_{11} & \beta_{12} & \dots & \beta_{1N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  \beta_{p1} & \beta_{p2} & \dots & \beta_{pN}
- \end{array}\right) \\
- +\left(\begin{array}{cccc} 
- \epsilon_{11} & \epsilon_{12} & \dots & \epsilon_{1N}\\
- \epsilon_{21} & \epsilon_{22} & \dots & \epsilon_{2N}\\
+ \end{pmatrix} \\
+ +\begin{pmatrix}
+ \varepsilon_{11} & \varepsilon_{12} & \dots & \varepsilon_{1N}\\
+ \varepsilon_{21} & \varepsilon_{22} & \dots & \varepsilon_{2N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
- \epsilon_{T1} & \epsilon_{T2} & \dots & \epsilon_{TN}
- \end{array}\right)
+ \varepsilon_{T1} & \varepsilon_{T2} & \dots & \varepsilon_{TN}
+ \end{pmatrix}
  \end{split}
  \end{equation}
 
 We can represent the Equation \eqref{eq:linearmodelsameX} as follows
-
 \begin{equation}\label{eq:linearmodelmatrixsameX}
-{\bf Y}= {\bf X} {\bf B} + {\bf E}
+\bm{Y}= \bm{X} \bm{B} + \bm{E},
 \end{equation}
-
-where \(\bf Y\), \(\bf X\), \(\bf B\) and \(\bf E\) are
-\(T\times N\)-matrix, \(T\times (p+1)\)-matrix, \((p+1)\times N\)-matrix
-and \(T \times N\)-matrix, respectively. Using Equation
-\eqref{eq:linearmodelmatrixsameX}, parameter estimates are given by
-
+where \(\bf Y\), \(\bf X\), \(\bf B\) and \(\bf E\) are \(T\times N\)-matrix, \(T\times (p+1)\)-matrix, \((p+1)\times N\)-matrix and \(T \times N\)-matrix, respectively. Using Equation \eqref{eq:linearmodelmatrixsameX}, parameter estimates are given by
 \begin{equation}
-{\bf \hat B} = ({\bf X' X})^{-1} {\bf X' Y}
+\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}
 \end{equation}
-
 Then the base forecasts can be written as
-
 \begin{equation}
-\left(\begin{array}{cccc}  
+\begin{pmatrix}
  \hat{y}_{t+1,1} & \hat{y}_{t+1,2} & \dots & \hat{y}_{t+1,N}\\
  \hat{y}_{t+2,1} & \hat{y}_{t+2,2} & \dots & \hat{y}_{t+2,N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  \hat{y}_{t+h,1} & \hat{y}_{t+h,2} & \dots & \hat{y}_{t+h,N}\\
- \end{array}\right) = 
- \left(\begin{array}{ccccc}
+ \end{pmatrix} =
+ \begin{pmatrix}
  1 & X_{t+1,1} & X_{t+1,2} & \dots & X_{t+1,p}\\
  1 & X_{t+2,1} & X_{t+2,2} & \dots & X_{t+2,p}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  1 & X_{t+h,1} & X_{t+h,2} & \dots & X_{t+h,p}
- \end{array}\right)
- \left(\begin{array}{cccc}
+ \end{pmatrix}
+ \begin{pmatrix}
  \beta_{01} & \beta_{02} & \dots & \beta_{0N}\\
  \beta_{11} & \beta_{12} & \dots & \beta_{1N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  \beta_{p1} & \beta_{p2} & \dots & \beta_{pN}
- \end{array}\right)
+ \end{pmatrix}
 \end{equation}
 
 We can write the above equation in shorter term as
-
 \begin{equation}\label{eq:baseforecatssameX}
-{\hat{\bf Y}} = {\bf X}^* {\bf \hat B}
+\hat{\bm{Y}} = \bm{X}^* \hat{\bm{B}}
 \end{equation}
-
-Then the reconciliationfor all the forecasted points, \(h\), and all the
-series, \(N\), can be written as
-
+Then the reconciliationfor all the forecasted points, \(h\), and all the series, \(N\), can be written as
 \begin{equation}\label{eq:recforecastssameX}
-{\tilde{\bf Y}} = {(\bf S'WS)}^{-1}{\bf S'W} {\hat{\bf Y}}
+\tilde{\bm{Y}} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W} \hat{\bm{Y}}
 \end{equation}
+Where again \(\bm{W}\) is an \(N\times N\) diagonal matrix with \((i,i)\)th element \(\sigma_i^2\), and \(\bm{S}\) is the summation matrix containing the aggregation constraints. Also in the above equation, \(\tilde{\bm{Y}}\) includes all the reconciled forecasts for all the bottom level series.
 
-Where again \(\bf W\) is an \(N\times N\) diagonal matrix with
-\((i,i)\)th element \(\sigma_i^2\), and \(\bf S\) is the summation
-matrix containing the aggregation constraints. Also in the above
-equation, \({\tilde{\bf Y}}\) includes all the reconciled forecasts for
-all the bottom level series.
-
-At the end, we can combine two linear equations for computing base
-forecasts and reconciliation (Equations \eqref{eq:baseforecatssameX} and
-\eqref{eq:recforecastssameX}) to obtain the reconciled forecasts with a
-single equation
-
+At the end, we can combine two linear equations for computing base forecasts and reconciliation (Equations \eqref{eq:baseforecatssameX} and \eqref{eq:recforecastssameX}) to obtain the reconciled forecasts with a single equation
 \begin{equation}\label{eq:singlestepsameX}
-{\tilde{\bf Y}} = {(\bf S'WS)}^{-1}{\bf S'W} 
-                        ({\bf X}^* {\bf \hat B}) 
-                        = {(\bf S'WS)}^{-1}{\bf S'W} 
-                        ({\bf X}^* ({\bf X' X})^{-1} {\bf X' Y})
+\tilde{\bm{Y}} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}^* \hat{\bm{B}})
+                        = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}^* (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y})
 \end{equation}
 
-\subsection{OLS predictors}\label{ols-predictors}
+\hypertarget{ols-predictors}{%
+\subsection{OLS predictors}\label{ols-predictors}}
 
-As an example of the \(\bm{X}_t\) matrix in Equation
-\eqref{eq:linearmodel}, we can refer to the set of predictors proposed in
-\textcite{ashouri2018} for modeling trend, seasonality and
-autocorrelation by using lagged values (\(y_{t-1}\), \(y_{t-2}\),
-\dots), trend variables and seasonal dummy variables as a set of
-predictors in the linear model. Equation \eqref{eq:linearmodelexample}
-shows a linear equation of this type which models linear trend, additive
-seasonality with \(m\) seasons, autocorrelation and external data. Here,
-\(t\) is the running index (\(t=1,2,\dots\)), and \(s_{jt}\) is a dummy
-variable taking value 1 if time \(t\) (\(j=1, 2, \dots, m\)) is in
-season \(j\), \(y_{t-k}\) is the \(k\)th lagged value for \(y_t\) and
-\(z_t\) is the external data. For instance, if we have daily data with
-day of week seasonality, \(m\) would be 7 (6 seasonal dummies and 7 the
-violation of lags).
+As an example of the \(\bm{X}_t\) matrix in Equation \eqref{eq:linearmodel}, we can refer to the set of predictors proposed in \textcite{ashouri2018} for modeling trend, seasonality and autocorrelation by using lagged values (\(y_{t-1}\), \(y_{t-2}\), \dots), trend variables and seasonal dummy variables as a set of predictors in the linear model. Equation \eqref{eq:linearmodelexample} shows a linear equation of this type which models linear trend, additive seasonality with \(m\) seasons, autocorrelation and external data. Here, \(t\) is the running index (\(t=1,2,\dots\)), and \(s_{jt}\) is a dummy variable taking value 1 if time \(t\) (\(j=1, 2, \dots, m\)) is in season \(j\), \(y_{t-k}\) is the \(k\)th lagged value for \(y_t\) and \(z_t\) is the external data. For instance, if we have daily data with day of week seasonality, \(m\) would be 7 (6 seasonal dummies and 7 the violation of lags).
 \todo[inline]{This could cause problems with seasonality modelled with both dummies and an AR process. Perhaps use fewer lags than $m$?}
-
 \begin{equation}\label{eq:linearmodelexample}
     y_t = \alpha_0 + \alpha_1 t + \beta_1 s_{1,t} + \beta_2 s_{2,t} + \cdots + \beta_{m-1} s_{m-1,t} + \gamma_1 y_{t-1} + \gamma_2 y_{t-2} + \dots + \gamma_m y_{t-m} + \delta z_t + \varepsilon_t.
 \end{equation}
 
-While OLS is popular in practice for forecasting time series, it is
-often frown upon due to its independence assumption. This can cause
-issue for parametric inference but is less of a problem for forecasting,
-in fact it often performs sufficiently well for forecasting as can be
-seen by its popular use in practice.
+While OLS is popular in practice for forecasting time series, it is often frown upon due to its independence assumption. This can cause issue for parametric inference but is less of a problem for forecasting, in fact it often performs sufficiently well for forecasting as can be seen by its popular use in practice.
 
-\section{Applications}\label{applications}
+\hypertarget{applications}{%
+\section{Applications}\label{applications}}
 
-In this section we illustrate our approach two examples, forecasting
-monthly Australian domestic tourism and forecasting daily Wikipedia
-pageviews. We compare the forecasting accuracy levels of ETS, ARIMA and
-the proposed linear OLS forecasting model, with and without the
-reconciliation step. For comparing these methods we use the average of
-Root Mean Square Error (RMSE) across all series and also display box and
-density plots for forecast errors along with the raw forecast errors.
+In this section we illustrate our approach two examples, forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. We compare the forecasting accuracy levels of ETS, ARIMA and the proposed linear OLS forecasting model, with and without the reconciliation step. For comparing these methods we use the average of Root Mean Square Error (RMSE) across all series and also display box and density plots for forecast errors along with the raw forecast errors.
 
-Since we are using time series lags (\(1, \dots, m\)) in the linear
-forecasting model, we cant forecast multiple steps ahead. We therefore
-apply two methods for generating \(h\)-step-ahead forecast: In the first
-model we use 1-step-ahead forecasts and for forecasting the following
-periods (\(t+2,t+3,\dots\)) we replace the previous periods with the
-actual values. This value is known to us because it is in the test set.
-In our applications, we call this approach `1-step-ahead'. In the second
-method, we again use 1-step-ahead forecasts but for forecasting the
-following periods we use the earlier forecasted values. In our
-applications, we call this approach `\(h\)-step-ahead forecast'. We also
-show the computation challenges in all the methods.
+Since we are using time series lags (\(1, \dots, m\)) in the linear forecasting model, we cant forecast multiple steps ahead. We therefore apply two methods for generating \(h\)-step-ahead forecast: In the first model we use 1-step-ahead forecasts and for forecasting the following periods (\(t+2,t+3,\dots\)) we replace the previous periods with the actual values. This value is known to us because it is in the test set. In our applications, we call this approach `1-step-ahead'. In the second method, we again use 1-step-ahead forecasts but for forecasting the following periods we use the earlier forecasted values. In our applications, we call this approach `\(h\)-step-ahead forecast'. We also show the computation challenges in all the methods.
 
-\subsection{Australian domestic
-tourism}\label{australian-domestic-tourism}
+\hypertarget{australian-domestic-tourism}{%
+\subsection{Australian domestic tourism}\label{australian-domestic-tourism}}
 
-This dataset has 19 years of monthly visitor nights in Australia by
-Australian tourists. This measure is used as an indicator of tourism
-activity \autocite{mint2018}. This data were collected by
-computer-assisted telephone interviews with 120000, Australians aged 15
-and up \autocite[Research tourism][]{researchAustralia2005}. In total
-this dataset includes 304 time series with length 228 each. The
-hierarchy and grouping structure for this dataset is made using
-geographic and purpose of travel information.
+This dataset has 19 years of monthly visitor nights in Australia by Australian tourists. This measure is used as an indicator of tourism activity \autocite{mint2018}. This data were collected by computer-assisted telephone interviews with 120000, Australians aged 15 and up \autocite[Research tourism][]{researchAustralia2005}. In total this dataset includes 304 time series with length 228 each. The hierarchy and grouping structure for this dataset is made using geographic and purpose of travel information.
 
-In this dataset we have three levels of geographic divisions in
-Australia. In the first level, Australia was divided into seven `States'
-including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South
-Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern
-Territory (NT). In the second and third levels it is divided into 27
-`Zones' and 76 `Regions' (for details about Australia geographic
-divisions see Figure \ref{fig:Australiahierarchystructure} and Table
-\ref{tab:Australiageographicaldivision}). For `Purpose' we have four
-groups: Holiday (Hol), Visiting (Vis), Business (Bis) and Others (Oth).
-Based on geographic hierarchy and purpose grouping, we end up with 8
-levels of hierarchy with 555 series in total. The hierarchy structure
-which is used in this example includes the following levels:
+In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia was divided into seven `States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels it is divided into 27 `Zones' and 76 `Regions' (for details about Australia geographic divisions see Figure \ref{fig:Australiahierarchystructure} and Table \ref{tab:Australiageographicaldivision}). For `Purpose' we have four groups: Holiday (Hol), Visiting (Vis), Business (Bis) and Others (Oth). Based on geographic hierarchy and purpose grouping, we end up with 8 levels of hierarchy with 555 series in total. The hierarchy structure which is used in this example includes the following levels:
 
 \begin{itemize}
 \tightlist
@@ -788,18 +581,9 @@ which is used in this example includes the following levels:
   Level 7 = bottom level series
 \end{itemize}
 
-We report the forecast results for all these hierarchy levels, as well
-as the average RMSE across all the levels of hierarchy.
+We report the forecast results for all these hierarchy levels, as well as the average RMSE across all the levels of hierarchy.
 
-In the predictor matrix, for the OLS forecasting model we apply linear
-trend, 11 dummy variables, and 12 time series lags\footnote{Since the
-  forecasting results are better with the less number of lags, we use a
-  linear trend and dummy seasonality variables and four lags in our
-  linear model for 24-step-ahead model.}. This is intended to capture
-the monthly seasonality. In addition, before running the model, we
-partition the data into two parts, training and test sets. We keep the
-last 24 months periods (2 years) as our test set to forecast and we use
-the rest as our training set.
+In the predictor matrix, for the OLS forecasting model we apply linear trend, 11 dummy variables, and 12 time series lags\footnote{Since the forecasting results are better with the less number of lags, we use a linear trend and dummy seasonality variables and four lags in our linear model for 24-step-ahead model.}. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into two parts, training and test sets. We keep the last 24 months periods (2 years) as our test set to forecast and we use the rest as our training set.
 
 \begin{figure}
 
@@ -898,24 +682,9 @@ Total & 111 & 444 & 555\\
 \end{tabular}
 \end{table}
 
-In Tables \ref{tab:Tourismdataresulrolling},
-\ref{tab:TourismdataresultRMSE} and
-\ref{tab:Tourismdatacomputationtime}, we have the average RMSE and
-computation time for the 24-month forecast period. Methods include ETS,
-ARIMA and our proposed OLS forecasting model. In Table
-\ref{tab:Tourismdataresulrolling} we forecast 24 periods by computing
-1-step-ahead forecasts and rolling forward month by month. In Table
-\ref{tab:TourismdataresultRMSE} we generated 24-step-ahead forecasts. In
-these tables we have two parts related to the forecast, with and without
-reconciliation.
+In Tables \ref{tab:Tourismdataresulrolling}, \ref{tab:TourismdataresultRMSE} and \ref{tab:Tourismdatacomputationtime}, we have the average RMSE and computation time for the 24-month forecast period. Methods include ETS, ARIMA and our proposed OLS forecasting model. In Table \ref{tab:Tourismdataresulrolling} we forecast 24 periods by computing 1-step-ahead forecasts and rolling forward month by month. In Table \ref{tab:TourismdataresultRMSE} we generated 24-step-ahead forecasts. In these tables we have two parts related to the forecast, with and without reconciliation.
 
-The results in Table \ref{tab:Tourismdataresulrolling} and
-\ref{tab:TourismdataresultRMSE} show that our proposed OLS forecasting
-model produces forecast accuracy similar to ETS and ARIMA, which are
-computationally heavy for many time series. Also they show the
-usefulness of the reconciliation in decreasing the average RMSE in all
-the three methods. Except for the total series, reconciliation can help
-in forecasting all the hierarchy levels.
+The results in Table \ref{tab:Tourismdataresulrolling} and \ref{tab:TourismdataresultRMSE} show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. Also they show the usefulness of the reconciliation in decreasing the average RMSE in all the three methods. Except for the total series, reconciliation can help in forecasting all the hierarchy levels.
 
 \begin{table}[t]
 
@@ -924,9 +693,9 @@ in forecasting all the hierarchy levels.
 \begin{tabular}{ccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
-\cmidrule(l{2pt}r{2pt}){2-7}
+\cmidrule(l{3pt}r{3pt}){2-7}
 \multicolumn{1}{c}{} & \multicolumn{3}{c}{Unreconciled} & \multicolumn{3}{c}{Reconciled} \\
-\cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-7}
+\cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
  & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
 Level 0 & 1516.40 & 1445.49 & 1415.06 & 1533.58 & 1453.44 & 1454.39\\
@@ -941,17 +710,7 @@ Level 7 & 56.17 & 58.20 & 58.17 & 55.98 & 57.68 & 57.20\\
 \end{tabular}
 \end{table}
 
-In Figures \ref{fig:boxplotrollingtourism}, \ref{fig:boxplottourism},
-\ref{fig:densityplotrollingtourism} and \ref{fig:densityplottourism} we
-display the error box plots for both reconciled and unreconciled
-forecasts, and error density plots for reconciled forecasts using all
-three methods, for 1-step-ahead and 24-step-ahead. In all these figures
-we see the error distribution similarity across all the models, as well
-as usefulness of the reconciliation step in improving the forecasts. By
-comparing density plots \ref{fig:densityplotrollingtourism} and
-\ref{fig:densityplottourism}, as could be expected, we see that by
-applying 1-step-ahead forecasts, the error densities are closer and more
-distributed around zero.
+In Figures \ref{fig:boxplotrollingtourism}, \ref{fig:boxplottourism}, \ref{fig:densityplotrollingtourism} and \ref{fig:densityplottourism} we display the error box plots for both reconciled and unreconciled forecasts, and error density plots for reconciled forecasts using all three methods, for 1-step-ahead and 24-step-ahead. In all these figures we see the error distribution similarity across all the models, as well as usefulness of the reconciliation step in improving the forecasts. By comparing density plots \ref{fig:densityplotrollingtourism} and \ref{fig:densityplottourism}, as could be expected, we see that by applying 1-step-ahead forecasts, the error densities are closer and more distributed around zero.
 
 \begin{figure}
 
@@ -978,9 +737,9 @@ distributed around zero.
 \begin{tabular}{ccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
-\cmidrule(l{2pt}r{2pt}){2-7}
+\cmidrule(l{3pt}r{3pt}){2-7}
 \multicolumn{1}{c}{} & \multicolumn{3}{c}{Unreconciled} & \multicolumn{3}{c}{Reconciled} \\
-\cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-7}
+\cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
  & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
 Level 0 & 2238.58 & 3553.99 & 5050.33 & 2250.22 & 3179.39 & 4671.05\\
@@ -1013,11 +772,7 @@ Level 7 & 59.12 & 58.81 & 60.90 & 58.54 & 58.71 & 62.64\\
 \caption{Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 24-step-ahead tourism demand using interval (-3000,3000)}\label{fig:densityplottourism}
 \end{figure}
 
-Table \ref{tab:Tourismdatacomputationtime} compares the three methods,
-computation time for 1-step-ahead and 24-step-ahead forecasting. We see
-that the OLS forecasting model is much faster compared with the other
-methods. Also, since reconciliation is a linear process, in all methods,
-it is very fast and does not affect computation time significantly.
+Table \ref{tab:Tourismdatacomputationtime} compares the three methods, computation time for 1-step-ahead and 24-step-ahead forecasting. We see that the OLS forecasting model is much faster compared with the other methods. Also, since reconciliation is a linear process, in all methods, it is very fast and does not affect computation time significantly.
 
 \begin{table}[t]
 
@@ -1026,9 +781,9 @@ it is very fast and does not affect computation time significantly.
 \begin{tabular}{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}cc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{4}{c}{Computation time (secs)} \\
-\cmidrule(l{2pt}r{2pt}){2-5}
+\cmidrule(l{3pt}r{3pt}){2-5}
 \multicolumn{1}{c}{} & \multicolumn{2}{c}{1-step-ahead} & \multicolumn{2}{c}{24-step-ahead} \\
-\cmidrule(l{2pt}r{2pt}){2-3} \cmidrule(l{2pt}r{2pt}){4-5}
+\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5}
  & Unreconciled & Reconciled & Unreconciled & Reconciled\\
 \midrule
 ETS & 10924.57 & 10924.60 & 407.10 & 407.15\\
@@ -1038,24 +793,7 @@ OLS & 48.40 & 48.31 & 16.66 & 16.85\\
 \end{tabular}
 \end{table}
 
-Now since we are using linear model for forecasting, in this part we are
-including the `easter' information to check its effect on forecasting
-results. We also add this information on ARIMA models and compare with
-OLS forecasting model. In Tables \ref{tab:easterroolingRMSE} and
-\ref{tab:easterRMSE}, we display the average RMSE of ARIMA and OLS
-including the easter information, ARIMAX and OLSX, across different
-levels with and without reconciliation. These tables are for
-1-step-ahead and 24-step-ahead forecasts. Figure
-\ref{fig:forecstrolling24tourism} shows the 1-step-ahead and
-24-step-ahead forecast results for one of the bottom level series,
-BACBus (Geelong - Business). In these plots we have both reconciled
-(solid lines) and unreconciled (dashed lines) forecasts and we see that
-the reconciliation step improves the forecasts in this series. We also
-see that the OLS model forecast accuracy is similar to the other two
-methods. As you can see from the results adding this external data could
-not change the forecasting results significantly. However in different
-cases, trying different external data can be helpful in improving the
-forecasting results.
+Now since we are using linear model for forecasting, in this part we are including the `easter' information to check its effect on forecasting results. We also add this information on ARIMA models and compare with OLS forecasting model. In Tables \ref{tab:easterroolingRMSE} and \ref{tab:easterRMSE}, we display the average RMSE of ARIMA and OLS including the easter information, ARIMAX and OLSX, across different levels with and without reconciliation. These tables are for 1-step-ahead and 24-step-ahead forecasts. Figure \ref{fig:forecstrolling24tourism} shows the 1-step-ahead and 24-step-ahead forecast results for one of the bottom level series, BACBus (Geelong - Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods. As you can see from the results adding this external data could not change the forecasting results significantly. However in different cases, trying different external data can be helpful in improving the forecasting results.
 
 \begin{table}[t]
 
@@ -1064,9 +802,9 @@ forecasting results.
 \begin{tabular}{ccccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{8}{c}{Mean(RMSE)} \\
-\cmidrule(l{2pt}r{2pt}){2-9}
+\cmidrule(l{3pt}r{3pt}){2-9}
 \multicolumn{1}{c}{} & \multicolumn{4}{c}{Unreconciled} & \multicolumn{4}{c}{Reconciled} \\
-\cmidrule(l{2pt}r{2pt}){2-5} \cmidrule(l{2pt}r{2pt}){6-9}
+\cmidrule(l{3pt}r{3pt}){2-5} \cmidrule(l{3pt}r{3pt}){6-9}
  & ARIMA & OLS & ARIMAX & OLSX & ARIMA & OLS & ARIMAX & OLSX\\
 \midrule
 Level 0 & 1445.49 & 1415.06 & 1564.95 & 1444.49 & 1453.44 & 1454.39 & 1546.53 & 1487.23\\
@@ -1088,9 +826,9 @@ Level 7 & 58.20 & 58.17 & 58.60 & 58.05 & 57.68 & 57.20 & 58.04 & 57.15\\
 \begin{tabular}{ccccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{8}{c}{Mean(RMSE)} \\
-\cmidrule(l{2pt}r{2pt}){2-9}
+\cmidrule(l{3pt}r{3pt}){2-9}
 \multicolumn{1}{c}{} & \multicolumn{4}{c}{Unreconciled} & \multicolumn{4}{c}{Reconciled} \\
-\cmidrule(l{2pt}r{2pt}){2-5} \cmidrule(l{2pt}r{2pt}){6-9}
+\cmidrule(l{3pt}r{3pt}){2-5} \cmidrule(l{3pt}r{3pt}){6-9}
  & ARIMA & OLS & ARIMAX & OLSX & ARIMA & OLS & ARIMAX & OLSX\\
 \midrule
 Level 0 & 3553.99 & 5050.33 & 3528.13 & 5032.41 & 3179.39 & 4671.05 & 3114.40 & 4677.99\\
@@ -1114,23 +852,11 @@ Level 7 & 58.81 & 60.90 & 59.22 & 61.41 & 58.71 & 62.64 & 59.02 & 63.12\\
 \caption{Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for BACBus bottom level series for 1-step-ahead and 24-step-ahead tourism demand}\label{fig:forecstrolling24tourism}
 \end{figure}
 
-\subsection{Wikipedia pageviews}\label{wikipedia-pageviews}
+\hypertarget{wikipedia-pageviews}{%
+\subsection{Wikipedia pageviews}\label{wikipedia-pageviews}}
 
-The second dataset consists of one year of daily data (2016-06-01 to
-2017-06-29) on Wikipedia pageviews for the most popular social networks
-articles \autocite{ashouri2018}. This dataset is noisier compared with
-the Australian monthly tourism data and forecasting its series is more
-challenging. It has a grouped structure, with grouping attributes:
-`Agent': Spider, User, `Access': Desktop, Mobile app, Mobile web,
-`Language': en (English), de (German), es (Spanish), zh (Chinese) and
-`Purpose': Blogging related, Business, Gaming, General purpose, Life
-style, Photo sharing, Reunion, Travel, Video (check Table
-\ref{tab:wikipediagroupingstructure}). We display the group structure in
-Table \ref{tab:wikipediagroupingstructure} and Figure
-\ref{fig:wikigroupstructure}. In Figure \ref{fig:wikigroupstructure} we
-use one possible hierarchy for this dataset, but the order of the
-hierarchy can be switched. The final dataset includes 913 time series,
-each with length 394. The group structure and different levels include:
+The second dataset consists of one year of daily data (2016-06-01 to 2017-06-29) on Wikipedia pageviews for the most popular social networks articles \autocite{ashouri2018}. This dataset is noisier compared with the Australian monthly tourism data and forecasting its series is more challenging. It has a grouped structure, with grouping attributes: `Agent': Spider, User, `Access': Desktop, Mobile app, Mobile web, `Language': en (English), de (German), es (Spanish), zh (Chinese) and `Purpose': Blogging related, Business, Gaming, General purpose, Life style, Photo sharing, Reunion, Travel, Video (check Table \ref{tab:wikipediagroupingstructure}). We display the group structure in Table \ref{tab:wikipediagroupingstructure} and Figure \ref{fig:wikigroupstructure}. In Figure \ref{fig:wikigroupstructure} we use one possible hierarchy for this dataset, but the order of the hierarchy can be switched.
+The final dataset includes 913 time series, each with length 394. The group structure and different levels include:
 
 \begin{itemize}
 \tightlist
@@ -1148,10 +874,7 @@ each with length 394. The group structure and different levels include:
   Level 5 = bottom level series
 \end{itemize}
 
-For this daily dataset, in the OLS forecasting model we include in the
-predictor matrix a linear trend, 6 seasonal dummies and 7 lags. We
-partitioned the data into two parts training and test sets. We used the
-last 28 days for our test set and the rest for the training set.
+For this daily dataset, in the OLS forecasting model we include in the predictor matrix a linear trend, 6 seasonal dummies and 7 lags. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set.
 
 \begin{table}[t]
 
@@ -1187,28 +910,11 @@ Language &  & 17 & Reunion\\
 \caption{One of the possible hierarchy structures for Wikipedia pageview dataset}\label{fig:wikigroupstructure}
 \end{figure}
 
-Table \ref{tab:wikipediadataresulrolling},
-\ref{tab:wikipediadataresultRMSE} and
-\ref{tab:wikipediadatacomputationtime} represent the RMSE results and
-computation time. Although these time series are noisier, still we get
-acceptable results for the OLS forecasting model compared with ETS and
-ARIMA. In this case, we get similar results with and without the
-reconciliation step in the forecasted errors.
+Table \ref{tab:wikipediadataresulrolling}, \ref{tab:wikipediadataresultRMSE} and \ref{tab:wikipediadatacomputationtime} represent the RMSE results and computation time. Although these time series are noisier, still we get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step in the forecasted errors.
 
-Figures \ref{fig:boxplotrollingwiki} and \ref{fig:boxplotwiki} display
-the forecast error box plot. These plots are for 1-step-ahead and
-28-step-ahead forecasts in each level of grouping. Further, we can see
-that the error distribution is almost similar in all levels across the
-different methods. The only exception is the Total series, where ETS
-performs significantly better than ARIMA and OLS. We also note that the
-reconciliation is less effective.
+Figures \ref{fig:boxplotrollingwiki} and \ref{fig:boxplotwiki} display the forecast error box plot. These plots are for 1-step-ahead and 28-step-ahead forecasts in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective.
 
-Figures \ref{fig:densityplotrollingwiki} and \ref{fig:densityplotwiki}
-show the density plots for the forecast errors. For both 1-step-ahead
-and 28-step-ahead forecasts, we can see the density structure of the
-forecast errors across ETS, ARIMA and the OLS forecasting model. Except
-for the Total series which ETS works better, in all the other levels are
-the models have similar structure for the forecast errors.
+Figures \ref{fig:densityplotrollingwiki} and \ref{fig:densityplotwiki} show the density plots for the forecast errors. For both 1-step-ahead and 28-step-ahead forecasts, we can see the density structure of the forecast errors across ETS, ARIMA and the OLS forecasting model. Except for the Total series which ETS works better, in all the other levels are the models have similar structure for the forecast errors.
 
 \begin{table}[t]
 
@@ -1217,9 +923,9 @@ the models have similar structure for the forecast errors.
 \begin{tabular}{ccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
-\cmidrule(l{2pt}r{2pt}){2-7}
+\cmidrule(l{3pt}r{3pt}){2-7}
 \multicolumn{1}{c}{} & \multicolumn{3}{c}{Unreconciled} & \multicolumn{3}{c}{Reconciled} \\
-\cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-7}
+\cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
  & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
 Level 0 & 10773.66 & 15060.65 & 15748.18 & 11014.73 & 14276.47 & 15270.23\\
@@ -1257,9 +963,9 @@ Level 5 & 358.90 & 238.97 & 254.98 & 362.25 & 241.60 & 256.11\\
 \begin{tabular}{ccccccc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
-\cmidrule(l{2pt}r{2pt}){2-7}
+\cmidrule(l{3pt}r{3pt}){2-7}
 \multicolumn{1}{c}{} & \multicolumn{3}{c}{Unreconciled} & \multicolumn{3}{c}{Reconciled} \\
-\cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-7}
+\cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
  & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
 Level 0 & 14846.93 & 24298.84 & 29840.58 & 14999.18 & 24649.91 & 29665.70\\
@@ -1290,13 +996,7 @@ Level 5 & 435.64 & 390.05 & 389.41 & 437.67 & 391.22 & 390.97\\
 \caption{Density plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 28-step-ahead Wikipedia pageviews}\label{fig:densityplotwiki}
 \end{figure}
 
-In Figure \ref{fig:forecstrolling28wiki}, we display results for one of
-the bottom level series, desktopusenPho (desktop-user-english-photo
-sharing). The plot shows 1-step-ahead and 28-step-ahead forecast results
-for ETS, ARIMA and OLS, with (solid lines) and without (dashed lines)
-applying reconciliation. We see that the OLS forecasting model performs
-close to the other two methods, and reconciliation improves the
-forecasts.
+In Figure \ref{fig:forecstrolling28wiki}, we display results for one of the bottom level series, desktopusenPho (desktop-user-english-photo sharing). The plot shows 1-step-ahead and 28-step-ahead forecast results for ETS, ARIMA and OLS, with (solid lines) and without (dashed lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
 
 \begin{figure}
 
@@ -1307,11 +1007,7 @@ forecasts.
 \caption{Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for desktopusenPho (desktop-user-english-photo sharing)  bottom level series- 1- and 28-step-ahead Wikipedia pageviews}\label{fig:forecstrolling28wiki}
 \end{figure}
 
-Lastly, Table \ref{tab:wikipediadatacomputationtime} presents the
-computation times for all three methods. ETS and ARIMA are clearly much
-more computationally heavy compared with OLS. As in the Australian
-tourism dataset, running reconciliation does not have much effect on
-computation time.
+Lastly, Table \ref{tab:wikipediadatacomputationtime} presents the computation times for all three methods. ETS and ARIMA are clearly much more computationally heavy compared with OLS. As in the Australian tourism dataset, running reconciliation does not have much effect on computation time.
 
 \begin{table}[t]
 
@@ -1320,9 +1016,9 @@ computation time.
 \begin{tabular}{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}cc}
 \toprule
 \multicolumn{1}{c}{} & \multicolumn{4}{c}{Computation time (secs)} \\
-\cmidrule(l{2pt}r{2pt}){2-5}
+\cmidrule(l{3pt}r{3pt}){2-5}
 \multicolumn{1}{c}{} & \multicolumn{2}{c}{1-step-ahead} & \multicolumn{2}{c}{28-step-ahead} \\
-\cmidrule(l{2pt}r{2pt}){2-3} \cmidrule(l{2pt}r{2pt}){4-5}
+\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5}
  & Unreconciled & Reconciled & Unreconciled & Reconciled\\
 \midrule
 ETS & 13963.93 & 13963.96 & 450.89 & 450.92\\
@@ -1332,32 +1028,15 @@ OLS & 82.55 & 82.62 & 35.39 & 35.43\\
 \end{tabular}
 \end{table}
 
-\section{Conclusion}\label{conclusion}
+\hypertarget{conclusion}{%
+\section{Conclusion}\label{conclusion}}
 
-We proposed a single-step linear approach to forecast hierarchical or
-grouped time series in a much faster way, but with accuracy that nearly
-matches that of forecast methods such as ETS and ARIMA. This is
-especially useful in large collections of time series, as is typical in
-hierarchical and grouped structures. Although ETS and ARIMA are good in
-terms of forecasting power and accuracy, they can be computationally
-heavy when facing large collections of time series in hierarchy. Adding
-another faster option for calculating base forecasts was our purpose in
-this research. Here we suggest a linear model, OLS, instead of ETS and
-ARIMA which is not computationally intensive. We also showed that OLS
-can compete ETS and ARIMA in terms of forecasting accuracy level. We
-also note that OLS has the additional practice feature in handling
-missing data while ETS and ARIMA requires imputation. One more important
-feature of our model is the ability to easily include external
-information such as holiday dummies or other external series. In
-addition to the computation adjustment, our proposed approach forecasts
-hierarchical time series in a parsimonious single step whereas other
-available methods all forecast in two-steps.
+We proposed a single-step linear approach to forecast hierarchical or grouped time series in a much faster way, but with accuracy that nearly matches that of forecast methods such as ETS and ARIMA. This is especially useful in large collections of time series, as is typical in hierarchical and grouped structures. Although ETS and ARIMA are good in terms of forecasting power and accuracy, they can be computationally heavy when facing large collections of time series in hierarchy. Adding another faster option for calculating base forecasts was our purpose in this research. Here we suggest a linear model, OLS, instead of ETS and ARIMA which is not computationally intensive. We also showed that OLS can compete ETS and ARIMA in terms of forecasting accuracy level. We also note that OLS has the additional practice feature in handling missing data while ETS and ARIMA requires imputation. One more important feature of our model is the ability to easily include external information such as holiday dummies or other external series. In addition to the computation adjustment, our proposed approach forecasts hierarchical time series in a parsimonious single step whereas other available methods all forecast in two-steps.
 
-\section{Acknowledgements}\label{acknowledgements}
+\hypertarget{acknowledgements}{%
+\section{Acknowledgements}\label{acknowledgements}}
 
-The first and third authors of this research were partially funded by
-Ministry of Science and Technology (MOST), Taiwan {[}Grant
-106-2420-H-007-019{]}.
+The first and third authors of this research were partially funded by Ministry of Science and Technology (MOST), Taiwan {[}Grant 106-2420-H-007-019{]}.
 
 \printbibliography
 

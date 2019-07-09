@@ -44,18 +44,21 @@ library(kableExtra)
 
 # Introduction
 
-
-Modern data collection tools have dramatically increased the amount of available time series data. For example, the Internet of Things (IoT) and point-of-sale scanning produce huge volumes of time series in a short period of time. Naturally, there is an interest in forecasting these time series, yet forecasting large collections of time series is computationally challenging.
+Modern data collection tools have dramatically increased the amount of available time series data. For example, the Internet of Things and point-of-sale scanning produce huge volumes of time series in a short period of time. Naturally, there is an interest in forecasting these time series, yet forecasting large collections of time series is computationally challenging.
 
 ## Hierarchical and grouped time series
 
-In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AA and AB. Finally, the bottom level series (level 2), includes the most disaggregated series.
+In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AA and AB. Finally, the bottom level series (level 2), includes the most disaggregated series.\todo{I suggest we label Level 2 with AW, AX, BY, BZ to avoid confusion.}
 
 ```{r hierarchicalexample, echo=FALSE, out.width = "280px", out.height= "180px", fig.align="center", fig.cap="An example of a two level hierarchy structure"}
 knitr::include_graphics("Paper-Figures/hierarchical_example.jpg")
 ```
 
-```{r groupexample, echo=FALSE, out.width = "280px", out.height= "180px", fig.align="center", fig.cap="An example of two level grouped structure"}
+Grouped time series involve more complicated aggregation structures compared to strictly hierarchical time series. To take the simplest example, suppose we have two grouping factors which are not nested: sex (Male/Female) and city (New York/San Francisco). The disaggregated series for each combination of sex and city can be combined to form city sub-totals, or sex sub-totals. These sub-totals can be combined to give the overall total. Both sub-totals are of interest.
+
+We can think of such structures as hierarchical time series without a unique hierarchy. A schematic of this grouped time series structure is shown in Figure \@ref(fig:groupexample) with two grouping factors, each of two levels (A/B and C/D). The series in this structure can be split first into groups A and B and then subdivided further into C and D (left side), or split first into C and D and then subdivided into A and B (right side). The final disaggregation is identical in both cases, but the middle level aggregates are different.
+
+```{r groupexample, echo=FALSE, out.width = "330px", out.height= "180px", fig.align="center", fig.cap="An example of two level grouped structure"}
 library(png)
 library(grid)
 library(gridExtra)
@@ -63,10 +66,6 @@ G1 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_1.png")), interpolate = 
 G2 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_2.png")), interpolate = FALSE)
 grid.arrange(G1, G2, ncol = 2)
 ```
-
-Grouped time series involve more complicated aggregation structures compared to strictly hierarchical time series. To take the simplest example, suppose we have two grouping factors which are not nested; for example, sex (Male/Female) and city (New York/San Francisco). The disaggregated series for each combination of sex and city can be combined to form city sub-totals, or sex sub-totals. These sub-totals can be combined to give the overall total. Both sub-totals are of interest.
-
-We can think of such structures as hierarchical time series without a unique hierarchy. A schematic of this grouped time series structure is shown in Figure \@ref(fig:groupexample) with two grouping factors, each of two levels (A/B and C/D). The series in this structure can be split first into groups A and B and then subdivided further into C and D (left side), or split first into C and D and then subdivided into A and B (right side). The final disaggregation is identical in both cases, but the middle level aggregates are different.
 
 We use the same notation [following @fpp2] for both hierarchical and grouped time series. We denote the total series at time $t$ by $y_t$, and the series at node $Z$ and time $t$ by $y_{Z,t}$. For describing the relationships between series, we use an $n\times m$ matrix, called the 'summing matrix', denoted by $\bm{S}$, in which $n$ is the overall number of nodes and $m$ is the number of bottom level nodes. For example in Figure \@ref(fig:hierarchicalexample), $n = 7$ and $m = 4$, while in Figure \@ref(fig:groupexample), $n=9$ and $m=4$. Then we can write $\bm{y}_t=\bm{S}\bm{b}_t$, where $\bm{y}_t$ is a vector of all the level nodes at time $t$ and $\bm{b}_t$ is the vector of all the bottom level nodes at time $t$. For the example shown in Figure \@ref(fig:groupexample), the equation can be written as follows:
 \begin{equation}\label{eq:Smatrixexample}
@@ -78,24 +77,24 @@ We use the same notation [following @fpp2] for both hierarchical and grouped tim
 \end{pmatrix}
 \begin{pmatrix}
   y_{AC,t}\\y_{AD,t}\\y_{BC,t}\\y_{BD,t}\\
-\end{pmatrix}
+\end{pmatrix}.
 \end{equation}
 
 ## Forecasting hierarchical time series
 
 If we just forecast each series individually, we are ignoring the hierarchical or grouping structure, and the forecasts will not be "coherent" (they will not add up appropriately).
 
-There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts.  However, we may not get good upper-level forecasts because the most disaggregated series are highly noisy and so their forecasts are usually inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $n$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any  correlations among the series.
+There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts.  However, we may not get good upper-level forecasts because the most disaggregated series can be noisy and so their forecasts are often inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $n$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any  correlations among the series.
 
 In the optimal combination method, reconciled forecasts can be computed using [@mint2018]
 \begin{equation}\label{eq:mint}
-  \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}^{-1}\hat{\bm{y}}_h
+  \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}^{-1}\hat{\bm{y}}_h,
 \end{equation}
 where $\hat{\bm{y}}_h$ represents a vector of $h$-step-ahead base forecasts for all levels of the hierarchy, and $\bm{W}_h$ is the variance matrix of forecast errors for the $h$-step-ahead base forecasts.
 
 The most difficult task is to compute $\bm{W}_h$, but @mint2018 and @hyndman2016fast argue that replacing it by the diagonal of $\bm{W}_1$ gives good results in practice. This is easy to obtain because it is simply the diagonal matrix comprising the residual variances from each of the base forecasts.
 
-The most computationally challenging part of the optimal combination method is to produce all the base forecasts that make up $\hat{\bm{y}}_h$. In many applications, there may be thousands or even millions of individual series, and each of them must be forecast independently. The most popular time series forecasting methods such as ETS and ARIMA models [@fpp2] involve non-linear optimization routines to estimate the parameters via Maximum Likelihood Estimation. Usually, multiple models are fitted for each series, and the best is select by minimizing Akaike's Information Citerion [@akaike1998information]. This computational challenges increases with the number of lower level series as well as in the number of aggregations of interest.
+The most computationally challenging part of the optimal combination method is to produce all the base forecasts that make up $\hat{\bm{y}}_h$. In many applications, there may be thousands or even millions of individual series, and each of them must be forecast independently. The most popular time series forecasting methods such as ETS and ARIMA models [@fpp2] involve non-linear optimization routines to estimate the parameters via maximum likelihood estimation. Usually, multiple models are fitted for each series, and the best is select by minimizing Akaike's Information Citerion [@akaike1998information]. This computational challenges increases with the number of lower level series as well as in the number of aggregations of interest.
 
 We therefore propose a new approach to compute the base forecasts that is both computationally fast while maintaining an acceptable forecasting accuracy level.
 
@@ -124,180 +123,169 @@ $$
 
 \todo[inline]{Not complete - Matrix notation: we need to write this for all $\hat{y}_Z$.} -->
 
-
-Our proposed approach is based on using linear regression models for computing base forecasts. Suppose we have a linear model that we use for forecasting, and we wish to apply it in to $N$ different series which have some aggregation constraints. We have observations $y_{t,i}$  from times $t=1,\dots,T$ and $i=1,\dots,N$ series
+Our proposed approach is based on using linear regression models for computing base forecasts. Suppose we have a linear model that we use for forecasting, and we wish to apply it to $N$ different series which have some aggregation constraints. We have observations $y_{t,i}$  from times $t=1,\dots,T$ and series $i=1,\dots,N$. Then
 \begin{equation}
-y_{t,i} = \beta_{i}' x_{t}^i + \epsilon_{t,i}
+y_{t,i} = \bm{\beta}_{i}' \bm{x}_{t,i} + \varepsilon_{t,i}
 \end{equation}
-where $x_{t}^{i}$ is a $p$-vector of regression variables, and $\epsilon_{t,i}\sim NID(0,\sigma_i^2)$. This equation for all the observations in matrix form can be written as follows  
-
+where $\bm{x}_{t,i}=\{1, x_{t,i,1},\dots,x_{t,i,p}\}$ is a $(p+1)$-vector of regression variables, and $\varepsilon_{t,i}\sim \text{NID}(0,\sigma_i^2)$. This equation for all the observations in matrix form can be written as follows:
 \begin{equation}\label{eq:linearmodel}
-\left(\begin{array}{c} 
-{\bf{y}}_1\\
-{\bf{y}}_2\\
-\vdotswithin{\ldots}\\
-{\bf{y}}_N
-\end{array}\right)= %diag ({\bf{X}}^1, {\bf{X}}^2,\dots, {\bf{X}}^N)
-\left(\begin{array}{ccccc} 
-{\bf{X}}^1 & 0 & 0 & \dots & 0\\
-0 & {\bf{X}}^2 & 0 & \dots & 0\\
-0 & 0 & {\bf{X}}^3 & \dots & \vdotswithin{\ddots}\\
-\vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & \ddots & 0\\
-0 & 0 & 0 & \dots & {\bf{X}}^N
-\end{array}\right)
-\left(\begin{array}{c} 
-{\bm{\beta}}_1\\
-{\bm{\beta}}_2\\
-\vdotswithin{\ldots}\\
-{\bm{\beta}}_N
-\end{array}\right)+
-\left(\begin{array}{c} 
-{\bm{\epsilon}}_1\\
-{\bm{\epsilon}}_2\\
-\vdotswithin{\ldots}\\
-{\bm{\epsilon}}_N
-\end{array}\right)
+\begin{pmatrix}
+\bm{y}_1\\
+\bm{y}_2\\
+\bm{y}_3 \\
+\vdots\\
+\bm{y}_N
+\end{pmatrix}=
+\begin{pmatrix}
+\bm{X}_1 & 0        & 0       & \dots  & 0\\
+0        & \bm{X}_2 & 0        & \dots  & 0\\
+0        & 0        & \bm{X}_3 & \ddots & \vdots \\
+\vdots   & \vdots   & \ddots   & \ddots & 0\\
+0        & 0    & \dots    & 0      & \bm{X}_N
+\end{pmatrix}
+\begin{pmatrix}
+\bm{\beta}_1\\
+\bm{\beta}_2\\
+\bm{\beta}_3\\
+\vdots\\
+\bm{\beta}_N
+\end{pmatrix}+
+\begin{pmatrix}
+\bm{\varepsilon}_1\\
+\bm{\varepsilon}_2\\
+\bm{\varepsilon}_3\\
+\vdots \\
+\bm{\varepsilon}_N
+\end{pmatrix},
 \end{equation}
-
-where ${\bf{y}}_i = \{y_{1,i}, y_{2,i}, \dots, y_{T,i}\}$ is a $T-$vector, ${\bm{\beta}}_i = \{\beta_{0,i}, \beta_{1,i}, \beta_{2,i}, \dots, \beta_{p,i}\}$ is a $(p+1)-$vector, ${\bm{\epsilon}}_i = \{\epsilon_{1,i}, \epsilon_{2,i}, \dots, \epsilon_{T,i}\}$ is a $T-$vector and ${\bf{X}}^i$ is a $T\times (p+1)$-matrix which can be defined as follows
+where $\bm{y}_i = \{y_{1,i}, y_{2,i}, \dots, y_{T,i}\}$ is a $T$-vector, ${\bm{\beta}}_i = \{\beta_{0,i}, \beta_{1,i}, \beta_{2,i}, \dots, \beta_{p,i}\}$ is a $(p+1)$-vector, ${\bm{\varepsilon}}_i = \{\varepsilon_{1,i}, \varepsilon_{2,i}, \dots, \varepsilon_{T,i}\}$ is a $T$-vector and $\bm{X}_i$ is the $T\times (p+1)$-matrix
 \begin{equation}
-{\bf{X}}^i = \left(\begin{array}{ccccc} 
-1 & X_{11}^{i} & X_{12}^{i} & \dots & X_{1p}^{i}\\
-1 & X_{21}^{i} & X_{22}^{i} & \dots & X_{2p}^{i}\\
-\vdotswithin{\ldots}\\
-1 & X_{T1}^{i} & X_{T2}^{i} & \dots & X_{Tp}^{i}\\
-\end{array}\right)
+\bm{X}_i = \begin{pmatrix}
+1 & x_{1,i,1} & x_{1,i,2} & \dots & x_{1,i,p}\\
+1 & x_{2,i,1} & x_{2,i,2} & \dots & x_{2,i,p}\\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_{T,i,1} & x_{T,i,2} & \dots & x_{T,i,p}\\
+\end{pmatrix}.
 \end{equation}
 
-Equation \@ref(eq:linearmodel) can be written as the following equation
+Equation \@ref(eq:linearmodel) can be written as
 \begin{equation}\label{eq:linearmodelmatrix}
-{\bf Y}= {\bf X} {\bf B} + {\bf E}
+\bm{Y} = \bm{X} \bm{B} + \bm{E},
 \end{equation}
-
-And using Equation \@ref(eq:linearmodelmatrix), parameter estimates are given by
-
+with parameter estimates given by
 \begin{equation}
-{\bf \hat B} = ({\bf X' X})^{-1} {\bf X' Y}
+\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
-
-Now we need the base forecasts which can be written as
+Then the base forecasts are obtained using
 \begin{equation}\label{eq:baseforecats}
-{\hat{\bf y}}_{t+h} = {\bf X}_{t+h}^* {\bf \hat B}
+\hat{\bm{y}}_{t+h} = \bm{X}_{t+h}^* \hat{\bm{B}},
 \end{equation}
-where ${\hat{\bf y}}_{t+h}$ is an $N-$vector of forecasts, ${\bf \hat B}$, similar to the above equations includes $N$ $(p+1)-$vector of estimated coefficients and 
-
+where $\hat{\bm{y}}_{t+h}$ is an $N$-vector of forecasts, $\hat{\bm{B}}$ comprises $N$ stacked $(p+1)$-vectors of estimated coefficients, and $\bm{X}_{t+h}^*$ is the $N\times N(p+1)$ matrix
 \begin{equation}
-{\bf X}_{t+h}^* 
-= diag({\bf X}^{1*}_{t+h}, {\bf X}^{2*}_{t+h}, \dots, {\bf X}^{N*}_{t+h})
+\bm{X}_{t+h}^* =
+\begin{pmatrix}
+\bm{x}_{t+h,1}' & 0                & 0                & \dots  & 0\\
+0               & \bm{x}_{t+h,2}' & 0                & \dots  & 0\\
+0               & 0                & \bm{x}_{t+h,3}' & \ddots & \vdots \\
+\vdots          & \vdots           & \ddots           & \ddots & 0\\
+0               & 0                & \dots            & 0      & \bm{x}_{t+h,N}'
+\end{pmatrix}.
 \end{equation}
-where ${\bf X}^{i*}_{t+h} = \{ X^{i*}_{t+h,1}, X^{i*}_{t+h,2}, \dots, X^{i*}_{t+h,p}\}$. Note that we use ${\bf X}^*_t$ to distinguish this matrix, which combines $x_{t,i}$ across all series for one time from ${\bf X}_i$ which combines $x_{t,i}$ across all time for one series. 
+Note that we use $\bm{X}^*_{t}$ to distinguish this matrix, which combines $\bm{x}_{t,i}$ across all series for one time from $\bm{X}_i$ which combines $\bm{x}_{t,i}$ across all time for one series.
 
 The reconciliation (of the WLS variety), using Equation \@ref(eq:mint) can be written as
-
 \begin{equation}\label{eq:recforecasts}
-{\tilde{\bf y}}_{t+h} = {(\bf S'WS)}^{-1}{\bf S'W} {\hat{\bf y}_{t+h}}
+\tilde{\bm{y}}_{t+h} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}\hat{\bm{y}}_{t+h},
 \end{equation}
-where $\bf W$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bf S$ is the summation matrix containing the aggregation constraints.
+where $\bm{W}$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bm{S}$ is the summation matrix containing the aggregation constraints.
 
-Finally, we can combine two linear equations for computing base forecasts and reconciliation (Equations \@ref(eq:baseforecats) and \@ref(eq:recforecasts)) to obtain the reconciled forecasts  with a single equation
-
+Finally, we can combine the two linear equations for computing base forecasts and reconciled forecasts (Equations \@ref(eq:baseforecats) and \@ref(eq:recforecasts)) to obtain the reconciled forecasts with a single equation:
 \begin{equation}\label{eq:singlestep}
-{\tilde{\bf y}}_{t+h} = {(\bf S'WS)}^{-1}{\bf S'W} 
-                        ({\bf X}_{t+h}^* {\bf \hat B}) 
-                        = {(\bf S'WS)}^{-1}{\bf S'W} 
-                        ({\bf X}_{t+h}^* ({\bf X' X})^{-1} {\bf X' Y})
+\tilde{\bm{y}}_{t+h} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}_{t+h}^* \hat{\bm{B}})
+                        = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}_{t+h}^* \bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
 
-## Proposed approach with same set of $\bf {X}$
+## Proposed approach with same set of $\bm{X}$
 
-If we have same set of regression variables, $\bf {X}$,  for all the series we can write the above equations easier using multivariate multiple regression equations and we can all the reconciled forecasts for all the series in one equation.  In that case Equation \@ref(eq:linearmodel) can be specified as follows
-
+If we have same set of regression variables, $\bm{X}$, for all the series, we can write the above equations more easily using multivariate regression equations, and we can obtain all the reconciled forecasts for all the series in one equation.  In that case Equation \@ref(eq:linearmodel) can be specified as follows:
 \begin{equation}\label{eq:linearmodelsameX}
 \begin{split}
-\left(\begin{array}{cccc}  
+\begin{pmatrix}
  y_{11} & y_{12} & \dots & y_{1N}\\
  y_{21} & y_{22} & \dots & y_{2N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  y_{T1} & y_{T2} & \dots & y_{TN}
- \end{array}\right) =
- \left(\begin{array}{ccccc}
+ \end{pmatrix} =
+ \begin{pmatrix}
  1 & X_{11} & X_{12} & \dots & X_{1p}\\
  1 & X_{21} & X_{22} & \dots & X_{2p}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  1 & X_{T1} & X_{T2} & \dots & X_{Tp}
- \end{array}\right)
- \left(\begin{array}{cccc}
+ \end{pmatrix}
+ \begin{pmatrix}
  \beta_{01} & \beta_{02} & \dots & \beta_{0N}\\
  \beta_{11} & \beta_{12} & \dots & \beta_{1N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  \beta_{p1} & \beta_{p2} & \dots & \beta_{pN}
- \end{array}\right) \\
- +\left(\begin{array}{cccc} 
- \epsilon_{11} & \epsilon_{12} & \dots & \epsilon_{1N}\\
- \epsilon_{21} & \epsilon_{22} & \dots & \epsilon_{2N}\\
+ \end{pmatrix} \\
+ +\begin{pmatrix}
+ \varepsilon_{11} & \varepsilon_{12} & \dots & \varepsilon_{1N}\\
+ \varepsilon_{21} & \varepsilon_{22} & \dots & \varepsilon_{2N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
- \epsilon_{T1} & \epsilon_{T2} & \dots & \epsilon_{TN}
- \end{array}\right)
+ \varepsilon_{T1} & \varepsilon_{T2} & \dots & \varepsilon_{TN}
+ \end{pmatrix}
  \end{split}
  \end{equation}
 
 We can represent the Equation \@ref(eq:linearmodelsameX) as follows
-
 \begin{equation}\label{eq:linearmodelmatrixsameX}
-{\bf Y}= {\bf X} {\bf B} + {\bf E}
+\bm{Y}= \bm{X} \bm{B} + \bm{E},
 \end{equation}
-
 where  $\bf Y$, $\bf X$, $\bf B$ and $\bf E$ are  $T\times N$-matrix, $T\times (p+1)$-matrix, $(p+1)\times N$-matrix and $T \times N$-matrix, respectively. Using Equation \@ref(eq:linearmodelmatrixsameX), parameter estimates are given by
-
 \begin{equation}
-{\bf \hat B} = ({\bf X' X})^{-1} {\bf X' Y}
+\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}
 \end{equation}
-
 Then the base forecasts can be written as
-
 \begin{equation}
-\left(\begin{array}{cccc}  
+\begin{pmatrix}
  \hat{y}_{t+1,1} & \hat{y}_{t+1,2} & \dots & \hat{y}_{t+1,N}\\
  \hat{y}_{t+2,1} & \hat{y}_{t+2,2} & \dots & \hat{y}_{t+2,N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  \hat{y}_{t+h,1} & \hat{y}_{t+h,2} & \dots & \hat{y}_{t+h,N}\\
- \end{array}\right) = 
- \left(\begin{array}{ccccc}
+ \end{pmatrix} =
+ \begin{pmatrix}
  1 & X_{t+1,1} & X_{t+1,2} & \dots & X_{t+1,p}\\
  1 & X_{t+2,1} & X_{t+2,2} & \dots & X_{t+2,p}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  1 & X_{t+h,1} & X_{t+h,2} & \dots & X_{t+h,p}
- \end{array}\right)
- \left(\begin{array}{cccc}
+ \end{pmatrix}
+ \begin{pmatrix}
  \beta_{01} & \beta_{02} & \dots & \beta_{0N}\\
  \beta_{11} & \beta_{12} & \dots & \beta_{1N}\\
  \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
  \beta_{p1} & \beta_{p2} & \dots & \beta_{pN}
- \end{array}\right)
+ \end{pmatrix}
 \end{equation}
 
 We can write the above equation in shorter term as
-
 \begin{equation}\label{eq:baseforecatssameX}
-{\hat{\bf Y}} = {\bf X}^* {\bf \hat B}
+\hat{\bm{Y}} = \bm{X}^* \hat{\bm{B}}
 \end{equation}
-
 Then the reconciliationfor all the forecasted points, $h$, and all the series, $N$,  can be written as
-
 \begin{equation}\label{eq:recforecastssameX}
-{\tilde{\bf Y}} = {(\bf S'WS)}^{-1}{\bf S'W} {\hat{\bf Y}}
+\tilde{\bm{Y}} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W} \hat{\bm{Y}}
 \end{equation}
-Where again $\bf W$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bf S$ is the summation matrix containing the aggregation constraints. Also in the above equation, ${\tilde{\bf Y}}$ includes all the reconciled forecasts for all the bottom level series.  
+Where again $\bm{W}$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bm{S}$ is the summation matrix containing the aggregation constraints. Also in the above equation, $\tilde{\bm{Y}}$ includes all the reconciled forecasts for all the bottom level series.
 
 At the end, we can combine two linear equations for computing base forecasts and reconciliation (Equations \@ref(eq:baseforecatssameX) and \@ref(eq:recforecastssameX)) to obtain the reconciled forecasts  with a single equation
-
 \begin{equation}\label{eq:singlestepsameX}
-{\tilde{\bf Y}} = {(\bf S'WS)}^{-1}{\bf S'W} 
-                        ({\bf X}^* {\bf \hat B}) 
-                        = {(\bf S'WS)}^{-1}{\bf S'W} 
-                        ({\bf X}^* ({\bf X' X})^{-1} {\bf X' Y})
+\tilde{\bm{Y}} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}^* \hat{\bm{B}})
+                        = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}^* (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y})
 \end{equation}
-
 
 ## OLS predictors
 
@@ -315,7 +303,7 @@ In this section we illustrate our approach two examples, forecasting monthly Aus
 
 Since we are using time series lags ($1, \dots, m$) in the linear forecasting model, we cant forecast multiple steps ahead. We therefore apply two methods for generating $h$-step-ahead forecast: In the first model we use 1-step-ahead forecasts and for forecasting the following periods ($t+2,t+3,\dots$) we replace the previous periods with the actual values. This value is known to us because it is in the test set. In our applications, we call this approach '1-step-ahead'. In the second method, we again use 1-step-ahead forecasts but for forecasting the following periods we use the earlier forecasted values. In our applications, we call this approach '$h$-step-ahead forecast'. We also show the computation challenges in all the methods.
 
-<!--Finally, regarding solving Equations \@ref(eq:singlestep) and \@ref(eq:singlestepsameX) in R, instead of directly solving the equations which needs to invert big matrices we used multiple single linear models by for loops. --> 
+<!--Finally, regarding solving Equations \@ref(eq:singlestep) and \@ref(eq:singlestepsameX) in R, instead of directly solving the equations which needs to invert big matrices we used multiple single linear models by for loops. -->
 
 ## Australian domestic tourism
 
@@ -389,7 +377,6 @@ kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", bo
   kable_styling(position = "center")
 ```
 
-
 In Figures \@ref(fig:boxplotrollingtourism), \@ref(fig:boxplottourism), \@ref(fig:densityplotrollingtourism) and \@ref(fig:densityplottourism) we display the error box plots for both reconciled and unreconciled forecasts, and error density plots for reconciled forecasts using all three methods, for 1-step-ahead and 24-step-ahead. In all these figures we see the error distribution similarity across all the models, as well as usefulness of the reconciliation step in improving the forecasts. By comparing density plots \@ref(fig:densityplotrollingtourism) and \@ref(fig:densityplottourism), as could be expected, we see that by applying 1-step-ahead forecasts, the error densities are closer and more distributed around zero.
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
@@ -419,7 +406,7 @@ ggplot() +
     axis.text.x = element_text(angle = 45, hjust = 1, size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
     axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
   )
-  
+
 # ggplot(error.tourism.1, aes(x=order.id, y=Value, color=id)) +
 #   geom_jitter( width=0.1) +
 #   geom_point(stat="summary", fun.y="mean",color="black") +
@@ -433,7 +420,6 @@ ggplot() +
 dev.off()
 pdf("Paper-Figures/results_Tourism/densityplot_1.pdf", width = 10, height = 10)
 
-
 ggplot(data = error.tourism.1.rec, aes(x = (Value), linetype = order.id)) +
   geom_density(aes(x = (Value), color = order.id),size = 0.5,show_guide=FALSE) +
   stat_density(aes(x = (Value), color=order.id), geom="line",position="identity", size = 0.5)+
@@ -442,8 +428,8 @@ ggplot(data = error.tourism.1.rec, aes(x = (Value), linetype = order.id)) +
   scale_color_manual( name = "Method", values = c( "green","blue","red"))+
   xlab("Method") + ylab("Error") +
   facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+ 
-  theme_light() + 
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+
+  theme_light() +
   xlim(c(-3000, 3000)) +
   theme(
     axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
@@ -559,8 +545,8 @@ ggplot(data = error.tourism.24.rec, aes(x = (Value), linetype = order.id)) +
   scale_color_manual( name = "Method", values = c( "green","blue","red"))+
   xlab("Method") + ylab("Error") +
   facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+ 
-  theme_light() + 
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+
+  theme_light() +
   xlim(c(-3000, 3000)) +
   theme(
     axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
@@ -762,8 +748,8 @@ ggplot(data = error.wiki.1.rec, aes(x = (Value), linetype = order.id)) +
   scale_color_manual( name = "Method", values = c( "green","blue","red"))+
   xlab("Method") + ylab("Error") +
   facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+ 
-  theme_light() + 
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+
+  theme_light() +
   #xlim(c(-3000, 3000)) +
   theme(
     axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
@@ -857,8 +843,8 @@ ggplot(data = error.wiki.28.rec, aes(x = (Value), linetype = order.id)) +
   scale_color_manual( name = "Method", values = c( "green","blue","red"))+
   xlab("Method") + ylab("Error") +
   facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+ 
-  theme_light() + 
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+
+  theme_light() +
   #xlim(c(-3000, 3000)) +
   theme(
     axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
