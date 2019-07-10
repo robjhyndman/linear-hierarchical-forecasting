@@ -293,6 +293,7 @@ Institute of Service Science, National Tsing Hua University, Taiwan
 %\usepackage[backend=biber, bibencoding=utf8, style=authoryear, citestyle=authoryear]{biblatex}
 
 \mathtoolsset{showonlyrefs=true}
+\allowdisplaybreaks
 
 
 \begin{document}
@@ -416,20 +417,12 @@ where \(\bm{y}_i = \{y_{1,i}, y_{2,i}, \dots, y_{T,i}\}\) is a \(T\)-vector, \({
 \end{pmatrix}.
 \end{equation}
 
-Equation \eqref{eq:linearmodel} can be written as
-\begin{equation}\label{eq:linearmodelmatrix}
-\bm{Y} = \bm{X} \bm{B} + \bm{E},
-\end{equation}
-with parameter estimates given by
-\begin{equation}
-\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
-\end{equation}
-Then the base forecasts are obtained using
+Equation \eqref{eq:linearmodel} can be written as \(\bm{Y} = \bm{X} \bm{B} + \bm{E}\), with parameter estimates given by \(\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}\). Then the base forecasts are obtained using
 \begin{equation}\label{eq:baseforecats}
 \hat{\bm{y}}_{t+h} = \bm{X}_{t+h}^* \hat{\bm{B}},
 \end{equation}
 where \(\hat{\bm{y}}_{t+h}\) is an \(N\)-vector of forecasts, \(\hat{\bm{B}}\) comprises \(N\) stacked \((p+1)\)-vectors of estimated coefficients, and \(\bm{X}_{t+h}^*\) is the \(N\times N(p+1)\) matrix
-\begin{equation}
+\pagebreak[3]\begin{equation}
 \bm{X}_{t+h}^* =
 \begin{pmatrix}
 \bm{x}_{t+h,1}' & 0                & 0                & \dots  & 0\\
@@ -458,77 +451,75 @@ Finally, we can combine the two linear equations for computing base forecasts an
 \hypertarget{proposed-approach-with-same-set-of-bmx}{%
 \subsection{\texorpdfstring{Proposed approach with same set of \(\bm{X}\)}{Proposed approach with same set of \textbackslash{}bm\{X\}}}\label{proposed-approach-with-same-set-of-bmx}}
 
-If we have same set of regression variables, \(\bm{X}\), for all the series, we can write the above equations more easily using multivariate regression equations, and we can obtain all the reconciled forecasts for all the series in one equation. In that case Equation \eqref{eq:linearmodel} can be specified as follows:
+If we have same set of regression variables, \(\bm{X}\), for all the series, we can write the above equations more easily using multivariate regression equations, and we can obtain all the reconciled forecasts for all the series in one equation. In that case Equation \eqref{eq:linearmodel} can be rearranged as follows:
 \begin{equation}\label{eq:linearmodelsameX}
-\begin{split}
-\begin{pmatrix}
- y_{11} & y_{12} & \dots & y_{1N}\\
- y_{21} & y_{22} & \dots & y_{2N}\\
- \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
- y_{T1} & y_{T2} & \dots & y_{TN}
- \end{pmatrix} =
- \begin{pmatrix}
- 1 & X_{11} & X_{12} & \dots & X_{1p}\\
- 1 & X_{21} & X_{22} & \dots & X_{2p}\\
- \vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
- 1 & X_{T1} & X_{T2} & \dots & X_{Tp}
- \end{pmatrix}
- \begin{pmatrix}
- \beta_{01} & \beta_{02} & \dots & \beta_{0N}\\
- \beta_{11} & \beta_{12} & \dots & \beta_{1N}\\
- \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
- \beta_{p1} & \beta_{p2} & \dots & \beta_{pN}
- \end{pmatrix} \\
- +\begin{pmatrix}
- \varepsilon_{11} & \varepsilon_{12} & \dots & \varepsilon_{1N}\\
- \varepsilon_{21} & \varepsilon_{22} & \dots & \varepsilon_{2N}\\
- \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
- \varepsilon_{T1} & \varepsilon_{T2} & \dots & \varepsilon_{TN}
- \end{pmatrix}
- \end{split}
- \end{equation}
+  \begin{pmatrix}
+  y_{11} & \dots & y_{1N}\\
+  y_{21} & \dots & y_{2N}\\
+  \vdots &       & \vdots\\
+  y_{T1} & \dots & y_{TN}
+  \end{pmatrix} =
+  \begin{pmatrix}
+  1      & X_{11} & \dots & X_{1p}\\
+  1      & X_{21} & \dots & X_{2p}\\
+  \vdots & \vdots &       & \vdots\\
+  1      & X_{T1} & \dots & X_{Tp}
+  \end{pmatrix}
+  \begin{pmatrix}
+  \beta_{01} & \dots & \beta_{0N}\\
+  \beta_{11} & \dots & \beta_{1N}\\
+  \vdots     &       & \vdots\\
+  \beta_{p1} & \dots & \beta_{pN}
+  \end{pmatrix} \\
+  +
+  \begin{pmatrix}
+  \varepsilon_{11} & \dots & \varepsilon_{1N}\\
+  \varepsilon_{21} & \dots & \varepsilon_{2N}\\
+  \vdots           &       & \vdots\\
+  \varepsilon_{T1} & \dots & \varepsilon_{TN}
+  \end{pmatrix}
+\end{equation}
 
-We can represent the Equation \eqref{eq:linearmodelsameX} as follows
+We can represent Equation \eqref{eq:linearmodelsameX} as follows
 \begin{equation}\label{eq:linearmodelmatrixsameX}
 \bm{Y}= \bm{X} \bm{B} + \bm{E},
 \end{equation}
-where \(\bf Y\), \(\bf X\), \(\bf B\) and \(\bf E\) are \(T\times N\)-matrix, \(T\times (p+1)\)-matrix, \((p+1)\times N\)-matrix and \(T \times N\)-matrix, respectively. Using Equation \eqref{eq:linearmodelmatrixsameX}, parameter estimates are given by
+where \(\bm{Y}\), \(\bm{X}\), \(\bm{B}\) and \(\bm{E}\) are now matrices of size \(T\times N\), \(T\times (p+1)\), \((p+1)\times N\) and \(T \times N\), respectively. Using Equation \eqref{eq:linearmodelmatrixsameX}, parameter estimates are given by
 \begin{equation}
-\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}
+\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
 Then the base forecasts can be written as
 \begin{equation}
 \begin{pmatrix}
  \hat{y}_{t+1,1} & \hat{y}_{t+1,2} & \dots & \hat{y}_{t+1,N}\\
  \hat{y}_{t+2,1} & \hat{y}_{t+2,2} & \dots & \hat{y}_{t+2,N}\\
- \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ \vdots & \vdots & & \vdots\\
  \hat{y}_{t+h,1} & \hat{y}_{t+h,2} & \dots & \hat{y}_{t+h,N}\\
  \end{pmatrix} =
  \begin{pmatrix}
  1 & X_{t+1,1} & X_{t+1,2} & \dots & X_{t+1,p}\\
  1 & X_{t+2,1} & X_{t+2,2} & \dots & X_{t+2,p}\\
- \vdotswithin{\ddots} & \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
+ \vdots & \vdots & & \vdots\\
  1 & X_{t+h,1} & X_{t+h,2} & \dots & X_{t+h,p}
  \end{pmatrix}
  \begin{pmatrix}
- \beta_{01} & \beta_{02} & \dots & \beta_{0N}\\
- \beta_{11} & \beta_{12} & \dots & \beta_{1N}\\
- \vdotswithin{\ddots} & \vdotswithin{\ddots} & & \vdotswithin{\ddots}\\
- \beta_{p1} & \beta_{p2} & \dots & \beta_{pN}
- \end{pmatrix}
+ \hat\beta_{01} & \hat\beta_{02} & \dots & \hat\beta_{0N}\\
+ \hat\beta_{11} & \hat\beta_{12} & \dots & \hat\beta_{1N}\\
+ \vdots & \vdots & & \vdots\\
+ \hat\beta_{p1} & \hat\beta_{p2} & \dots & \hat\beta_{pN}
+ \end{pmatrix},
 \end{equation}
-
-We can write the above equation in shorter term as
+or in shorter form,
 \begin{equation}\label{eq:baseforecatssameX}
-\hat{\bm{Y}} = \bm{X}^* \hat{\bm{B}}
+\hat{\bm{Y}} = \bm{X}^* \hat{\bm{B}}.
 \end{equation}
 Then the reconciliationfor all the forecasted points, \(h\), and all the series, \(N\), can be written as
 \begin{equation}\label{eq:recforecastssameX}
-\tilde{\bm{Y}} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W} \hat{\bm{Y}}
+\tilde{\bm{Y}} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W} \hat{\bm{Y}},
 \end{equation}
-Where again \(\bm{W}\) is an \(N\times N\) diagonal matrix with \((i,i)\)th element \(\sigma_i^2\), and \(\bm{S}\) is the summation matrix containing the aggregation constraints. Also in the above equation, \(\tilde{\bm{Y}}\) includes all the reconciled forecasts for all the bottom level series.
+where again \(\bm{W}\) is an \(N\times N\) diagonal matrix with \((i,i)\)th element \(\sigma_i^2\), and \(\bm{S}\) is the summation matrix containing the aggregation constraints. Also in the above equation, \(\tilde{\bm{Y}}\) includes all the reconciled forecasts for all the bottom level series.
 
-At the end, we can combine two linear equations for computing base forecasts and reconciliation (Equations \eqref{eq:baseforecatssameX} and \eqref{eq:recforecastssameX}) to obtain the reconciled forecasts with a single equation
+At the end, we can combine the two linear equations for computing base forecasts and reconciliation (Equations \eqref{eq:baseforecatssameX} and \eqref{eq:recforecastssameX}) to obtain the reconciled forecasts with a single equation
 \begin{equation}\label{eq:singlestepsameX}
 \tilde{\bm{Y}} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
                         (\bm{X}^* \hat{\bm{B}})
@@ -539,18 +530,18 @@ At the end, we can combine two linear equations for computing base forecasts and
 \hypertarget{ols-predictors}{%
 \subsection{OLS predictors}\label{ols-predictors}}
 
-As an example of the \(\bm{X}_t\) matrix in Equation \eqref{eq:linearmodel}, we can refer to the set of predictors proposed in \textcite{ashouri2018} for modeling trend, seasonality and autocorrelation by using lagged values (\(y_{t-1}\), \(y_{t-2}\), \dots), trend variables and seasonal dummy variables as a set of predictors in the linear model. Equation \eqref{eq:linearmodelexample} shows a linear equation of this type which models linear trend, additive seasonality with \(m\) seasons, autocorrelation and external data. Here, \(t\) is the running index (\(t=1,2,\dots\)), and \(s_{jt}\) is a dummy variable taking value 1 if time \(t\) (\(j=1, 2, \dots, m\)) is in season \(j\), \(y_{t-k}\) is the \(k\)th lagged value for \(y_t\) and \(z_t\) is the external data. For instance, if we have daily data with day of week seasonality, \(m\) would be 7 (6 seasonal dummies and 7 the violation of lags).
-\todo[inline]{This could cause problems with seasonality modelled with both dummies and an AR process. Perhaps use fewer lags than $m$?}
+As an example of the \(\bm{X}_t\) matrix in Equation \eqref{eq:linearmodel}, we can refer to the set of predictors proposed in \textcite{ashouri2018} for modeling trend, seasonality and autocorrelation by using lagged values (\(y_{t-1}\), \(y_{t-2}\), \dots), trend variables and seasonal dummy variables as a set of predictors in the linear model:
 \begin{equation}\label{eq:linearmodelexample}
-    y_t = \alpha_0 + \alpha_1 t + \beta_1 s_{1,t} + \beta_2 s_{2,t} + \cdots + \beta_{m-1} s_{m-1,t} + \gamma_1 y_{t-1} + \gamma_2 y_{t-2} + \dots + \gamma_m y_{t-m} + \delta z_t + \varepsilon_t.
+    y_t = \alpha_0 + \alpha_1 t + \beta_1 s_{1,t} + \cdots + \beta_{m-1} s_{m-1,t} + \gamma_1 y_{t-1} + \cdots + \gamma_m y_{t-m} + \delta z_t + \varepsilon_t.
 \end{equation}
+Here, \(s_{j,t}\) is a dummy variable taking value 1 if time \(t\) is in season \(j\) (\(j=1, 2, \dots, m\)), \(y_{t-k}\) is the \(k\)th lagged value for \(y_t\) and \(z_t\) is the external data. The seasonal period \(m\) depends on the problem; for instance, if we have daily data with day-of-week seasonality, then \(m=7\).
 
-While OLS is popular in practice for forecasting time series, it is often frown upon due to its independence assumption. This can cause issue for parametric inference but is less of a problem for forecasting, in fact it often performs sufficiently well for forecasting as can be seen by its popular use in practice.
+While OLS is popular in practice for forecasting time series, it is often frowned upon due to its independence assumption. This can cause issue for parametric inference but is less of a problem for forecasting. In fact it often performs sufficiently well for forecasting as can be seen by its popular use in practice. Further, the use of autoregressive terms in the above model should model most of the autocorrelation in the data.
 
 \hypertarget{applications}{%
 \section{Applications}\label{applications}}
 
-In this section we illustrate our approach two examples, forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. We compare the forecasting accuracy levels of ETS, ARIMA and the proposed linear OLS forecasting model, with and without the reconciliation step. For comparing these methods we use the average of Root Mean Square Error (RMSE) across all series and also display box and density plots for forecast errors along with the raw forecast errors.
+In this section we illustrate our approach two examples: forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. We compare the forecasting accuracy levels of ETS, ARIMA and the proposed linear OLS forecasting model, with and without the reconciliation step. For comparing these methods, we use the average of Root Mean Square Error (RMSE) across all series and also display box and density plots for forecast errors along with the raw forecast errors.
 
 Since we are using time series lags (\(1, \dots, m\)) in the linear forecasting model, we cant forecast multiple steps ahead. We therefore apply two methods for generating \(h\)-step-ahead forecast: In the first model we use 1-step-ahead forecasts and for forecasting the following periods (\(t+2,t+3,\dots\)) we replace the previous periods with the actual values. This value is known to us because it is in the test set. In our applications, we call this approach `1-step-ahead'. In the second method, we again use 1-step-ahead forecasts but for forecasting the following periods we use the earlier forecasted values. In our applications, we call this approach `\(h\)-step-ahead forecast'. We also show the computation challenges in all the methods.
 
