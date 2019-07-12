@@ -596,15 +596,13 @@ kable(table1, align = c("c", "r", "c", "r"), format = "latex", booktabs = T, lin
   kable_styling(position = "center")
 ```
 
-```{r wikigroupstructure, echo=FALSE, out.width = "500px", out.height= "250px", fig.align="center", fig.cap="One of the possible hierarchy structures for Wikipedia pageview dataset"}
+```{r wikigroupstructure, echo=FALSE, out.width = "500px", out.height= "250px", fig.align="center", fig.cap="One of the possible hierarchical structures for Wikipedia pageview dataset"}
 knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 ```
 
 Table \@ref(tab:wikipediadataresulrolling), \@ref(tab:wikipediadataresultRMSE) and \@ref(tab:wikipediadatacomputationtime) represent the RMSE results and computation time. Although these time series are noisier, still we get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step in the forecasted errors.
 
 Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for 1-step-ahead and 28-step-ahead forecasts in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective.
-
-Figures \@ref(fig:densityplotrollingwiki) and \@ref(fig:densityplotwiki) show the density plots for the forecast errors. For both 1-step-ahead and 28-step-ahead forecasts, we can see the density structure of the forecast errors across ETS, ARIMA and the OLS forecasting model. Except for the Total series which ETS works better, in all the other levels are the models have similar structure for the forecast errors.
 
 ```{r wikipediadataresulrolling, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
 table3 <- matrix(NA, nrow = 6, ncol = 7)
@@ -649,22 +647,6 @@ ggplot() +
     axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
   )
 dev.off()
-pdf("Paper-Figures/results_Wikipedia/densityplot_1.pdf", width = 10, height = 10)
-ggplot(data = error.wiki.1.rec, aes(x = (Value), linetype = order.id)) +
-  geom_density(aes(x = (Value), color = order.id),size = 0.5,show_guide=FALSE) +
-  stat_density(aes(x = (Value), color=order.id), geom="line",position="identity", size = 0.5)+
-  geom_hline(yintercept=0, colour="gray90", size=0.8)+
-  scale_linetype_manual(name = "Method",values = c( 1,1,1))+
-  scale_color_manual( name = "Method", values = c( "green","blue","red"))+
-  xlab("Method") + ylab("Error") +
-  facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+
-  theme_light() +
-  #xlim(c(-3000, 3000)) +
-  theme(
-    axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
-    axis.title = element_text(size = 12, face = "bold"), legend.position = "bottom", legend.text=element_text(size=12) )
-dev.off()
 forecast.wiki <- read.csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv", header = TRUE)
 forecast.wiki.1 <- forecast.wiki[forecast.wiki$ForecastingInterval == "1Step", ]
 ### one of the bottom level series
@@ -691,12 +673,8 @@ G1 <- ggplot(mobilewusenGen.1, aes(date)) +
 # dev.off()
 ```
 
-```{r boxplotrollingwiki, echo=FALSE, out.width = "450px", out.height= "300px", fig.align="center", fig.cap="Box plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead Wikipedia pageviews"}
+```{r boxplotrollingwiki, echo=FALSE, out.width = "450px", out.height= "300px", fig.align="center", fig.cap="Box plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 1-step-ahead Wikipedia pageviews"}
 knitr::include_graphics("Paper-Figures/results_Wikipedia/boxplot_1.pdf")
-```
-
-```{r densityplotrollingwiki, echo=FALSE, out.width = "450px", out.height= "550px", fig.align="center", fig.cap="Density plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead Wikipedia pageviews"}
-knitr::include_graphics("Paper-Figures/results_Wikipedia/densityplot_1.pdf")
 ```
 
 ```{r wikipediadataresultRMSE, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
@@ -742,22 +720,6 @@ ggplot() +
     axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
   )
 dev.off()
-pdf("Paper-Figures/results_Wikipedia/densityplot_28.pdf", width = 10, height = 10)
-ggplot(data = error.wiki.28.rec, aes(x = (Value), linetype = order.id)) +
-  geom_density(aes(x = (Value), color = order.id),size = 0.5,show_guide=FALSE) +
-  stat_density(aes(x = (Value), color=order.id), geom="line",position="identity", size = 0.5)+
-  geom_hline(yintercept=0, colour="gray90", size=0.8)+
-  scale_linetype_manual(name = "Method",values = c( 1,1,1))+
-  scale_color_manual( name = "Method", values = c( "green","blue","red"))+
-  xlab("Method") + ylab("Error") +
-  facet_wrap( ~ Level, ncol = 2, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE, title = "Method"))+
-  theme_light() +
-  #xlim(c(-3000, 3000)) +
-  theme(
-    axis.text.x = element_text( size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
-    axis.title = element_text(size = 12, face = "bold"), legend.position = "bottom", legend.text=element_text(size=12) )
-dev.off()
 forecast.wiki <- read.csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv", header = TRUE)
 forecast.wiki.28 <- forecast.wiki[forecast.wiki$ForecastingInterval == "28Step", ]
 ### one of the bottom level series
@@ -784,12 +746,8 @@ G2 <- ggplot(desktopusenPho.28, aes(date)) +
 # dev.off()
 ```
 
-```{r boxplotwiki, echo=FALSE, out.width = "450px", out.height= "300px", fig.align="center", fig.cap="Box plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 28-step-ahead Wikipedia pageviews"}
+```{r boxplotwiki, echo=FALSE, out.width = "450px", out.height= "300px", fig.align="center", fig.cap="Box plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 28-step-ahead Wikipedia pageviews"}
 knitr::include_graphics("Paper-Figures/results_Wikipedia/boxplot_28.pdf")
-```
-
-```{r densityplotwiki, echo=FALSE, out.width = "450px", out.height= "550px", fig.align="center", fig.cap="Density plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 28-step-ahead Wikipedia pageviews"}
-knitr::include_graphics("Paper-Figures/results_Wikipedia/densityplot_28.pdf")
 ```
 
 In Figure \@ref(fig:forecstrolling28wiki), we display results for one of the bottom level series, desktopusenPho (desktop-user-english-photo sharing). The plot shows 1-step-ahead and 28-step-ahead forecast results for ETS, ARIMA and OLS, with (solid lines) and without (dashed lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
@@ -819,7 +777,7 @@ kable(table2,
 
 # Conclusion
 
-We proposed a single-step linear approach to forecast hierarchical or grouped time series in a much faster way, but with accuracy that nearly matches that of forecast methods such as ETS and ARIMA. This is especially useful in large collections of time series, as is typical in hierarchical and grouped structures. Although ETS and ARIMA are good in terms of forecasting power and accuracy, they can be computationally heavy when facing large collections of time series in hierarchy. Adding another faster option for calculating base forecasts was our purpose in this research. Here we suggest a linear model, OLS, instead of ETS and ARIMA which is not computationally intensive. We also showed that OLS can compete ETS and ARIMA in terms of forecasting accuracy level. We also note that OLS has the additional practice feature in handling missing data while ETS and ARIMA requires imputation. One more important feature of our model is the ability to easily include external information such as holiday dummies or other external series. In addition to the computation adjustment, our proposed approach forecasts hierarchical time series in a parsimonious single step whereas other available methods all forecast in two-steps.
+We proposed a single-step linear approach to forecast hierarchical or grouped time series in a much faster way, but with accuracy that nearly matches that of forecast methods such as ETS and ARIMA. This is especially useful in large collections of time series, as is typical in hierarchical and grouped structures. Although ETS and ARIMA are good in terms of forecasting power and accuracy, they can be computationally heavy when facing large collections of time series in the hierarchy. Adding another faster option for calculating base forecasts was our purpose in this research. Here we suggest a linear model, OLS, instead of ETS and ARIMA which is not computationally intensive. We also showed that OLS can compete ETS and ARIMA in terms of forecasting accuracy level. We also note that OLS has the additional practice feature in handling missing data while ETS and ARIMA requires imputation. One more important feature of our model is the ability to easily include external information such as holiday dummies or other external series. In addition to the computation adjustment, our proposed approach forecasts hierarchical time series in a parsimonious single step whereas other available methods all forecast in two-steps.
 
 # Acknowledgements
 
