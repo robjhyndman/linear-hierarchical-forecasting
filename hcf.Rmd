@@ -36,10 +36,13 @@ output:
 ---
 
 ```{r setup, include=FALSE,message=FALSE}
-knitr::opts_chunk$set(echo = FALSE, cache = TRUE, messages = FALSE, warning = FALSE)
-library(ggplot2)
+knitr::opts_chunk$set(echo = FALSE, cache = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
 library(knitr)
 library(kableExtra)
+library(png)
+library(grid)
+library(gridExtra)
 ```
 
 # Introduction
@@ -50,7 +53,7 @@ Modern data collection tools have dramatically increased the amount of available
 
 In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AA and AB. Finally, the bottom level series (level 2), includes the most disaggregated series.\todo{I suggest we label Level 2 with AW, AX, BY, BZ to avoid confusion.}
 
-```{r hierarchicalexample, echo=FALSE, out.width = "280px", out.height= "180px", fig.align="center", fig.cap="An example of a two level hierarchy structure"}
+```{r hierarchicalexample, out.width = "280px", out.height= "180px", fig.align="center", fig.cap="An example of a two level hierarchy structure"}
 knitr::include_graphics("Paper-Figures/hierarchical_example.jpg")
 ```
 
@@ -58,10 +61,7 @@ Grouped time series involve more complicated aggregation structures compared to 
 
 We can think of such structures as hierarchical time series without a unique hierarchy. A schematic of this grouped time series structure is shown in Figure \@ref(fig:groupexample) with two grouping factors, each of two levels (A/B and C/D). The series in this structure can be split first into groups A and B and then subdivided further into C and D (left side), or split first into C and D and then subdivided into A and B (right side). The final disaggregation is identical in both cases, but the middle level aggregates are different.
 
-```{r groupexample, echo=FALSE, out.width = "330px", out.height= "180px", fig.align="center", fig.cap="An example of two level grouped structure"}
-library(png)
-library(grid)
-library(gridExtra)
+```{r groupexample, out.width = "330px", out.height= "180px", fig.align="center", fig.cap="An example of two level grouped structure"}
 G1 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_1.png")), interpolate = FALSE)
 G2 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_2.png")), interpolate = FALSE)
 grid.arrange(G1, G2, ncol = 2)
@@ -282,7 +282,7 @@ At the end, we can combine the two linear equations for computing base forecasts
 
 As an example of the $\bm{X}_t$ matrix in Equation \@ref(eq:linearmodel), we can refer to the set of predictors proposed in @ashouri2018 for modeling trend, seasonality and autocorrelation by using lagged values ($y_{t-1}$, $y_{t-2}$, \dots), trend variables and seasonal dummy variables as a set of predictors in the linear model:
 \begin{equation}\label{eq:linearmodelexample}
-    y_t = \alpha_0 + \alpha_1 t + \beta_1 s_{1,t} + \cdots + \beta_{m-1} s_{m-1,t} + \gamma_1 y_{t-1} + \cdots + \gamma_m y_{t-m} + \delta z_t + \varepsilon_t.
+    y_t = \alpha_0 + \alpha_1 t + \beta_1 s_{1,t} + \cdots + \beta_{m-1} s_{m-1,t} + \gamma_1 y_{t-1} + \cdots + \gamma_p y_{t-p} + \delta z_t + \varepsilon_t.
 \end{equation}
 Here, $s_{j,t}$ is a dummy variable taking value 1 if time $t$ is in season $j$ ($j=1, 2, \dots, m$), $y_{t-k}$ is the $k$th lagged value for $y_t$ and $z_t$ is the external data. The seasonal period $m$ depends on the problem; for instance, if we have daily data with day-of-week seasonality, then $m=7$.
 
@@ -701,8 +701,6 @@ kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", bo
 ```
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
-library(ggplot2)
-library(gridExtra)
 ## 1-step-ahead
 error.wiki <- read.csv("Paper-Figures/results_Wikipedia/error.wiki.csv", header = TRUE)
 error.wiki.1 <- error.wiki[error.wiki$ForecastingInterval == "1Step", ]
@@ -796,8 +794,6 @@ kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", bo
 ```
 
 ```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
-library(ggplot2)
-library(gridExtra)
 ## 28-step-ahead
 error.wiki <- read.csv("Paper-Figures/results_Wikipedia/error.wiki.csv", header = TRUE)
 error.wiki.28 <- error.wiki[error.wiki$ForecastingInterval == "28Step", ]
