@@ -298,17 +298,17 @@ We apply two methods for generating $h$-step-ahead forecasts, which differ in ho
 
 ## Australian domestic tourism
 
-This dataset has 19 years of monthly visitor nights in Australia by Australian tourists. This measure is used as an indicator of tourism activity [@mint2018]. This data were collected by computer-assisted telephone interviews with 120000, Australians aged 15 and up [Research tourism @researchAustralia2005]. In total this dataset includes 304 time series with length 228 each. The hierarchy and grouping structure for this dataset is made using geographic and purpose of travel information.
+This dataset has 19 years of monthly visitor nights in Australia by Australian tourists. This measure is used as an indicator of tourism activity [@mint2018]. The data were collected by computer-assisted telephone interviews with 120000 Australians aged 15 and over [@researchAustralia2005]. The dataset includes 304 time series each of length 228 observations. The hierarchy and grouping structure for this dataset is made using geographic and purpose of travel information.
 
-In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia was divided into seven 'States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels it is divided into 27 'Zones' and 76 'Regions' (for details about Australia geographic divisions see Figure \@ref(fig:Australiahierarchystructure) and Table \@ref(tab:Australiageographicaldivision)). For 'Purpose' we have four groups: Holiday (Hol), Visiting (Vis), Business (Bis) and Others (Oth). Based on geographic hierarchy and purpose grouping, we end up with 8 levels of hierarchy with 555 series in total. The hierarchy structure which is used in this example includes the following levels:
+In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven 'States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 'Zones' and 76 'Regions' (for details about Australia geographic divisions see Figure \@ref(fig:Australiahierarchystructure) and Table \@ref(tab:Australiageographicaldivision)). For 'Purpose' we have four groups: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). Based on the geographic hierarchy and purpose grouping, we end up with 8 hierarchical levels with 555 series in total:
 
-- Level 0 = Total series
-- Level 1 = State
-- Level 2 = Zone
-- Level 3 = Region
-- Level 4 = Purpose
-- Level 5 = State $\times$ Purpose
-- Level 6 = Zone $\times$ Purpose
+- Level 0 = Total for Australia
+- Level 1 = State totals
+- Level 2 = Zone totals
+- Level 3 = Region totals
+- Level 4 = Purpose totals
+- Level 5 = State $\times$ Purpose totals
+- Level 6 = Zone $\times$ Purpose totals
 - Level 7 = bottom level series
 
 We report the forecast results for all these hierarchy levels, as well as the average RMSE across all the levels of hierarchy.
