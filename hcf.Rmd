@@ -311,15 +311,12 @@ In this dataset we have three levels of geographic divisions in Australia. In th
 - Level 6 = Zone $\times$ Purpose totals
 - Level 7 = bottom level series
 
-We report the forecast results for all these hierarchy levels, as well as the average RMSE across all the levels of hierarchy.
-
-In the predictor matrix, for the OLS forecasting model we apply linear trend, 11 dummy variables, and 12 time series lags^[Since the forecasting results are better with the less number of lags, we use a linear trend and dummy seasonality variables and four lags in our linear model for 24-step-ahead model.]. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into two parts, training and test sets. We keep the last 24 months periods (2 years) as our test set to forecast and we use the rest as our training set.
-
-```{r Australiahierarchystructure, echo=FALSE, out.width = "450px", out.height= "180px", fig.align="center", fig.cap="Australia geographic hierarchy structure"}
+```{r Australiahierarchystructure, out.width = "450px", out.height= "150px", fig.align="center", fig.cap="Australia geographic hierarchy structure"}
 knitr::include_graphics("Paper-Figures/Australian_hierarchy_structure.jpg")
 ```
 
-```{r Australiageographicaldivision, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
+
+```{r Australiageographicaldivision, results='asis', fig.pos="!p"}
 table1 <- matrix(NA, nrow = 58, ncol = 6)
 colnames(table1) <- c("Series", "Name", "Label", "Series", "Name", "Label")
 table1[, 1] <- c("Total", "1", "State", "2", "3", "4", "5", "6", "7", "8", "Zone", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "Region", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54")
@@ -328,52 +325,74 @@ table1[, 3] <- c("", "Total", "", "A", "B", "C", "D", "E", "F", "G", "", "AA", "
 table1[, 4] <- c("Region", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "111")
 table1[, 5] <- c("", "Lakes", "Gippsland", "Phillip Island", "General Murray", "Goulburn", "High Country", "Melbourne East", "Upper Yarra", "Murray East", "Wimmera+Mallee", "Western Grampians", "Bendigo Loddon", "Macedon", "Spa Country", "Ballarat", "Central Highlands", "Gold Coast", "Brisbane", "Sunshine Coast", "Central Queensland", "Bundaberg", "Fraser Coast", "Mackay", "Whitsundays", "Northern", "Tropical North Queensland", "Darling Downs", "Outback", "Adelaide", "Barossa", "Adelaide Hills", "Limestone Coast", "Fleurieu Peninsula", "Kangaroo Island", "Murraylands", "Riverland", "Clare Valley", "Flinders Range and Outback", "Eyre Peninsula", "Yorke Peninsula", "Australia's Coral Coast", "Experience Perth", "Australia's SouthWest", "Australia's North West", "Australia's Golden Outback", "Hobart and the South", "East Coast", "Launceston, Tamar and the North", "North West", "Wilderness West", "Darwin", "Kakadu Arnhem", "Katherine Daly", "Barkly", "Lasseter", "Alice Springs", "MacDonnell")
 table1[, 6] <- c("", "BCA", "BCB", "BCC", "BDA", "BDB", "BDC", "BDD", "BDE", "BDF", "BEA", "BEB", "BEC", "BED", "BEE", "BEF", "BEG", "CAA", "CAB", "CAC", "CBA", "CBB", "CBC", "CBD", "CCA", "CCB", "CCC", "CDA", "CDB", "DAA", "DAB", "DAC", "DBA", "DBB", "DBC", "DCA", "DCB", "DCC", "DCD", "DDA", "DDB", "EAA", "EAB", "EAC", "EBA", "ECA", "FAA", "FBA", "FBB", "FCA", "FCB", "GAA", "GAB", "GAC", "GBA", "GBB", "GBC", "GBD")
-kable(table1, align = c("c", "r", "c", "c", "r", "c"), format = "latex", booktabs = T, linesep = "", caption = "Australia geographic hierarchy structure") %>%
+kable(table1, align = c("r", "l", "l", "r", "l", "l"), format = "latex", booktabs = T, linesep = "", caption = "Australia geographic hierarchy structure") %>%
   kable_styling(position = "center", font_size = 9)
 ```
 
-```{r Australiageographicalpurposedivision, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
+We report the forecast results for all these hierarchical levels, as well as the average RMSE across all the levels of hierarchy.
+
+In the predictor matrix for the OLS forecasting model, we include a linear trend, 11 dummy variables, and 12 time series lags^[Since the forecasting results are better with fewer lags, we use a linear trend and dummy seasonality variables and four lags in our linear model for 24-step-ahead model.]. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
+
+\todo[inline]{Why not just use the four lag model from the start?}
+
+```{r Australiageographicalpurposedivision, results='asis'}
 table1 <- matrix(NA, nrow = 5, ncol = 4)
 table1[, 1] <- c("Australia", "State", "Zone", "Region", "Total")
 table1[, 2] <- c("1", "7", "27", "76", "111")
 table1[, 3] <- c("4", "28", "108", "304", "444")
 table1[, 4] <- c("5", "35", "135", "380", "555")
 kable(table1,
-    align = c("c", "c", "c", "c"), format = "latex", booktabs = T, linesep = "", caption = "Number of Australian domestic tourism series in each level of hierarchy and group structure",
-    col.names = c("geographic division", "# of series (geographic division)", "# of series (purpose of travel)", "Total")
+    align = c("l", "r", "r", "r"), format = "latex", booktabs = T, linesep = "", caption = "Number of Australian domestic tourism series in each level of hierarchy and group structure.",
+    col.names = c("Geographic division", "# series (geographic division)", "# series (purpose of travel)", "Total")
   ) %>%
-  column_spec(1:4, width = "3cm") %>%
+#  column_spec(2, width = "3.5cm") %>%
   kable_styling(position = "center")
 ```
 
-In Tables \@ref(tab:Tourismdataresulrolling), \@ref(tab:TourismdataresultRMSE) and \@ref(tab:Tourismdatacomputationtime), we have the average RMSE and computation time for the 24-month forecast period. Methods include ETS, ARIMA and our proposed OLS forecasting model. In Table \@ref(tab:Tourismdataresulrolling) we forecast 24 periods by computing 1-step-ahead forecasts and rolling forward month by month. In Table \@ref(tab:TourismdataresultRMSE) we generated 24-step-ahead forecasts. In these tables we have two parts related to the forecast, with and without reconciliation.
+In Tables \@ref(tab:Tourismdataresulrolling), \@ref(tab:TourismdataresultRMSE) and \@ref(tab:Tourismdatacomputationtime), we have the average RMSE and computation time for the 24-month forecasts. Methods include ETS, ARIMA and our proposed OLS forecasting model. In Table \@ref(tab:Tourismdataresulrolling) we forecast 24 periods by computing 1-step-ahead ex post forecasts and rolling forward month by month. In Table \@ref(tab:TourismdataresultRMSE) we generate 24-step-ahead ex ante forecasts. In these tables we have two parts related to the forecast, with and without reconciliation.
 
 The results in Table \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE) show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. Also they show the usefulness of the reconciliation in decreasing the average RMSE in all the three methods. Except for the total series, reconciliation can help in forecasting all the hierarchy levels.
 
-```{r Tourismdataresulrolling, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
-# we can compute the numbers in tables like this also
-# error.tourism.1<-read.csv("Paper-Figures/results_Tourism/error.tourism.1.csv",header = TRUE)
-# error.tourism.1%>%filter(Level=="level0"&Method=="ARIMA"&Rec=="rec")
-table3 <- matrix(NA, nrow = 8, ncol = 7)
-table3[, 1] <- c("Level 0", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6", "Level 7")
-table3[, 2] <- c("1516.40", "511.37", "214.81", "122.91", "675.99", "213.06", "97.53", "56.17")
-table3[, 3] <- c("1445.49", "493.14", "219.01", "125.08", "709.22", "220.08", "102.41", "58.20")
-table3[, 4] <- c("1415.06", "510.83", "224.50", "123.97", "694.50", "216.11", "101.03", "58.17")
-table3[, 5] <- c("1533.58", "495.88", "209.16", "118.67", "668.26", "210.64", "96.36", "55.98")
-table3[, 6] <- c("1453.44", "457.65", "207.52", "120.52", "679.74", "209.39", "99.77", "57.68")
-table3[, 7] <- c("1454.39", " 488.33", "212.44", "119.52", "678.54", "211.13", "98.56", "57.20")
-kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", booktabs = T, linesep = "", caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 1-step-ahead - Tourism dataset", col.names = c("", "ETS", "ARIMA", "OLS", "ETS", "ARIMA", "OLS")) %>%
+```{r Readerrors, results='hide'}
+error.tourism.1 <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.csv")
+rmse <- error.tourism.1 %>%
+  group_by(Rec,Method,Level,ForecastInterval) %>%
+  summarise(
+    rmse = sqrt(mean(Value^2))
+  ) %>%
+  spread(value=rmse, key=Method) %>%
+  ungroup() %>%
+  select(Rec, ForecastInterval, Level, ETS, ARIMA, OLS) %>%
+  mutate(
+    Level = str_replace(Level, "level([0-9])", "Level \\1")
+  )
+```
+
+```{r Tourismdataresulrolling, results='asis', dependson="Readerrors"}
+bind_cols(
+  filter(rmse, ForecastInterval=="1Step", Rec=="unrec") %>% select(-Rec,-ForecastInterval),
+  filter(rmse, ForecastInterval=="1Step", Rec=="rec") %>% select(-Rec,-ForecastInterval,-Level)
+) %>%
+  kable(booktabs=TRUE, format='latex', digits=1, linesep = "",
+        caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 1-step-ahead - Tourism dataset",
+        col.names=c("Level",rep(c("ETS","ARIMA","OLS"),2))) %>%
   add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
-  add_header_above(c("", "Mean(RMSE)" = 6)) %>%
   kable_styling(position = "center")
 ```
 
-In Figures \@ref(fig:boxplotrollingtourism), \@ref(fig:boxplottourism), \@ref(fig:densityplotrollingtourism) and \@ref(fig:densityplottourism) we display the error box plots for both reconciled and unreconciled forecasts, and error density plots for reconciled forecasts using all three methods, for 1-step-ahead and 24-step-ahead. In all these figures we see the error distribution similarity across all the models, as well as usefulness of the reconciliation step in improving the forecasts. By comparing density plots \@ref(fig:densityplotrollingtourism) and \@ref(fig:densityplottourism), as could be expected, we see that by applying 1-step-ahead forecasts, the error densities are closer and more distributed around zero.
+```{r TourismdataresultRMSE, results='asis', dependson="Readerrors"}
+bind_cols(
+  filter(rmse, ForecastInterval=="24Step", Rec=="unrec") %>% select(-Rec,-ForecastInterval),
+  filter(rmse, ForecastInterval=="24Step", Rec=="rec") %>% select(-Rec,-ForecastInterval,-Level)
+) %>%
+  kable(booktabs=TRUE, format='latex', digits=1, linesep = "",
+        caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 24-step-ahead - Tourism dataset",
+        col.names=c("Level",rep(c("ETS","ARIMA","OLS"),2))) %>%
+  add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
+  kable_styling(position = "center")
+```
 
-```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
-library(ggplot2)
-library(gridExtra)
-library(dplyr)
+```{r, results='hide'}
 ## 1-step-ahead
 error.tourism <- read.csv("Paper-Figures/results_Tourism/error.tourism.csv", header = TRUE)
 error.tourism.1 <- error.tourism[error.tourism$ForecastInterval == "1Step", ]
@@ -476,29 +495,11 @@ dev.off()
 knitr::include_graphics("Paper-Figures/results_Tourism/boxplot_1.pdf")
 ```
 
-```{r densityplotrollingtourism, echo=FALSE, out.width = "450px", out.height= "550px", fig.align="center", fig.cap="Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead tourism demand using interval (-3000,3000)"}
+```{r densityplotrollingtourism, out.width = "450px", out.height= "550px", fig.align="center", fig.cap="Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead tourism demand using interval (-3000,3000)"}
 knitr::include_graphics("Paper-Figures/results_Tourism/densityplot_1.pdf")
 ```
 
-```{r TourismdataresultRMSE, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
-table3 <- matrix(NA, nrow = 8, ncol = 7)
-table3[, 1] <- c("Level 0", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6", "Level 7")
-table3[, 2] <- c("2238.58", "593.57", "239.52", "132.58", "766.78", "226.74", "103.02", "59.12")
-table3[, 3] <- c("3553.99", "570.13", "229.64", "129.40", "824.00", "241.18", "105.38", "58.81")
-table3[, 4] <- c("5050.33", "900.10", "278.84", "142.78", "1306.97", "298.24", "110.91", "60.90")
-table3[, 5] <- c("2250.22", "553.76", "234.21", "126.74", "795.48", "222.48", "101.95", "58.54")
-table3[, 6] <- c("3179.39", "626.32", "242.46", "129.40", "958.24", "236.94", "103.93", "58.71")
-table3[, 7] <- c("4671.05", "902.99", "290.95", "146.32", "1434.05", "308.39", "115.35", "62.64")
-kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", booktabs = T, linesep = "", caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 24-step-ahead - Tourism dataset", col.names = c("", "ETS", "ARIMA", "OLS", "ETS", "ARIMA", "OLS")) %>%
-  add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
-  add_header_above(c("", "Mean(RMSE)" = 6)) %>%
-  kable_styling(position = "center")
-```
-
-```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
-library(ggplot2)
-library(grid)
-library(gridExtra)
+```{r echo=FALSE, results='hide'}
 ## 24-step-ahead
 error.tourism <- read.csv("Paper-Figures/results_Tourism/error.tourism.csv", header = TRUE)
 error.tourism.24 <- error.tourism[error.tourism$ForecastInterval == "24Step", ]
@@ -581,8 +582,6 @@ knitr::include_graphics("Paper-Figures/results_Tourism/boxplot_24.pdf")
 knitr::include_graphics("Paper-Figures/results_Tourism/densityplot_24.pdf")
 ```
 
-Table \@ref(tab:Tourismdatacomputationtime) compares the three methods, computation time for 1-step-ahead and 24-step-ahead forecasting. We see that the OLS forecasting model is much faster compared with the other methods. Also, since reconciliation is a linear process, in all methods, it is very fast and does not affect computation time significantly.
-
 ```{r Tourismdatacomputationtime, echo=FALSE, results='asis',message = FALSE, cache=TRUE}
 table2 <- matrix(NA, nrow = 3, ncol = 5)
 table2[, 1] <- c("ETS", "ARIMA", "OLS")
@@ -601,6 +600,10 @@ kable(table2,
   add_header_above(c("", "Computation time (secs)" = 4)) %>%
   kable_styling(position = "center", full_width = F)
 ```
+
+In Figures \@ref(fig:boxplotrollingtourism), \@ref(fig:boxplottourism), \@ref(fig:densityplotrollingtourism) and \@ref(fig:densityplottourism) we display the error box plots for both reconciled and unreconciled forecasts, and error density plots for reconciled forecasts using all three methods, for 1-step-ahead and 24-step-ahead. In all these figures we see the error distribution similarity across all the models, as well as usefulness of the reconciliation step in improving the forecasts. By comparing density plots \@ref(fig:densityplotrollingtourism) and \@ref(fig:densityplottourism), as could be expected, we see that by applying 1-step-ahead forecasts, the error densities are closer and more distributed around zero.
+
+Table \@ref(tab:Tourismdatacomputationtime) compares the three methods, computation time for 1-step-ahead and 24-step-ahead forecasting. We see that the OLS forecasting model is much faster compared with the other methods. Also, since reconciliation is a linear process, in all methods, it is very fast and does not affect computation time significantly.
 
 Now since we are using linear model for forecasting, in this part we are including the 'easter' information to check its effect on forecasting results. We also add this information on ARIMA models and compare with OLS forecasting model. In Tables \@ref(tab:easterroolingRMSE) and \@ref(tab:easterRMSE), we display the average RMSE of ARIMA and OLS including the easter information, ARIMAX and OLSX, across different levels with and without reconciliation. These tables are for 1-step-ahead and 24-step-ahead forecasts. Figure \@ref(fig:forecstrolling24tourism) shows the 1-step-ahead and 24-step-ahead forecast results for one of the bottom level series, BACBus (Geelong - Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods. As you can see from the results adding this external data could not change the forecasting results significantly. However in different cases, trying different external data can be helpful in improving the forecasting results.
 
