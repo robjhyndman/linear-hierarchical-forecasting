@@ -295,6 +295,24 @@ Institute of Service Science, National Tsing Hua University, Taiwan
 \mathtoolsset{showonlyrefs=true}
 \allowdisplaybreaks
 
+\let\origfigure\figure
+\let\endorigfigure\endfigure
+\renewenvironment{figure}[1][2] {
+    \expandafter\origfigure\expandafter[htbp]
+} {
+    \endorigfigure
+}
+
+\let\origtable\table
+\let\endorigtable\endtable
+\renewenvironment{table}[1][2] {
+    \expandafter\origtable\expandafter[htbp]
+} {
+    \endorigtable
+}
+
+\def\addlinespace{}
+
 
 \begin{document}
 \maketitle
@@ -532,7 +550,7 @@ At the end, we can combine the two linear equations for computing base forecasts
 
 As an example of the \(\bm{X}_t\) matrix in Equation \eqref{eq:linearmodel}, we can refer to the set of predictors proposed in \textcite{ashouri2018} for modeling trend, seasonality and autocorrelation by using lagged values (\(y_{t-1}\), \(y_{t-2}\), \dots), trend variables and seasonal dummy variables as a set of predictors in the linear model:
 \begin{equation}\label{eq:linearmodelexample}
-    y_t = \alpha_0 + \alpha_1 t + \beta_1 s_{1,t} + \cdots + \beta_{m-1} s_{m-1,t} + \gamma_1 y_{t-1} + \cdots + \gamma_m y_{t-m} + \delta z_t + \varepsilon_t.
+    y_t = \alpha_0 + \alpha_1 t + \beta_1 s_{1,t} + \cdots + \beta_{m-1} s_{m-1,t} + \gamma_1 y_{t-1} + \cdots + \gamma_p y_{t-p} + \delta z_t + \varepsilon_t.
 \end{equation}
 Here, \(s_{j,t}\) is a dummy variable taking value 1 if time \(t\) is in season \(j\) (\(j=1, 2, \dots, m\)), \(y_{t-k}\) is the \(k\)th lagged value for \(y_t\) and \(z_t\) is the external data. The seasonal period \(m\) depends on the problem; for instance, if we have daily data with day-of-week seasonality, then \(m=7\).
 
@@ -541,44 +559,40 @@ While OLS is popular in practice for forecasting time series, it is often frowne
 \hypertarget{applications}{%
 \section{Applications}\label{applications}}
 
-In this section we illustrate our approach two examples: forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. We compare the forecasting accuracy levels of ETS, ARIMA and the proposed linear OLS forecasting model, with and without the reconciliation step. For comparing these methods, we use the average of Root Mean Square Error (RMSE) across all series and also display box and density plots for forecast errors along with the raw forecast errors.
+In this section we illustrate our approach using two examples: forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. We compare the forecasting accuracy of ETS, ARIMA and the proposed linear OLS forecasting model, with and without the reconciliation step. For comparing these methods, we use the average of Root Mean Square Error (RMSE) across all series and also display box and density plots for forecast errors along with the raw forecast errors.
 
-Since we are using time series lags (\(1, \dots, m\)) in the linear forecasting model, we cant forecast multiple steps ahead. We therefore apply two methods for generating \(h\)-step-ahead forecast: In the first model we use 1-step-ahead forecasts and for forecasting the following periods (\(t+2,t+3,\dots\)) we replace the previous periods with the actual values. This value is known to us because it is in the test set. In our applications, we call this approach `1-step-ahead'. In the second method, we again use 1-step-ahead forecasts but for forecasting the following periods we use the earlier forecasted values. In our applications, we call this approach `\(h\)-step-ahead forecast'. We also show the computation challenges in all the methods.
+We apply two methods for generating \(h\)-step-ahead forecasts, which differ in how they handle unobserved lagged values as inputs. The first approach is \emph{ex post}, in that it uses actual values, even when they are future to the forecast origin. This value is known to us because it is in the test set. In the second method, we follow an \emph{ex ante} approach, and we replace lagged values of \(y\) by their forecasts if they occur at periods after the forecast origin.
 
 \hypertarget{australian-domestic-tourism}{%
 \subsection{Australian domestic tourism}\label{australian-domestic-tourism}}
 
-This dataset has 19 years of monthly visitor nights in Australia by Australian tourists. This measure is used as an indicator of tourism activity \autocite{mint2018}. This data were collected by computer-assisted telephone interviews with 120000, Australians aged 15 and up \autocite[Research tourism][]{researchAustralia2005}. In total this dataset includes 304 time series with length 228 each. The hierarchy and grouping structure for this dataset is made using geographic and purpose of travel information.
+This dataset has 19 years of monthly visitor nights in Australia by Australian tourists. This measure is used as an indicator of tourism activity \autocite{mint2018}. The data were collected by computer-assisted telephone interviews with 120000 Australians aged 15 and over \autocite{researchAustralia2005}. The dataset includes 304 time series each of length 228 observations. The hierarchy and grouping structure for this dataset is made using geographic and purpose of travel information.
 
-In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia was divided into seven `States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels it is divided into 27 `Zones' and 76 `Regions' (for details about Australia geographic divisions see Figure \ref{fig:Australiahierarchystructure} and Table \ref{tab:Australiageographicaldivision}). For `Purpose' we have four groups: Holiday (Hol), Visiting (Vis), Business (Bis) and Others (Oth). Based on geographic hierarchy and purpose grouping, we end up with 8 levels of hierarchy with 555 series in total. The hierarchy structure which is used in this example includes the following levels:
+In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven `States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 `Zones' and 76 `Regions' (for details about Australia geographic divisions see Figure \ref{fig:Australiahierarchystructure} and Table \ref{tab:Australiageographicaldivision}). For `Purpose' we have four groups: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). Based on the geographic hierarchy and purpose grouping, we end up with 8 hierarchical levels with 555 series in total:
 
 \begin{itemize}
 \tightlist
 \item
-  Level 0 = Total series
+  Level 0 = Total for Australia
 \item
-  Level 1 = State
+  Level 1 = State totals
 \item
-  Level 2 = Zone
+  Level 2 = Zone totals
 \item
-  Level 3 = Region
+  Level 3 = Region totals
 \item
-  Level 4 = Purpose
+  Level 4 = Purpose totals
 \item
-  Level 5 = State \(\times\) Purpose
+  Level 5 = State \(\times\) Purpose totals
 \item
-  Level 6 = Zone \(\times\) Purpose
+  Level 6 = Zone \(\times\) Purpose totals
 \item
   Level 7 = bottom level series
 \end{itemize}
 
-We report the forecast results for all these hierarchy levels, as well as the average RMSE across all the levels of hierarchy.
-
-In the predictor matrix, for the OLS forecasting model we apply linear trend, 11 dummy variables, and 12 time series lags\footnote{Since the forecasting results are better with the less number of lags, we use a linear trend and dummy seasonality variables and four lags in our linear model for 24-step-ahead model.}. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into two parts, training and test sets. We keep the last 24 months periods (2 years) as our test set to forecast and we use the rest as our training set.
-
 \begin{figure}
 
-{\centering \includegraphics[width=450px,height=180px]{Paper-Figures/Australian_hierarchy_structure} 
+{\centering \includegraphics[width=450px,height=150px]{Paper-Figures/Australian_hierarchy_structure} 
 
 }
 
@@ -590,7 +604,7 @@ In the predictor matrix, for the OLS forecasting model we apply linear trend, 11
 \caption{\label{tab:Australiageographicaldivision}Australia geographic hierarchy structure}
 \centering
 \fontsize{9}{11}\selectfont
-\begin{tabular}{crccrc}
+\begin{tabular}{rllrll}
 \toprule
 Series & Name & Label & Series & Name & Label\\
 \midrule
@@ -656,13 +670,19 @@ Region &  &  & 92 & Flinders Range and Outback & DCD\\
 \end{tabular}
 \end{table}
 
+We report the forecast results for all these hierarchical levels, as well as the average RMSE across all the levels of hierarchy.
+
+In the predictor matrix for the OLS forecasting model, we include a linear trend, 11 dummy variables, and 12 time series lags\footnote{Since the forecasting results are better with fewer lags, we use a linear trend and dummy seasonality variables and four lags in our linear model for 24-step-ahead model.}. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
+
+\todo[inline]{Why not just use the four lag model from the start?}
+
 \begin{table}[t]
 
-\caption{\label{tab:Australiageographicalpurposedivision}Number of Australian domestic tourism series in each level of hierarchy and group structure}
+\caption{\label{tab:Australiageographicalpurposedivision}Number of Australian domestic tourism series in each level of hierarchy and group structure.}
 \centering
-\begin{tabular}{>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}>{\centering\arraybackslash}p{3cm}}
+\begin{tabular}{lrrr}
 \toprule
-geographic division & \# of series (geographic division) & \# of series (purpose of travel) & Total\\
+Geographic division & \# series (geographic division) & \# series (purpose of travel) & Total\\
 \midrule
 Australia & 1 & 4 & 5\\
 State & 7 & 28 & 35\\
@@ -673,7 +693,7 @@ Total & 111 & 444 & 555\\
 \end{tabular}
 \end{table}
 
-In Tables \ref{tab:Tourismdataresulrolling}, \ref{tab:TourismdataresultRMSE} and \ref{tab:Tourismdatacomputationtime}, we have the average RMSE and computation time for the 24-month forecast period. Methods include ETS, ARIMA and our proposed OLS forecasting model. In Table \ref{tab:Tourismdataresulrolling} we forecast 24 periods by computing 1-step-ahead forecasts and rolling forward month by month. In Table \ref{tab:TourismdataresultRMSE} we generated 24-step-ahead forecasts. In these tables we have two parts related to the forecast, with and without reconciliation.
+In Tables \ref{tab:Tourismdataresulrolling}, \ref{tab:TourismdataresultRMSE} and \ref{tab:Tourismdatacomputationtime}, we have the average RMSE and computation time for the 24-month forecasts. Methods include ETS, ARIMA and our proposed OLS forecasting model. In Table \ref{tab:Tourismdataresulrolling} we forecast 24 periods by computing 1-step-ahead ex post forecasts and rolling forward month by month. In Table \ref{tab:TourismdataresultRMSE} we generate 24-step-ahead ex ante forecasts. In these tables we have two parts related to the forecast, with and without reconciliation.
 
 The results in Table \ref{tab:Tourismdataresulrolling} and \ref{tab:TourismdataresultRMSE} show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. Also they show the usefulness of the reconciliation in decreasing the average RMSE in all the three methods. Except for the total series, reconciliation can help in forecasting all the hierarchy levels.
 
@@ -681,27 +701,45 @@ The results in Table \ref{tab:Tourismdataresulrolling} and \ref{tab:Tourismdatar
 
 \caption{\label{tab:Tourismdataresulrolling}Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 1-step-ahead - Tourism dataset}
 \centering
-\begin{tabular}{ccccccc}
+\begin{tabular}{lrrrrrr}
 \toprule
-\multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
-\cmidrule(l{3pt}r{3pt}){2-7}
 \multicolumn{1}{c}{} & \multicolumn{3}{c}{Unreconciled} & \multicolumn{3}{c}{Reconciled} \\
 \cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
- & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
+Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Level 0 & 1516.40 & 1445.49 & 1415.06 & 1533.58 & 1453.44 & 1454.39\\
-Level 1 & 511.37 & 493.14 & 510.83 & 495.88 & 457.65 & 488.33\\
-Level 2 & 214.81 & 219.01 & 224.50 & 209.16 & 207.52 & 212.44\\
-Level 3 & 122.91 & 125.08 & 123.97 & 118.67 & 120.52 & 119.52\\
-Level 4 & 675.99 & 709.22 & 694.50 & 668.26 & 679.74 & 678.54\\
-Level 5 & 213.06 & 220.08 & 216.11 & 210.64 & 209.39 & 211.13\\
-Level 6 & 97.53 & 102.41 & 101.03 & 96.36 & 99.77 & 98.56\\
-Level 7 & 56.17 & 58.20 & 58.17 & 55.98 & 57.68 & 57.20\\
+Level 0 & 1516.4 & 1445.5 & 1415.1 & 1533.6 & 1453.4 & 1454.4\\
+Level 1 & 511.4 & 493.1 & 510.8 & 495.9 & 457.6 & 488.3\\
+Level 2 & 214.8 & 219.0 & 224.5 & 209.2 & 207.5 & 212.4\\
+Level 3 & 122.9 & 125.1 & 124.0 & 118.7 & 120.5 & 119.5\\
+Level 4 & 676.0 & 709.2 & 694.5 & 668.3 & 679.7 & 678.5\\
+Level 5 & 213.1 & 220.1 & 216.1 & 210.6 & 209.4 & 211.1\\
+Level 6 & 97.5 & 102.4 & 101.0 & 96.4 & 99.8 & 98.6\\
+Level 7 & 56.2 & 58.2 & 58.2 & 56.0 & 57.7 & 57.2\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-In Figures \ref{fig:boxplotrollingtourism}, \ref{fig:boxplottourism}, \ref{fig:densityplotrollingtourism} and \ref{fig:densityplottourism} we display the error box plots for both reconciled and unreconciled forecasts, and error density plots for reconciled forecasts using all three methods, for 1-step-ahead and 24-step-ahead. In all these figures we see the error distribution similarity across all the models, as well as usefulness of the reconciliation step in improving the forecasts. By comparing density plots \ref{fig:densityplotrollingtourism} and \ref{fig:densityplottourism}, as could be expected, we see that by applying 1-step-ahead forecasts, the error densities are closer and more distributed around zero.
+\begin{table}[t]
+
+\caption{\label{tab:TourismdataresultRMSE}Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 24-step-ahead - Tourism dataset}
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+\multicolumn{1}{c}{} & \multicolumn{3}{c}{Unreconciled} & \multicolumn{3}{c}{Reconciled} \\
+\cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
+Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
+\midrule
+Level 0 & 2238.6 & 3554.0 & 5050.3 & 2250.2 & 3179.4 & 4671.1\\
+Level 1 & 593.6 & 570.1 & 900.1 & 553.8 & 626.3 & 903.0\\
+Level 2 & 239.5 & 229.6 & 278.8 & 234.2 & 242.5 & 291.0\\
+Level 3 & 132.6 & 129.4 & 142.8 & 126.7 & 129.4 & 146.3\\
+Level 4 & 766.8 & 824.0 & 1307.0 & 795.5 & 958.2 & 1434.1\\
+Level 5 & 226.7 & 241.2 & 298.2 & 222.5 & 236.9 & 308.4\\
+Level 6 & 103.0 & 105.4 & 110.9 & 102.0 & 103.9 & 115.4\\
+Level 7 & 59.1 & 58.8 & 60.9 & 58.5 & 58.7 & 62.6\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}
 
@@ -721,30 +759,6 @@ In Figures \ref{fig:boxplotrollingtourism}, \ref{fig:boxplottourism}, \ref{fig:d
 \caption{Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 1-step-ahead tourism demand using interval (-3000,3000)}\label{fig:densityplotrollingtourism}
 \end{figure}
 
-\begin{table}[t]
-
-\caption{\label{tab:TourismdataresultRMSE}Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 24-step-ahead - Tourism dataset}
-\centering
-\begin{tabular}{ccccccc}
-\toprule
-\multicolumn{1}{c}{} & \multicolumn{6}{c}{Mean(RMSE)} \\
-\cmidrule(l{3pt}r{3pt}){2-7}
-\multicolumn{1}{c}{} & \multicolumn{3}{c}{Unreconciled} & \multicolumn{3}{c}{Reconciled} \\
-\cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
- & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
-\midrule
-Level 0 & 2238.58 & 3553.99 & 5050.33 & 2250.22 & 3179.39 & 4671.05\\
-Level 1 & 593.57 & 570.13 & 900.10 & 553.76 & 626.32 & 902.99\\
-Level 2 & 239.52 & 229.64 & 278.84 & 234.21 & 242.46 & 290.95\\
-Level 3 & 132.58 & 129.40 & 142.78 & 126.74 & 129.40 & 146.32\\
-Level 4 & 766.78 & 824.00 & 1306.97 & 795.48 & 958.24 & 1434.05\\
-Level 5 & 226.74 & 241.18 & 298.24 & 222.48 & 236.94 & 308.39\\
-Level 6 & 103.02 & 105.38 & 110.91 & 101.95 & 103.93 & 115.35\\
-Level 7 & 59.12 & 58.81 & 60.90 & 58.54 & 58.71 & 62.64\\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \begin{figure}
 
 {\centering \includegraphics[width=450px,height=300px]{Paper-Figures/results_Tourism/boxplot_24} 
@@ -762,8 +776,6 @@ Level 7 & 59.12 & 58.81 & 60.90 & 58.54 & 58.71 & 62.64\\
 
 \caption{Density plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchy level for 24-step-ahead tourism demand using interval (-3000,3000)}\label{fig:densityplottourism}
 \end{figure}
-
-Table \ref{tab:Tourismdatacomputationtime} compares the three methods, computation time for 1-step-ahead and 24-step-ahead forecasting. We see that the OLS forecasting model is much faster compared with the other methods. Also, since reconciliation is a linear process, in all methods, it is very fast and does not affect computation time significantly.
 
 \begin{table}[t]
 
@@ -783,6 +795,10 @@ OLS & 48.40 & 48.31 & 16.66 & 16.85\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+In Figures \ref{fig:boxplotrollingtourism}, \ref{fig:boxplottourism}, \ref{fig:densityplotrollingtourism} and \ref{fig:densityplottourism} we display the error box plots for both reconciled and unreconciled forecasts, and error density plots for reconciled forecasts using all three methods, for 1-step-ahead and 24-step-ahead. In all these figures we see the error distribution similarity across all the models, as well as usefulness of the reconciliation step in improving the forecasts. By comparing density plots \ref{fig:densityplotrollingtourism} and \ref{fig:densityplottourism}, as could be expected, we see that by applying 1-step-ahead forecasts, the error densities are closer and more distributed around zero.
+
+Table \ref{tab:Tourismdatacomputationtime} compares the three methods, computation time for 1-step-ahead and 24-step-ahead forecasting. We see that the OLS forecasting model is much faster compared with the other methods. Also, since reconciliation is a linear process, in all methods, it is very fast and does not affect computation time significantly.
 
 Now since we are using linear model for forecasting, in this part we are including the `easter' information to check its effect on forecasting results. We also add this information on ARIMA models and compare with OLS forecasting model. In Tables \ref{tab:easterroolingRMSE} and \ref{tab:easterRMSE}, we display the average RMSE of ARIMA and OLS including the easter information, ARIMAX and OLSX, across different levels with and without reconciliation. These tables are for 1-step-ahead and 24-step-ahead forecasts. Figure \ref{fig:forecstrolling24tourism} shows the 1-step-ahead and 24-step-ahead forecast results for one of the bottom level series, BACBus (Geelong - Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods. As you can see from the results adding this external data could not change the forecasting results significantly. However in different cases, trying different external data can be helpful in improving the forecasting results.
 
