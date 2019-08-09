@@ -51,9 +51,9 @@ Modern data collection tools have dramatically increased the amount of available
 
 ## Hierarchical and grouped time series
 
-In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AA and AB. Finally, the bottom level series (level 2), includes the most disaggregated series.\todo{I suggest we label Level 2 with AW, AX, BY, BZ to avoid confusion.}
+In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AW and AX. Finally, the bottom level series (level 2), includes the most disaggregated series.<!--\todo{I suggest we label Level 2 with AW, AX, BY, BZ to avoid confusion.} !-->
 
-```{r hierarchicalexample, out.width = "280px", out.height= "180px", fig.align="center", fig.cap="An example of a two level hierarchical structure"}
+```{r hierarchicalexample, out.width = "280px", out.height= "170px", fig.align="center", fig.cap="An example of a two level hierarchical structure"}
 knitr::include_graphics("Paper-Figures/hierarchical_example.jpg")
 ```
 
@@ -67,7 +67,7 @@ G2 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_2.png")), interpolate = 
 grid.arrange(G1, G2, ncol = 2)
 ```
 
-We use the same notation [following @fpp2] for both hierarchical and grouped time series. We denote the total series at time $t$ by $y_t$, and the series at node $Z$ and time $t$ by $y_{Z,t}$. For describing the relationships between series, we use an $n\times m$ matrix, called the 'summing matrix', denoted by $\bm{S}$, in which $n$ is the overall number of nodes and $m$ is the number of bottom level nodes. For example in Figure \@ref(fig:hierarchicalexample), $n = 7$ and $m = 4$, while in Figure \@ref(fig:groupexample), $n=9$ and $m=4$. Then we can write $\bm{y}_t=\bm{S}\bm{b}_t$, where $\bm{y}_t$ is a vector of all the level nodes at time $t$ and $\bm{b}_t$ is the vector of all the bottom level nodes at time $t$. For the example shown in Figure \@ref(fig:groupexample), the equation can be written as follows:
+We use the same notation [following @fpp2] for both hierarchical and grouped time series. We denote the total series at time $t$ by $y_t$, and the series at node $Z$ (subaggregation level $Z$) and time $t$ by $y_{Z,t}$. For describing the relationships between series, we use an $n\times m$ matrix, called the 'summing matrix', denoted by $\bm{S}$, in which $n$ is the overall number of nodes and $m$ is the number of bottom level nodes. For example in Figure \@ref(fig:hierarchicalexample), $n = 7$ and $m = 4$, while in Figure \@ref(fig:groupexample), $n=9$ and $m=4$. Then we can write $\bm{y}_t=\bm{S}\bm{b}_t$, where $\bm{y}_t$ is a vector of all the level nodes at time $t$ and $\bm{b}_t$ is the vector of all the bottom level nodes at time $t$. For the example shown in Figure \@ref(fig:groupexample), the equation can be written as follows:
 \begin{equation}\label{eq:Smatrixexample}
 \begin{pmatrix}
   y_{t}\\y_{A,t}\\y_{B,t}\\y_{C,t}\\y_{D,t}\\y_{AC,t}\\y_{AD,t}\\y_{BC,t}\\y_{BD,t}
@@ -98,7 +98,7 @@ The most computationally challenging part of the optimal combination method is t
 
 We therefore propose a new approach to compute the base forecasts that is both computationally fast while maintaining an acceptable forecasting accuracy level.
 
-# Proposed approach
+# Proposed approach: Linear model \label{sec:proposedapproach1}
 
 <!-- Our proposed approach is based on using OLS-LR models for computing base forecasts. We use $\bm{X}_{Z}$ to denote the matrix of $k$ predictors corresponding to the series at node $Z$. Then we can write
 \begin{equation}\label{eq:linearmodel}
@@ -200,9 +200,9 @@ Finally, we can combine the two linear equations for computing base forecasts an
                         (\bm{X}_{t+h}^* \bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
 
-## Proposed approach with same set of $\bm{X}$
+## Simplified formulation for a fixed set of predictors ($\bf {X}$) \label{sec:proposedapproach2}
 
-If we have same set of regression variables, $\bm{X}$, for all the series, we can write the above equations more easily using multivariate regression equations, and we can obtain all the reconciled forecasts for all the series in one equation.  In that case Equation \@ref(eq:linearmodel) can be rearranged as follows:
+If we have same set of regression variables, $\bm{X}$, for all the series, we can write the Equations \@ref(eq:linearmodel) to \@ref(eq:singlestep) more easily using multivariate regression equations, and we can obtain all the reconciled forecasts for all the series in one equation.  In that case Equation \@ref(eq:linearmodel) can be rearranged as follows:
 \begin{equation}\label{eq:linearmodelsameX}
   \begin{pmatrix}
   y_{11} & \dots & y_{1N}\\
@@ -286,11 +286,22 @@ As an example of the $\bm{X}_t$ matrix in Equation \@ref(eq:linearmodel), we can
 \end{equation}
 Here, $s_{j,t}$ is a dummy variable taking value 1 if time $t$ is in season $j$ ($j=1, 2, \dots, m$), $y_{t-k}$ is the $k$th lagged value for $y_t$ and $z_t$ is the external data. The seasonal period $m$ depends on the problem; for instance, if we have daily data with day-of-week seasonality, then $m=7$.
 
+In Equation \@ref(eq:linearmodelexample) because of using lags and external series as predictors we do not have same set of predictors for all the series , $y_t$s. However, if we just use trend and seasonality dummies as the predictors the equations explained in Section \@ref(sec:proposedapproach1) can be written simpler using multivariate regression models in Section \@ref(sec:proposedapproach2). 
+
 While OLS is popular in practice for forecasting time series, it is often frowned upon due to its independence assumption. This can cause issue for parametric inference but is less of a problem for forecasting. In fact it often performs sufficiently well for forecasting as can be seen by its popular use in practice. Further, the use of autoregressive terms in the above model should model most of the autocorrelation in the data.
+
+## Computational considerations
+
+To avoid numerical issues due to matrix inversion one can, use for loops. There are two ways for computing above forecasts. In the first way we can create matrices. In this way we need to compute the inverse matrix to compute the coefficients. For the second way we can use for loops to compute the coefficients for each linear model individually. 
+
+Although the matrix which we want to compute the inverse is sparse and a kind of block diagonal, but because of the computation errors and time we report the results using for loops. In the [Appendix C](#appendixC) you can check the forecast results comparisons for Australian domestic tourism example using these two ways.
+
 
 # Applications
 
 In this section we illustrate our approach using two examples: forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. We compare the forecasting accuracy of ETS, ARIMA and the proposed linear OLS forecasting model, with and without the reconciliation step. For comparing these methods, we use the average of Root Mean Square Error (RMSE) across all series and also display box plots for forecast errors along with the raw forecast errors.
+
+The two datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while Wikipedia data are noiser. 
 
 We apply two methods for generating $h$-step-ahead forecasts, which differ in how they handle unobserved lagged values as inputs. The first approach is *ex post*, in that it uses actual values, even when they are future to the forecast origin. This value is known to us because it is in the test set. We call these "1-step" forecasts. In the second method, we follow an *ex ante* approach, and we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin. We call these "24-step" forecasts.
 
@@ -414,9 +425,11 @@ bind_cols(
 
 In Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), we show the average RMSE for the 1-month and 24-month forecasts. Methods include ETS, ARIMA and our proposed OLS forecasting model. In Table \@ref(tab:Tourismdataresulrolling) we forecast 24 periods by computing 1-step-ahead ex post forecasts, rolling forward month by month. In Table \@ref(tab:TourismdataresultRMSE) we generate 24-step-ahead ex ante forecasts. In these tables we show forecasts with and without reconciliation.
 
-These results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. Also they show the usefulness of the reconciliation in decreasing the average RMSE in all the three methods. Except for the total series, reconciliation can help in forecasting all the hierarchical levels.
+These results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. Also they show the usefulness of the reconciliation in decreasing the average RMSE in all the three methods. Except for the total series, reconciliation can help in forecasting all the hierarchical levels. Also, because the higher level series have higher counts, the errors are larger in magnitude (see Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism)). To better compare errors across all the hierarchy levels we scaled  the errors (See [Appendix A](#appendixA)).  
 
 In Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism) we display the error box plots for both reconciled and unreconciled forecasts using all three methods, for 1-step ahead and 24-steps ahead. In these figures we can visualize the error distributions across all the models, as well as usefulness of the reconciliation step in improving the forecasts. In particular, we see that by applying 1-step-ahead forecasts, the error densities are closer and more distributed around zero.
+
+Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the 1-step-ahead and 24-step-ahead forecast results for the total series and one of the bottom level series, 'BACBus' (Geelong - Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods. From the results we can see that the total series are smoother with better forecast results in compare with the bottom level series.
 
 ```{r boxplotrollingtourism, fig.align="center", fig.cap="Box plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 1-step-ahead tourism demand.", out.width="100%"}
 ## 1-step-ahead
@@ -483,7 +496,44 @@ error.tourism %>%
 
 Table \@ref(tab:Tourismdatacomputationtime) compares the computation time of the three methods for 1-step-ahead and 24-step-ahead forecasting. We see that the OLS forecasting model is much faster compared to the other methods. Also, since reconciliation is a linear process, in all methods it is very fast and does not affect computation time significantly.
 
-```{r forecstrolling24tourism, fig.align="center", fig.cap="Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for BACBus bottom level series for 1-step-ahead and 24-step-ahead tourism demand.", out.width="100%"}
+```{r forecstrolling24tourismtotal, fig.align="center", fig.cap="Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for 'Total' series for 1-step-ahead and 24-step-ahead tourism demand.", out.width="100%"}
+### total series
+g1 <- forecast.tourism %>%
+  filter(Series == "Total", ForecastInterval=="1Step") %>%
+  rename(Reconciled=Rec) %>%
+  ggplot(aes(x=date, y=Count, colour=Model, linetype=Reconciled)) +
+  geom_line() +
+  xlab("Horizon") + ylab("Count") + ggtitle("1-step-ahead") +
+  scale_color_manual(
+    name = "Series",
+    values = c(
+      ETS = "green",
+      ARIMA = "blue",
+      OLS = "red",
+      Actual="black")
+  ) +
+  theme_bw() + guides(linetype=FALSE)
+g2 <- forecast.tourism %>%
+  filter(Series == "Total", ForecastInterval=="24Step") %>%
+  rename(Reconciled=Rec) %>%
+  ggplot(aes(x=date, y=Count, colour=Model, linetype=Reconciled)) +
+  geom_line() +
+  xlab("Horizon") + ylab("Count") + ggtitle("24-step-ahead") +
+  scale_color_manual(
+    name = "Series",
+    values = c(
+      ETS = "green",
+      ARIMA = "blue",
+      OLS = "red",
+      Actual="black")
+  ) +
+  theme_bw() + guides(color=FALSE)
+gridExtra::grid.arrange(g1, g2, nrow=2)
+```
+
+
+
+```{r forecstrolling24tourism, fig.align="center", fig.cap="Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for 'BACBus' bottom level series for 1-step-ahead and 24-step-ahead tourism demand.", out.width="100%"}
 ### one of the bottom level series
 p1 <- forecast.tourism %>%
   filter(Series == "BACBus", ForecastInterval=="1Step") %>%
@@ -497,8 +547,6 @@ p1 <- forecast.tourism %>%
       ETS = "green",
       ARIMA = "blue",
       OLS = "red",
-      OLSX = "yellow",
-      ARIMAX = "orchid1",
       Actual="black")
   ) +
   theme_bw() + guides(linetype=FALSE)
@@ -514,8 +562,6 @@ p2 <- forecast.tourism %>%
       ETS = "green",
       ARIMA = "blue",
       OLS = "red",
-      OLSX = "yellow",
-      ARIMAX = "orchid1",
       Actual="black")
   ) +
   theme_bw() + guides(color=FALSE)
@@ -539,7 +585,9 @@ kable(table2,
   kable_styling(position = "center", full_width = FALSE)
 ```
 
-Now since we are using a linear model for forecasting, we can easily include information about the timing of Easter to check its effect on forecasting results. We also add this information on ARIMA models and compare with the OLS forecasting model. In Tables \@ref(tab:easterroolingRMSE) and \@ref(tab:easterRMSE), we display the average RMSE of ARIMA and OLS including the easter information, ARIMAX and OLSX, across different levels with and without reconciliation. These tables are for 1-step-ahead and 24-step-ahead forecasts. Figure \@ref(fig:forecstrolling24tourism) shows the 1-step-ahead and 24-step-ahead forecast results for one of the bottom level series, BACBus (Geelong/Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods. These results show that adding this external data does not change the forecasting results significantly. However in different cases, trying different external data can be helpful in improving the forecasting results.
+Since we are using a linear model for forecasting, we can easily include  external data such as information about the timing of Easter to check its effect on forecasting results. Since adding Easter information to our model could not change the results significantly, we do not provide the results here, however, in different cases, trying different external data can be helpful in improving the forecasting results.
+
+<!--Now since we are using a linear model for forecasting, we can easily include information about the timing of Easter to check its effect on forecasting results. We also add this information on ARIMA models and compare with the OLS forecasting model. In Tables \@ref(tab:easterroolingRMSE) and \@ref(tab:easterRMSE), we display the average RMSE of ARIMA and OLS including the easter information, ARIMAX and OLSX, across different levels with and without reconciliation. These tables are for 1-step-ahead and 24-step-ahead forecasts. Figure \@ref(fig:forecstrolling24tourism) shows the 1-step-ahead and 24-step-ahead forecast results for one of the bottom level series, BACBus (Geelong/Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods. These results show that adding this external data does not change the forecasting results significantly. However in different cases, trying different external data can be helpful in improving the forecasting results.
 
 ```{r easterroolingRMSE, results='asis'}
 bind_cols(
@@ -568,7 +616,7 @@ bind_cols(
 ```
 
 \todo[inline]{I can't see much point including these Easter results.}
-
+!-->
 \FloatBarrier
 
 ## Wikipedia pageviews
@@ -584,6 +632,33 @@ The final dataset includes 913 time series, each with length 394. The group stru
 - Level 5 = bottom level series
 
 For this daily dataset, in the OLS forecasting model we include in the predictor matrix a linear trend, 6 seasonal dummies and 7 lags. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set.
+```{r Readwikipedia, results='hide'}
+error.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/error.wiki.csv")
+# Read csv files for tourism results
+rmse2 <- error.wiki %>%
+  group_by(Rec,Method,Level,ForecastInterval) %>%
+  summarise(
+    rmse = sqrt(mean(Value^2))
+  ) %>%
+  spread(value=rmse, key=Method) %>%
+  ungroup() %>%
+  select(Rec, ForecastInterval, Level, ETS, ARIMA, OLS) %>%
+  mutate(
+    Level = str_replace(Level, "level([0-9])", "Level \\1")
+  )
+
+forecast.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv") %>%
+  select(-X1) %>%
+  gather(-Series, -ForecastInterval, -date, key="Method",value="Count") %>%
+  mutate(
+    Rec = str_extract(Method, "[a-z]*$"),
+    Rec = if_else(Rec=="ctual", "Actual", Rec),
+    Model = str_extract(Method, "^[A-Z]*"),
+    Model = if_else(Model=="A", "Actual", Model)
+  )
+```
+
+
 
 ```{r wikipediagroupingstructure, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
 table1 <- matrix(NA, nrow = 13, ncol = 4)
@@ -602,159 +677,178 @@ knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 
 Table \@ref(tab:wikipediadataresulrolling), \@ref(tab:wikipediadataresultRMSE) and \@ref(tab:wikipediadatacomputationtime) represent the RMSE results and computation time. Although these time series are noisier, still we get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step in the forecasted errors.
 
-Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for 1-step-ahead and 28-step-ahead forecasts in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective.
+Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for 1-step-ahead and 28-step-ahead forecasts in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels, series have higher counts and therefore their error magnitudes are larger. In the [Appendix B](#appendixB) we display box plots for the errors devided by the error range for easier comparison.
 
-```{r wikipediadataresulrolling, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
-table3 <- matrix(NA, nrow = 6, ncol = 7)
-table3[, 1] <- c("Level 0", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5")
-table3[, 2] <- c("10773.66", "8272.92", "6524.72", "4870.08", "5233.50", "358.90")
-table3[, 3] <- c("15060.65", "10196.34", "6705.03", "6333.02", "4659.53", "238.97")
-table3[, 4] <- c("15748.18", "10623.85", "6979.58", "7150.13", "4675.18", "254.98")
-table3[, 5] <- c("11014.73", "7736.88", "6257.44", "4981.91", "5001.40", "362.25")
-table3[, 6] <- c("14276.47", "9904.12", "7142.49", "6369.98", "4586.53", "241.60")
-table3[, 7] <- c("15270.23", "10673.98", "7285.97", "7106.11", "4650.26", "256.11")
-kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", booktabs = T, linesep = "", caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 1-step-ahead - Wikipedia dataset", col.names = c("", "ETS", "ARIMA", "OLS", "ETS", "ARIMA", "OLS")) %>%
+```{r wikipediadataresulrolling, results='asis', dependson="Readerrors"}
+bind_cols(
+  filter(rmse2, ForecastInterval=="1Step", Rec=="unrec") %>% select(-Rec,-ForecastInterval),
+  filter(rmse2, ForecastInterval=="1Step", Rec=="rec") %>% select(-Rec,-ForecastInterval,-Level)
+) %>%
+  kable(booktabs=TRUE, format='latex', digits=1, linesep = "",
+        caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 1-step-ahead - Wikipedia dataset",
+        col.names=c("Level",rep(c("ETS","ARIMA","OLS"),2))) %>%
   add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
-  add_header_above(c("", "Mean(RMSE)" = 6)) %>%
+  kable_styling(position = "center", latex_options='hold_position')
+```
+
+```{r wikipediadataresultRMSE, results='asis', dependson="Readerrors"}
+bind_cols(
+  filter(rmse2, ForecastInterval=="28Step", Rec=="unrec") %>% select(-Rec,-ForecastInterval),
+  filter(rmse2, ForecastInterval=="28Step", Rec=="rec") %>% select(-Rec,-ForecastInterval,-Level)
+) %>%
+  kable(booktabs=TRUE, format='latex', digits=1, linesep = "",
+        caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 28-step-ahead - Wikipedia dataset",
+        col.names=c("Level",rep(c("ETS","ARIMA","OLS"),2))) %>%
+  add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
   kable_styling(position = "center")
 ```
 
-```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
+
+```{r boxplotrollingwiki, fig.align="center", fig.cap="Box plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 1-step-ahead Wikipedia pageviews.", out.width="100%"}
 ## 1-step-ahead
-error.wiki <- read.csv("Paper-Figures/results_Wikipedia/error.wiki.csv", header = TRUE)
-error.wiki.1 <- error.wiki[error.wiki$ForecastingInterval == "1Step", ]
-error.wiki.1$id <- paste(error.wiki.1$Method, error.wiki.1$Rec, sep = ".")
-error.wiki.1$order.id <- factor(error.wiki.1$id, levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"), labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"))
-error.wiki.1.rec <- error.wiki.1[error.wiki.1$Rec == "rec", ]
-pdf("Paper-Figures/results_Wikipedia/boxplot_1.pdf",
-  width = 10,
-  height = 10
-)
-ggplot() +
-  geom_boxplot(
-    data = error.wiki.1,
-    aes(x = order.id, y = (Value), fill = id),
-    alpha = 0.5
-  ) +
-  xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 2, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_minimal() +
-  scale_fill_manual(values = c("ETS.rec" = "green", "ETS.unrec" = "lightgreen", "ARIMA.rec" = "blue", "ARIMA.unrec" = "lightblue", "OLS.rec" = "pink4", "OLS.unrec" = "pink")) +
-  theme_light()+
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
-    axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
+error.wiki %>%
+  filter(ForecastInterval == "1Step") %>%
+  mutate(id = factor(paste(Method, Rec, sep = "."),
+          levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
+          labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"))
+    ) %>%
+  ggplot(aes(x = id, y = Value, fill = id)) +
+    geom_boxplot(alpha = 0.5) +
+    xlab("Method") + ylab("Error") +
+    facet_wrap(~Level, ncol = 3, scales = "free_y") +
+    guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+    theme_minimal() +
+    scale_fill_manual(values = c(
+      "ETS.rec" = "green",
+      "ETS.unrec" = "lightgreen",
+      "ARIMA.rec" = "blue",
+      "ARIMA.unrec" = "lightblue",
+      "OLS.rec" = "pink4",
+      "OLS.unrec" = "pink")
+    ) +
+    theme_light()+
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size=10),
+      axis.text = element_text(size = 10),
+      strip.text = element_text(size=12),
+      axis.title = element_text(size = 12, face = "bold"),
+      legend.position = "none"
   )
-dev.off()
-forecast.wiki <- read.csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv", header = TRUE)
-forecast.wiki.1 <- forecast.wiki[forecast.wiki$ForecastingInterval == "1Step", ]
-### one of the bottom level series
-mobilewusenGen.1 <- forecast.wiki.1 %>%
-  filter(Series == "desktopusenPho21")
-# pdf("Paper-Figures/results_wiki/forecast_wiki_1.pdf",width = 10,height = 10)
-G1 <- ggplot(mobilewusenGen.1, aes(date)) +
-  geom_line(aes(y = Actual, colour = "Actual"), size = 0.6) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec"), size = 0.6) +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec"), size = 0.6) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec"), size = 0.6) +
-  geom_line(aes(y = ETS.unrec, colour = "ETS.unrec"), linetype = "dashed", size = 0.6) +
-  geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec"), linetype = "dashed", size = 0.6) +
-  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec"), linetype = "dashed", size = 0.6) +
-  scale_color_manual(
-    name = "Series", values = c(Actual = "black", ETS.rec = "green", ARIMA.rec = "blue", OLS.rec = "red", ETS.unrec = "green", ARIMA.unrec = "blue", OLS.unrec = "red") # ,
-    # labels=c("Actual","ETS.rec","ARIMA.rec","OLS.rec","ETS.unrec","ARIMA.unrec","OLS.unrec")
-  ) +
-  guides(colour = guide_legend(override.aes = list(linetype = c("solid", "solid", "dashed", "solid", "dashed", "solid", "dashed")))) +
-  ggtitle("1-step-ahead") +
-  xlab("") +
-  ylab("Series") +
-  theme_bw()
-# dev.off()
 ```
 
-```{r boxplotrollingwiki, echo=FALSE, out.width = "450px", out.height= "300px", fig.align="center", fig.cap="Box plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 1-step-ahead Wikipedia pageviews"}
-knitr::include_graphics("Paper-Figures/results_Wikipedia/boxplot_1.pdf")
-```
-
-```{r wikipediadataresultRMSE, echo=FALSE, message = FALSE, results='asis',cache=TRUE}
-table3 <- matrix(NA, nrow = 6, ncol = 7)
-table3[, 1] <- c("Level 0", "Level 1", "Level 2", "Level 3", "Level 4", "Level 5")
-table3[, 2] <- c("14846.93", "13608.73", "7117.43", "6475.90", "5302.74", "435.64")
-table3[, 3] <- c("24298.84", "17277.01", "10731.97", "9580.38", "8611.25", "390.05")
-table3[, 4] <- c("29840.58", "21165.30", "12678.89", "12056.62", " 8451.09", "389.41")
-table3[, 5] <- c("14999.18", "12240.30", "7523.43", "6509.03", "5307.34", " 437.67")
-table3[, 6] <- c("24649.91", "16810.45", "11068.81", "9799.11", "8239.77", "391.22")
-table3[, 7] <- c("29665.70", "21048.06", "12811.18", "12112.46", "8460.35", "390.97")
-kable(table3, align = c("c", "c", "c", "c", "c", "c", "c"), format = "latex", booktabs = T, linesep = "", caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - 28-step-ahead - Wikipedia dataset", col.names = c("", "ETS", "ARIMA", "OLS", "ETS", "ARIMA", "OLS")) %>%
-  add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
-  add_header_above(c("", "Mean(RMSE)" = 6)) %>%
-  kable_styling(position = "center")
-```
-
-```{r echo=FALSE, results='hide',message=FALSE,warning=FALSE,cache=TRUE}
-## 28-step-ahead
-error.wiki <- read.csv("Paper-Figures/results_Wikipedia/error.wiki.csv", header = TRUE)
-error.wiki.28 <- error.wiki[error.wiki$ForecastingInterval == "28Step", ]
-error.wiki.28$id <- paste(error.wiki.28$Method, error.wiki.28$Rec, sep = ".")
-error.wiki.28$order.id <- factor(error.wiki.28$id, levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"), labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"))
-error.wiki.28.rec <- error.wiki.28[error.wiki.28$Rec == "rec", ]
-pdf("Paper-Figures/results_Wikipedia/boxplot_28.pdf",
-  width = 10,
-  height = 10
-)
-ggplot() +
-  geom_boxplot(
-    data = error.wiki.28,
-    aes(x = order.id, y = (Value), fill = id),
-    alpha = 0.5
-  ) +
-  xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 2, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_minimal() +
-  scale_fill_manual(values = c("ETS.rec" = "green", "ETS.unrec" = "lightgreen", "ARIMA.rec" = "blue", "ARIMA.unrec" = "lightblue", "OLS.rec" = "pink4", "OLS.unrec" = "pink")) +
-  theme_light()+
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size=10), axis.text = element_text(size = 10),strip.text = element_text(size=12),
-    axis.title = element_text(size = 12, face = "bold"), legend.position = "none"
+```{r boxplotwiki, fig.align="center", fig.cap="Box plot for forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 28-step-ahead Wikipedia pageviews", out.width="100%"}
+## 24-step-ahead
+error.wiki %>%
+  filter(ForecastInterval == "28Step") %>%
+  mutate(id = factor(paste(Method, Rec, sep = "."),
+          levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
+          labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"))
+    ) %>%
+  ggplot(aes(x = id, y = Value, fill = id)) +
+    geom_boxplot(alpha = 0.5) +
+    xlab("Method") + ylab("Error") +
+    facet_wrap(~Level, ncol = 3, scales = "free_y") +
+    guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+    theme_minimal() +
+    scale_fill_manual(values = c(
+      "ETS.rec" = "green",
+      "ETS.unrec" = "lightgreen",
+      "ARIMA.rec" = "blue",
+      "ARIMA.unrec" = "lightblue",
+      "OLS.rec" = "pink4",
+      "OLS.unrec" = "pink")) +
+    theme_light()+
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size=10),
+      axis.text = element_text(size = 10),
+      strip.text = element_text(size=12),
+      axis.title = element_text(size = 12, face = "bold"),
+      legend.position = "none"
   )
-dev.off()
-forecast.wiki <- read.csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv", header = TRUE)
-forecast.wiki.28 <- forecast.wiki[forecast.wiki$ForecastingInterval == "28Step", ]
+```
+
+In Figures \@ref(fig:forecstrolling28wikitotal) and \@ref(fig:forecstrolling28wiki), we display results for total and one of the bottom level series, desktopusenPho (desktop-user-english-photo sharing). The plot shows 1-step-ahead and 28-step-ahead forecast results for ETS, ARIMA and OLS-LR, with (solid lines) and without (dashed lines) applying reconciliation. We see that the OLS-LR forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
+
+```{r forecstrolling28wikitotal, fig.align="center", fig.cap="Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for 'Total' series for 1-step-ahead and 28-step-ahead Wikipedia pageviews.", out.width="100%"}
 ### one of the bottom level series
-desktopusenPho.28 <- forecast.wiki.28 %>%
-  filter(Series == "desktopusenPho21")
-# pdf("Paper-Figures/results_wiki/forecast_wiki_1.pdf",width = 10,height = 10)
-G2 <- ggplot(desktopusenPho.28, aes(date)) +
-  geom_line(aes(y = Actual, colour = "Actual"), size = 0.6) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec"), size = 0.6) +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec"), size = 0.6) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec"), size = 0.6) +
-  geom_line(aes(y = ETS.unrec, colour = "ETS.unrec"), linetype = "dashed", size = 0.6) +
-  geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec"), linetype = "dashed", size = 0.6) +
-  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec"), linetype = "dashed", size = 0.6) +
+h1 <- forecast.wiki %>%
+  filter(Series == "Total", ForecastInterval=="1Step") %>%
+  rename(Reconciled=Rec) %>%
+  ggplot(aes(x=date, y=Count, colour=Model, linetype=Reconciled)) +
+  geom_line() +
+  xlab("Horizon") + ylab("Count") + ggtitle("1-step-ahead") +
   scale_color_manual(
-    name = "Series", values = c(Actual = "black", ETS.rec = "green", ARIMA.rec = "blue", OLS.rec = "red", ETS.unrec = "green", ARIMA.unrec = "blue", OLS.unrec = "red") # ,
-    # labels=c("Actual","ETS.rec","ARIMA.rec","OLS.rec","ETS.unrec","ARIMA.unrec","OLS.unrec")
+    name = "Series",
+    values = c(
+      ETS = "green",
+      ARIMA = "blue",
+      OLS = "red",
+      OLSX = "yellow",
+      ARIMAX = "orchid1",
+      Actual="black")
   ) +
-  guides(colour = guide_legend(override.aes = list(linetype = c("solid", "solid", "dashed", "solid", "dashed", "solid", "dashed")))) +
-  ggtitle("28-step-ahead") +
-  xlab("") +
-  ylab("Series") +
-  theme_bw()
-# dev.off()
+  theme_bw() + guides(linetype=FALSE)
+h2 <- forecast.wiki %>%
+  filter(Series == "Total", ForecastInterval=="28Step") %>%
+  rename(Reconciled=Rec) %>%
+  ggplot(aes(x=date, y=Count, colour=Model, linetype=Reconciled)) +
+  geom_line() +
+  xlab("Horizon") + ylab("Count") + ggtitle("28-step-ahead") +
+  scale_color_manual(
+    name = "Series",
+    values = c(
+      ETS = "green",
+      ARIMA = "blue",
+      OLS = "red",
+      OLSX = "yellow",
+      ARIMAX = "orchid1",
+      Actual="black")
+  ) +
+  theme_bw() + guides(color=FALSE)
+gridExtra::grid.arrange(h1, h2, nrow=2)
 ```
 
-```{r boxplotwiki, echo=FALSE, out.width = "450px", out.height= "300px", fig.align="center", fig.cap="Box plot for forecast errors -  Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 28-step-ahead Wikipedia pageviews"}
-knitr::include_graphics("Paper-Figures/results_Wikipedia/boxplot_28.pdf")
+
+
+```{r forecstrolling28wiki, fig.align="center", fig.cap="Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for 'desktopusenPho21' bottom level series for 1-step-ahead and 28-step-ahead Wikipedia pageviews.", out.width="100%"}
+### one of the bottom level series
+f1 <- forecast.wiki %>%
+  filter(Series == "desktopusenPho21", ForecastInterval=="1Step") %>%
+  rename(Reconciled=Rec) %>%
+  ggplot(aes(x=date, y=Count, colour=Model, linetype=Reconciled)) +
+  geom_line() +
+  xlab("Horizon") + ylab("Count") + ggtitle("1-step-ahead") +
+  scale_color_manual(
+    name = "Series",
+    values = c(
+      ETS = "green",
+      ARIMA = "blue",
+      OLS = "red",
+      OLSX = "yellow",
+      ARIMAX = "orchid1",
+      Actual="black")
+  ) +
+  theme_bw() + guides(linetype=FALSE)
+f2 <- forecast.wiki %>%
+  filter(Series == "desktopusenPho21", ForecastInterval=="28Step") %>%
+  rename(Reconciled=Rec) %>%
+  ggplot(aes(x=date, y=Count, colour=Model, linetype=Reconciled)) +
+  geom_line() +
+  xlab("Horizon") + ylab("Count") + ggtitle("28-step-ahead") +
+  scale_color_manual(
+    name = "Series",
+    values = c(
+      ETS = "green",
+      ARIMA = "blue",
+      OLS = "red",
+      OLSX = "yellow",
+      ARIMAX = "orchid1",
+      Actual="black")
+  ) +
+  theme_bw() + guides(color=FALSE)
+gridExtra::grid.arrange(f1, f2, nrow=2)
 ```
 
-In Figure \@ref(fig:forecstrolling28wiki), we display results for one of the bottom level series, desktopusenPho (desktop-user-english-photo sharing). The plot shows 1-step-ahead and 28-step-ahead forecast results for ETS, ARIMA and OLS, with (solid lines) and without (dashed lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
-
-```{r forecstrolling28wiki, echo=FALSE, out.width = "400px", out.height= "300px", fig.align="center", fig.cap="Comparing Actual test set, Reconciled and unreconciled ETS, ARIMA and OLS for desktopusenPho (desktop-user-english-photo sharing)  bottom level series- 1- and 28-step-ahead Wikipedia pageviews"}
-grid.arrange(G1, G2, nrow = 2)
-```
 
 Lastly, Table \@ref(tab:wikipediadatacomputationtime) presents the computation times for all three methods. ETS and ARIMA are clearly much more computationally heavy compared with OLS. As in the Australian tourism dataset, running reconciliation does not have much effect on computation time.
 
@@ -779,7 +873,199 @@ kable(table2,
 
 We proposed a single-step linear approach to forecast hierarchical or grouped time series in a much faster way, but with accuracy that nearly matches that of forecast methods such as ETS and ARIMA. This is especially useful in large collections of time series, as is typical in hierarchical and grouped structures. Although ETS and ARIMA are good in terms of forecasting power and accuracy, they can be computationally heavy when facing large collections of time series in the hierarchy. Adding another faster option for calculating base forecasts was our purpose in this research. Here we suggest a linear model, OLS, instead of ETS and ARIMA which is not computationally intensive. We also showed that OLS can compete ETS and ARIMA in terms of forecasting accuracy level. We also note that OLS has the additional practice feature in handling missing data while ETS and ARIMA requires imputation. One more important feature of our model is the ability to easily include external information such as holiday dummies or other external series. In addition to the computation adjustment, our proposed approach forecasts hierarchical time series in a parsimonious single step whereas other available methods all forecast in two-steps.
 
-# Acknowledgements
+# Acknowledgements {-}
 
 The first and third authors of this research were partially funded by Ministry of Science and Technology (MOST), Taiwan [Grant 106-2420-H-007-019].
 
+
+# Appendix A  {#appendixA -} 
+
+In this part we have the scaled forecasted errors box plot for the tourism example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts. 
+
+
+```{r boxplotrollingtourismappendix, fig.align="center", fig.cap="Box plot for scaled forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 1-step-ahead tourism demand.", out.width="100%"}
+## 1-step-ahead
+error.tourism.1<- error.tourism %>%
+  filter(ForecastInterval == "1Step") %>%
+  mutate(id = factor(paste(Method, Rec, sep = "."),
+                     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
+                     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"))
+  ) 
+
+error.tourism.2<- split(error.tourism.1, error.tourism.1$id)
+library(plyr)
+error.transform.tourism <- lapply(error.tourism.2, function(x)ddply(x,"Series", transform, 
+                                                         value.scale = (Value-mean(Value))/(sd(Value))))
+
+do.call("rbind", error.transform.tourism) %>%
+ggplot(aes(x = id, y = value.scale, fill = id)) +
+    geom_boxplot(alpha = 0.5) +
+    xlab("Method") + ylab("Error") +
+    facet_wrap(~Level, ncol = 4, scales = "free_y") +
+    guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+    theme_minimal() +
+    scale_fill_manual(values = c(
+      "ETS.rec" = "green",
+      "ETS.unrec" = "lightgreen",
+      "ARIMA.rec" = "blue",
+      "ARIMA.unrec" = "lightblue",
+      "OLS.rec" = "pink4",
+      "OLS.unrec" = "pink")
+    ) +
+    theme_light()+
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size=10),
+      axis.text = element_text(size = 10),
+      strip.text = element_text(size=12),
+      axis.title = element_text(size = 12, face = "bold"),
+      legend.position = "none"
+  )
+```
+
+```{r boxplottourismappendix, fig.align="center", fig.cap="Box plot for scaled forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 24-step-ahead tourism demand", out.width="100%"}
+## 24-step-ahead
+error.tourism.24<- error.tourism %>%
+  filter(ForecastInterval == "24Step") %>%
+  mutate(id = factor(paste(Method, Rec, sep = "."),
+                     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
+                     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"))
+  ) 
+
+error.tourism.22<- split(error.tourism.24, error.tourism.1$id)
+library(plyr)
+error.transform.tourism.24 <- lapply(error.tourism.22, function(x)ddply(x,"Series", transform, 
+                                                         value.scale = (Value-mean(Value))/(sd(Value))))
+
+do.call("rbind", error.transform.tourism.24) %>%
+ggplot(aes(x = id, y = value.scale, fill = id)) +
+    geom_boxplot(alpha = 0.5) +
+    xlab("Method") + ylab("Error") +
+    facet_wrap(~Level, ncol = 4, scales = "free_y") +
+    guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+    theme_minimal() +
+    scale_fill_manual(values = c(
+      "ETS.rec" = "green",
+      "ETS.unrec" = "lightgreen",
+      "ARIMA.rec" = "blue",
+      "ARIMA.unrec" = "lightblue",
+      "OLS.rec" = "pink4",
+      "OLS.unrec" = "pink")
+    ) +
+    theme_light()+
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size=10),
+      axis.text = element_text(size = 10),
+      strip.text = element_text(size=12),
+      axis.title = element_text(size = 12, face = "bold"),
+      legend.position = "none"
+  )
+```
+
+# Appendix B  {#appendixB -} 
+
+In this part we have the scaled forecasted errors box plot for the Wikipedia pageviews example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts. 
+```{r boxplotrollingwikiappendix, fig.align="center", fig.cap="Box plot for scaled forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 1-step-ahead Wikipedia pageviews.", out.width="100%"}
+## 1-step-ahead
+error.wiki.1<- error.wiki %>%
+  filter(ForecastInterval == "1Step") %>%
+  mutate(id = factor(paste(Method, Rec, sep = "."),
+                     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
+                     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"))
+  ) 
+
+error.wiki.2<- split(error.wiki.1, error.wiki.1$id)
+library(plyr)
+error.transform.wiki <- lapply(error.wiki.2, function(x)ddply(x,"Series", transform, 
+                                                         value.scale = (Value-mean(Value))/(sd(Value))))
+
+do.call("rbind", error.transform.wiki) %>%
+ggplot(aes(x = id, y = value.scale, fill = id)) +
+    geom_boxplot(alpha = 0.5) +
+    xlab("Method") + ylab("Error") +
+    facet_wrap(~Level, ncol = 3, scales = "free_y") +
+    guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+    theme_minimal() +
+    scale_fill_manual(values = c(
+      "ETS.rec" = "green",
+      "ETS.unrec" = "lightgreen",
+      "ARIMA.rec" = "blue",
+      "ARIMA.unrec" = "lightblue",
+      "OLS.rec" = "pink4",
+      "OLS.unrec" = "pink")
+    ) +
+    theme_light()+
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size=10),
+      axis.text = element_text(size = 10),
+      strip.text = element_text(size=12),
+      axis.title = element_text(size = 12, face = "bold"),
+      legend.position = "none"
+  )
+```
+
+```{r boxplotwikiappendix, fig.align="center", fig.cap="Box plot for scaled forecast errors - Reconciled and unreconciled ETS, ARIMA and OLS in each hierarchical level for 28-step-ahead Wikipedia pageviews.", out.width="100%"}
+## 28-step-ahead
+error.wiki.28<- error.wiki %>%
+  filter(ForecastInterval == "28Step") %>%
+  mutate(id = factor(paste(Method, Rec, sep = "."),
+                     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
+                     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"))
+  ) 
+
+error.wiki.22<- split(error.wiki.28, error.wiki.1$id)
+library(plyr)
+error.transform.wiki.28 <- lapply(error.wiki.22, function(x)ddply(x,"Series", transform, 
+                                                         value.scale = (Value-mean(Value))/(sd(Value))))
+
+do.call("rbind", error.transform.wiki.28) %>%
+ggplot(aes(x = id, y = value.scale, fill = id)) +
+    geom_boxplot(alpha = 0.5) +
+    xlab("Method") + ylab("Error") +
+    facet_wrap(~Level, ncol = 3, scales = "free_y") +
+    guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+    theme_minimal() +
+    scale_fill_manual(values = c(
+      "ETS.rec" = "green",
+      "ETS.unrec" = "lightgreen",
+      "ARIMA.rec" = "blue",
+      "ARIMA.unrec" = "lightblue",
+      "OLS.rec" = "pink4",
+      "OLS.unrec" = "pink")
+    ) +
+    theme_light()+
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size=10),
+      axis.text = element_text(size = 10),
+      strip.text = element_text(size=12),
+      axis.title = element_text(size = 12, face = "bold"),
+      legend.position = "none"
+  )
+```
+
+# Appendix C  {#appendixC -} 
+
+In this part we have the forecasts comparison results using for loops versus matrices computations for Australian domestic tourism example. 
+
+```{r Readloopsvsmatrix, results='hide'}
+
+forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/loopsvsmatrix.csv")
+```
+
+
+```{r loopsvsmatrix, fig.align="center", fig.cap="Comparing matrix and `for' loops computation reconciled forecast results for 1-step-ahead and 24-step-ahead tourism demand - bottom level series.", out.width="100%"}
+### qqplot - rec
+#lvsm.1 <- 
+forecast.tourism.loops.matrix %>%
+  filter( Level == "level7", ForecastInterval=="1Step") %>%
+  ggplot() + geom_point(aes(x=OLS.rec, y=OLS.rec.matrix))+
+  xlab("For loops") + ylab("Matrix") + ggtitle("1-step-ahead") +
+  theme_bw() + guides(linetype=FALSE)
+
+#lvsm.24 <- forecast.tourism.loops.matrix %>%
+# filter(ForecastInterval=="24Step") %>%
+#  ggplot() + geom_point(aes(x=OLS.rec, y=OLS.rec.matrix))
+#  xlab("For loops") + ylab("Matrix") + ggtitle("24-step-ahead") +
+#  theme_bw() + guides(linetype=FALSE)  
+
+#gridExtra::grid.arrange(lvsm.rec,  lvsm.unrec, nrow=1)
+```
