@@ -12,8 +12,22 @@
 \mathtoolsset{showonlyrefs=true}
 \allowdisplaybreaks
 
-\usepackage{float}
-\floatplacement{figure}{!htbp}
-
 \def\addlinespace{}
 \usepackage[section]{placeins}
+
+\usepackage{float}
+\let\origfigure\figure
+\let\endorigfigure\endfigure
+\renewenvironment{figure}[1][2] {
+    \expandafter\origfigure\expandafter[!htbp]
+} {
+    \endorigfigure
+}
+
+\let\origtable\table
+\let\endorigtable\endtable
+\renewenvironment{table}[1][2] {
+    \expandafter\origtable\expandafter[!htbp]
+} {
+    \endorigtable
+}
