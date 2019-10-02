@@ -231,7 +231,7 @@ If we have the same set of predictor variables, $\bm{X}$, for all the series, we
   \end{pmatrix}
 \end{equation}
 
-where $\bm{Y}$, $\bm{X}$, $\bm{B}$ and $\bm{E}$ are now matrices of size $T\times N$, $T\times (p+1)$, $(p+1)\times N$ and $T \times N$, respectively. Equations \@ref(eq:baseforecats) to \@ref(eq:singlestep) can be written accordingly using Equation \@ref(eq:linearmodelsameX) and here $X^*_{t+h,i} = X^*_{t+h}$, where $X^*_{t+h}$ is a $h\times (p+1)$ matrix. 
+where $\bm{Y}$, $\bm{X}$, $\bm{B}$ and $\bm{E}$ are now matrices of size $T\times N$, $T\times (p+1)$, $(p+1)\times N$ and $T \times N$, respectively. Equations \@ref(eq:baseforecats) to \@ref(eq:singlestep) can be written accordingly using Equation \@ref(eq:linearmodelsameX) and here $X^*_{t+h,i} = X^*_{t+h}$, where $X^*_{t+h}$ is a $h\times (p+1)$ matrix.
 
 <!--We can represent Equation \@ref(eq:linearmodelsameX) as follows
 \begin{equation}\label{eq:linearmodelmatrixsameX}
@@ -376,7 +376,7 @@ knitr::include_graphics("Paper-Figures/ausTurRegions.pdf")
 
 \newpage
 
-In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven 'States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 'Zones' and 76 'Regions' (for details about Australia geographic divisions see Figure \@ref(fig:Australiahierarchystructure) and Table \@ref(tab:Australiageographicaldivision) and also Figure \@ref(fig:Australiahierarchystructuremap) which shows Australia map divided by tourism region and colored by states^[For more information about the map: \url{https://www.tra.gov.au/tra/2016/Tourism_Region_Profiles/Region_profiles/index.html}]). 
+In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven 'States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 'Zones' and 76 'Regions' (for details about Australia geographic divisions see Figure \@ref(fig:Australiahierarchystructure) and Table \@ref(tab:Australiageographicaldivision) and also Figure \@ref(fig:Australiahierarchystructuremap) which shows Australia map divided by tourism region and colored by states^[For more information about the map: \url{https://www.tra.gov.au/tra/2016/Tourism_Region_Profiles/Region_profiles/index.html}]).
 
 For 'Purpose' we have four groups: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). Based on the geographic hierarchy and purpose grouping, we end up with 8 hierarchical levels with 555 series in total:
 
@@ -440,7 +440,7 @@ These results show that our proposed OLS forecasting model produces forecast acc
 
 In Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism) we display the error box plots for both reconciled and unreconciled forecasts using all three methods, for 1-step ahead and 24-steps ahead. In these figures we can visualize the error distributions across all the models, as well as the usefulness of the reconciliation step in improving the forecasts. In particular, we see that as expected by applying rolling origin 24-step-ahead forecasts, the error densities are closer and more distributed around zero than the fixed origin 24-step-ahead forecasts.
 
-Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin 24-step-ahead forecast results for the total series and one of the bottom level series, 'BACBus' (Geelong - Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods. 
+Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin 24-step-ahead forecast results for the total series and one of the bottom level series, 'BACBus' (Geelong - Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods.
 
 ```{r boxplotrollingtourism, fig.align="center", fig.cap="Box plots of forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 24-step-ahead tourism demand.", out.width="100%"}
 ## 1-step-ahead
@@ -906,7 +906,7 @@ The first and third authors of this research were partially funded by Ministry o
 
 # Appendix A  {#appendixA -}
 
-In this part we have the scaled forecasted errors box plot for the tourism example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts.
+We provide boxplots of the scaled forecasted errors for the tourism example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts.
 
 ```{r boxplotrollingtourismappendix, fig.align="center", fig.cap="Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 24-step-ahead tourism demand.", out.width="88%"}
 ## 1-step-ahead
@@ -992,7 +992,8 @@ do.call("rbind", error.transform.tourism.24) %>%
 
 # Appendix B  {#appendixB -}
 
-In this part we have the scaled forecasted errors box plot for the Wikipedia pageviews example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts.
+We provide boxplots of the scaled forecasted errors for the Wikipedia pageviews example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts.
+
 ```{r boxplotrollingwikiappendix, fig.align="center", fig.cap="Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 28-step-ahead Wikipedia pageviews.", out.width="88%"}
 ## 1-step-ahead
 error.wiki.1 <- error.wiki %>%
@@ -1077,28 +1078,28 @@ do.call("rbind", error.transform.wiki.28) %>%
 
 # Appendix C  {#appendixC -}
 
-In this part we have the forecasts comparison and computation results using separate regression models versus matrices computations for Australian domestic tourism example. Although mathematically both approaches should yield the same results, the results in practice are slightly different due to numerical computation deviations. Table \@ref(tab:Tourismdatacomputationtimeappendix) shows the matrix approach is computationally heavier.  
+In Figure \@ref(fig:loopsvsmatrix), we compare the forecasts obtained using separate regression models versus matrix computation for the Australian domestic tourism example. Although mathematically both approaches should yield the same results, the results in practice are slightly different due to numerical deviations. Table \@ref(tab:Tourismdatacomputationtimeappendix) shows the matrix approach is computationally heavier due to greater memory requirements.
 
 ```{r Readloopsvsmatrix, results='hide'}
 forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/loopsvsmatrix.csv")
 ```
 
-```{r loopsvsmatrix, fig.align="center", fig.cap="Comparison of the computation times for using matrix and separate regression models to reconcile forecasts for rolling and fixed origin 24-step-ahead tourism demand - bottom level series.", out.width="100%"}
+```{r loopsvsmatrix, fig.align="center", fig.cap="Comparison of the forecasts obtained  using a matrix approach and separate regression models to reconcile forecasts for rolling and fixed origin 24-step-ahead tourism demand (bottom level series only).", out.width="100%"}
 ### qqplot - rec
- lvsm.1 <- 
+ lvsm.1 <-
   forecast.tourism.loops.matrix %>%
   filter(Level == "level7", ForecastInterval == "1Step") %>%
   ggplot(aes(x = OLS.rec, y = OLS.rec.matrix)) + geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
-  xlab("Separate regression models") + ylab("Matrix") + ggtitle("Rolling origin 24-step-ahead") +
+  xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Rolling origin 24-step-ahead") +
   theme_bw() + guides(linetype = FALSE)
 
- lvsm.24 <- 
+ lvsm.24 <-
   forecast.tourism.loops.matrix %>%
    filter(Level == "level7", ForecastInterval == "24Step") %>%
    ggplot(aes(x = OLS.rec, y = OLS.rec.matrix)) + geom_point() +
    geom_smooth(method = "lm", se = FALSE) +
-   xlab("Separate regression models") + ylab("Matrix") + ggtitle("Fixed origin 24-step-ahead") +
+   xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Fixed origin 24-step-ahead") +
    theme_bw() + guides(linetype = FALSE)
 
  gridExtra::grid.arrange(lvsm.1,lvsm.24, nrow=1)
@@ -1106,14 +1107,14 @@ forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/
 
 ```{r Tourismdatacomputationtimeappendix, results='asis'}
 table2 <- matrix(NA, nrow = 2, ncol = 5)
-table2[, 1] <- c("matrix", "separate regression models")
+table2[, 1] <- c("Matrix approach", "Separate models")
 table2[, 2] <- c("202.06", "48.40")
 table2[, 3] <- c("209.84", "48.31")
 table2[, 4] <- c("87.73", "16.66")
 table2[, 5] <- c("105.69", "16.85")
 kable(table2,
   align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
-  caption = "Computation time (seconds) for OLS using `matrix' and `separate regression models'  with and without reconciliation - Rolling and fixed origin 24-step-ahead - tourism dataset",
+  caption = "Computation time (seconds) for OLS using the matrix approach and separate regression models, with and without reconciliation, on a rolling and fixed origin for 24 steps ahead, using the tourism dataset.",
   col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled")
 ) %>%
   column_spec(1:3, width = "3cm") %>%
