@@ -94,21 +94,10 @@ In the optimal combination method, reconciled forecasts can be computed using th
 
 where $\hat{\bm{y}}_h$ represents a vector of $h$-step-ahead base forecasts for all levels of the hierarchy, and $\bm{W}_h$ is the variance matrix of forecast errors for the $h$-step-ahead base forecasts.
 
-The most difficult task is to compute $\bm{W}_h$ which for large hierarchy with thousands of series is impossible. But @hyndman2011optimal discuss that we can simplify the computation as follows: 
-
-For linear forecasting methods with fix parameters, such as ARIMA, we can write the $h$-step-ahead base forecasts as  
-
-\begin{equation}\label{eq:baselinear}
- \hat{\bm{y}}_{h}=\bm{S}{\bm\beta}_h + {\bm\varepsilon}_h
+Several possibly methods for estimating $\bm{W}_h$ are available. @mint2018 discuss a simple approximation whereby $\bm{W}_h = k_h \bm{\Lambda}$ with $k_h$ being a positive constant, $\bm{\Lambda} = \text{diag}(\bm{S}\bm{1})$, and $\bm{1}$ being a column of 1s. Note that $\bm{\Lambda}$ simply contains the row sums of the summing matrix $\bm{S}$, and that $k_h$ will cancel out in \@ref(eq:mint). Thus
+\begin{equation}\label{eq:mint2}
+  \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{\Lambda}^{-1}\bm{S})^{-1}\bm{S}'\bm{\Lambda}^{-1}\hat{\bm{y}}_h.
 \end{equation}
-
-where ${\bm\beta}_h = E[\,{\bm y}_{k,h}|{\bm y}_1,...,{\bm y}_T]\,$ with $k$ bottom level series and ${\bm\varepsilon}_h$ is the error with mean zero and covariance matrix $var({\bm\varepsilon}_h) ={\bm W}_h$. By assuming that the error in Equation \@ref(eq:baselinear) can be computed using ${\bm \varepsilon}_h \approx {\bm S}{\bm \varepsilon}_{kh}$, where ${\bm \varepsilon}_{kh}$ represent the forecast error in bottom level series. With linear forecasting this expression will be satisfied. This approximation will lead us to using ordinary unweighted least squares approach instead of WLS as follows [@hyndman2011optimal]
-
-\begin{equation}\label{eq:initialW}
- \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{S})^{-1}\bm{S}'\hat{\bm{y}}_h
-\end{equation}
-
-Another alternative approach for simplifying the computation of $W_h$ is replacing it by the diagonal of $\bm{W}_1$ ($var({\bf y}_{T+1}-{\hat{\bf y}}_1)$), the variance matrix of forecast errors for the 1-step-ahead base forecasts which  gives good results in practice. $W_1$ is easy to obtain because it is simply the diagonal matrix comprising the residual variances from each of the base forecasts (@mint2018 and @hyndman2016fast).
 
 The most computationally challenging part of the optimal combination method is to produce all the base forecasts that make up $\hat{\bm{y}}_h$. In many applications, there may be thousands or even millions of individual series, and each of them must be forecast independently. The most popular time series forecasting methods such as ETS and ARIMA models [@fpp2] involve non-linear optimization routines to estimate the parameters via maximum likelihood estimation. Usually, multiple models are fitted for each series, and the best is select by minimizing Akaike's Information Citerion [@akaike1998information]. This computational challenges increases with the number of lower level series as well as in the number of aggregations of interest.
 
@@ -202,18 +191,12 @@ where $\hat{\bm{y}}_{t+h}$ is an $N$-vector of forecasts, $\hat{\bm{B}}$ compris
 \end{equation}
 Note that we use $\bm{X}^*_{t}$ to distinguish this matrix, which combines $\bm{x}_{t,i}$ across all series for one time from $\bm{X}_i$ which combines $\bm{x}_{t,i}$ across all time for one series.
 
-The reconciliation (of the WLS variety), using Equation \@ref(eq:mint) can be written as
-\begin{equation}\label{eq:recforecasts}
-\tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}\hat{\bm{y}}_{t+h},
-\end{equation}
-where $\bm{W}$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bm{S}$ is the summation matrix containing the aggregation constraints.
-
-Finally, we can combine the two linear equations for computing base forecasts and reconciled forecasts (Equations \@ref(eq:baseforecats) and \@ref(eq:recforecasts)) to obtain the reconciled forecasts with a single equation:
+Finally, we can combine the two linear equations for computing base forecasts and reconciled forecasts (Equations \@ref(eq:baseforecats) and \@ref(eq:mint2)) to obtain the reconciled forecasts with a single equation:
 \begin{equation}\label{eq:singlestep}
-\tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+\tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}
                         (\bm{X}_{t+h}^* \hat{\bm{B}})
-                        = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
-                        (\bm{X}_{t+h}^* \bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
+                        = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}
+                        \bm{X}_{t+h}^* (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
 
 ## Simplified formulation for a fixed set of predictors ($\bf {X}$) \label{sec:proposedapproach2}
@@ -247,7 +230,7 @@ If we have the same set of predictor variables, $\bm{X}$, for all the series, we
   \end{pmatrix}
 \end{equation}
 
-where $\bm{Y}$, $\bm{X}$, $\bm{B}$ and $\bm{E}$ are now matrices of size $T\times N$, $T\times (p+1)$, $(p+1)\times N$ and $T \times N$, respectively. Equations \@ref(eq:baseforecats) to \@ref(eq:singlestep) can be written accordingly using Equation \@ref(eq:linearmodelsameX) and here $X^*_{t+h,i} = X^*_{t+h}$, where $X^*_{t+h}$ is a $h\times (p+1)$ matrix.
+where $\bm{Y}$, $\bm{X}$, $\bm{B}$ and $\bm{E}$ are now matrices of size $T\times N$, $T\times (p+1)$, $(p+1)\times N$ and $T \times N$, respectively. Equations \@ref(eq:baseforecats) to \@ref(eq:singlestep) can be written accordingly using Equation \@ref(eq:linearmodelsameX) and here $\bm{X}^*_{t+h,i} = \bm{X}^*_{t+h}$, where $\bm{X}^*_{t+h}$ is an $h\times (p+1)$ matrix.
 
 <!--We can represent Equation \@ref(eq:linearmodelsameX) as follows
 \begin{equation}\label{eq:linearmodelmatrixsameX}
