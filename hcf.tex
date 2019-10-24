@@ -469,14 +469,39 @@ forecasts for all levels of the hierarchy, and \(\bm{W}_h\) is the
 variance matrix of forecast errors for the \(h\)-step-ahead base
 forecasts.
 
-Several possibly methods for estimating \(\bm{W}_h\) are available.
-\textcite{mint2018} discuss a simple approximation whereby
+Several possible simpler methods for estimating \(\bm{W}_h\) are
+available. \textcite{mint2018} discuss a simple approximation whereby
 \(\bm{W}_h = k_h \bm{\Lambda}\) with \(k_h\) being a positive constant,
 \(\bm{\Lambda} = \text{diag}(\bm{S}\bm{1})\), and \(\bm{1}\) being a
 column of 1s. Note that \(\bm{\Lambda}\) simply contains the row sums of
 the summing matrix \(\bm{S}\), and that \(k_h\) will cancel out in
 \eqref{eq:mint}. Thus \begin{equation}\label{eq:mint2}
   \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{\Lambda}^{-1}\bm{S})^{-1}\bm{S}'\bm{\Lambda}^{-1}\hat{\bm{y}}_h.
+\end{equation}
+
+We can further simplify the version by \textcite{hyndman2011optimal} as
+follows:
+
+For linear forecasting methods with fix parameters, such as ARIMA, we
+can write the \(h\)-step-ahead base forecasts as
+
+\begin{equation}\label{eq:baselinear}
+ \hat{\bm{y}}_{h}=\bm{S}{\bm\beta}_h + {\bm\varepsilon}_h
+\end{equation}
+
+where \({\bm\beta}_h = E[\,{\bm y}_{k,h}|{\bm y}_1,...,{\bm y}_T]\,\)
+with \(k\) bottom level series and \({\bm\varepsilon}_h\) is the error
+with mean zero and covariance matrix
+\(var({\bm\varepsilon}_h) ={\bm W}_h\). By assuming that the error in
+Equation \eqref{eq:baselinear} can be computed using
+\({\bm \varepsilon}_h \approx {\bm S}{\bm \varepsilon}_{kh}\), where
+\({\bm \varepsilon}_{kh}\) represent the forecast error in bottom level
+series. With linear forecasting this expression will be satisfied. This
+approximation will lead us to using ordinary unweighted least squares
+approach instead of WLS as follows \autocite{hyndman2011optimal}
+
+\begin{equation}\label{eq:initialW}
+ \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{S})^{-1}\bm{S}'\hat{\bm{y}}_h
 \end{equation}
 
 The most computationally challenging part of the optimal combination
@@ -577,14 +602,18 @@ from \(\bm{X}_i\) which combines \(\bm{x}_{t,i}\) across all time for
 one series.
 
 Finally, we can combine the two linear equations for computing base
-forecasts and reconciled forecasts (Equations \eqref{eq:baseforecats} and
-\eqref{eq:mint2}) to obtain the reconciled forecasts with a single
-equation: \begin{equation}\label{eq:singlestep}
-\tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}
+forecasts and reconciled forecasts (Equations \eqref{eq:mint} and
+\eqref{eq:baseforecats}) to obtain the reconciled forecasts with a single
+equation:
+
+\begin{equation}\label{eq:singlestep}
+\tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
                         (\bm{X}_{t+h}^* \hat{\bm{B}})
-                        = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}
-                        \bm{X}_{t+h}^* (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
+                        = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+                        (\bm{X}_{t+h}^* \bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
+
+where \(\bm{W}\) can be replaced with \(I\) (identity matrix).
 
 \hypertarget{simplified-formulation-for-a-fixed-set-of-predictors-bf-x}{%
 \subsection{\texorpdfstring{Simplified formulation for a fixed set of
@@ -709,7 +738,7 @@ they occur at periods after the forecast origin. We call these ``fixed
 origin'' forecasts.
 
 In the following two applications, we used the unweighted reconciliation
-approach from Equation \eqref{eq:initialW}. In
+approach from Equation \eqref{eq:initialW} (\(W=I\)). In
 \protect\hyperlink{appendixC}{Appendix C}, we repeat some of the results
 for the Australian domestic tourism dataset using WLS reconciliation
 approach in Equation \eqref{eq:mint}.
@@ -1258,13 +1287,13 @@ terms of forecasting accuracy. An important feature of our model is its
 ability to easily include external information such as holiday dummies
 or other external series. We also note that OLS has the additional
 practical advantage of handling missing data while ETS and ARIMA require
-imputation. In literature \textcite{pennings2017} is one example for
-forecasting hierarchical series. This method is applying state space
-models and although it is flexible in handling outliers, missing data
-and external features it is less flexible to different kinds of datasets
-and it is computationally more complex. In addition to the computation
+imputation. \textcite{pennings2017} proposed another approach for
+forecasting hierarchical time series using state space models. Although
+thier approach is flexible in handling outliers, missing data and
+external features it is less flexible to different kinds of datasets and
+it is computationally more complex. In contrast to the computation
 adjustment, since our proposed approach is computationally cheap it is
-especially useful for model selection.
+more practical and especially useful for model selection.
 
 \hypertarget{acknowledgements}{%
 \section*{Acknowledgements}\label{acknowledgements}}
