@@ -49,7 +49,7 @@ validation_tourist <-window(ausgts,start = c(1, ((n-k)+1)),end = c(1, n))
 ally <- aggts(ausgts)
 
 ## computing reconceliation matrix
-gmat<-GmatrixG(ausgts$groups)
+gmat<-GmatrixH(ausgts$groups)
 smatrix<-SmatrixM(gmat)
 rec.adj<-as.matrix(smatrix%*%solve(((t(smatrix))%*%smatrix))%*%t(smatrix))
 

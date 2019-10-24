@@ -14,7 +14,7 @@ author:
   othernames: Galit
   address: Institute of Service Science, National Tsing Hua University, Taiwan
   email: galit.shmueli@iss.nthu.edu.tw
-abstract: "Forecasting hierarchical or grouped time series involves two steps: computing base forecasts and reconciling the forecasts. Base forecasts can be computed by popular time series forecasting methods such as Exponential Smoothing (ETS) and Autoregressive Integrated Moving Average (ARIMA) models. The reconciliation step is a linear process that adjusts the base forecasts to ensure they are coherent. However using ETS or ARIMA for base forecasts can be computationally challenging when there are a large number of series to forecast, as each model must be numerically optimized for each series. We propose a linear model that avoids this computational problem, and uses a single-step approach to obtain the forecasts, rather than the usual two-step approach. The proposed method is very flexible in incorporating external data and handling missing values. We illustrate our approach using two datasets: monthly Australian domestic tourism and daily Wikipedia pageviews. We compare our approach to reconciliation using ETS and ARIMA, and show that our approach is much faster while providing similar levels of forecast accuracy."
+abstract: "Forecasting hierarchical or grouped time series involves two steps: computing base forecasts and reconciling the forecasts. Base forecasts can be computed by popular time series forecasting methods such as Exponential Smoothing (ETS) and Autoregressive Integrated Moving Average (ARIMA) models. The reconciliation step is a linear process that adjusts the base forecasts to ensure they are coherent. However using ETS or ARIMA for base forecasts can be computationally challenging when there are a large number of series to forecast, as each model must be numerically optimized for each series. We propose a linear model that avoids this computational problem. The proposed method is very flexible in incorporating external data, handling missing values and model selection. We illustrate our approach using two datasets: monthly Australian domestic tourism and daily Wikipedia pageviews. We compare our approach to reconciliation using ETS and ARIMA, and show that our approach is much faster while providing similar levels of forecast accuracy."
 keywords: "hierarchical forecasting, grouped forecasting, reconciling forecast, linear regression"
 wpnumber: no/yr
 jelcodes: C10,C14,C22
@@ -86,17 +86,33 @@ If we just forecast each series individually, we are ignoring the hierarchical o
 
 There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts.  However, we may not get good upper-level forecasts because the most disaggregated series can be noisy and so their forecasts are often inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $n$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any  correlations among the series.
 
-In the optimal combination method, reconciled forecasts can be computed using [@mint2018]
+In the optimal combination method, reconciled forecasts can be computed using the following equeation known as weighted least squares (WLS) [@mint2018]
+
 \begin{equation}\label{eq:mint}
-  \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}^{-1}\hat{\bm{y}}_h,
+  \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}_h^{-1}\hat{\bm{y}}_h,
 \end{equation}
+
 where $\hat{\bm{y}}_h$ represents a vector of $h$-step-ahead base forecasts for all levels of the hierarchy, and $\bm{W}_h$ is the variance matrix of forecast errors for the $h$-step-ahead base forecasts.
 
-The most difficult task is to compute $\bm{W}_h$, but @mint2018 and @hyndman2016fast argue that replacing it by the diagonal of $\bm{W}_1$ gives good results in practice. This is easy to obtain because it is simply the diagonal matrix comprising the residual variances from each of the base forecasts.
+The most difficult task is to compute $\bm{W}_h$ which for large hierarchy with thousands of series is impossible. But @hyndman2011optimal discuss that we can simplify the computation as follows: 
+
+For linear forecasting methods with fix parameters, such as ARIMA, we can write the $h$-step-ahead base forecasts as  
+
+\begin{equation}\label{eq:baselinear}
+ \hat{\bm{y}}_{h}=\bm{S}{\bm\beta}_h + {\bm\varepsilon}_h
+\end{equation}
+
+where ${\bm\beta}_h = E[\,{\bm y}_{k,h}|{\bm y}_1,...,{\bm y}_T]\,$ with $k$ bottom level series and ${\bm\varepsilon}_h$ is the error with mean zero and covariance matrix $var({\bm\varepsilon}_h) ={\bm W}_h$. By assuming that the error in Equation \@ref(eq:baselinear) can be computed using ${\bm \varepsilon}_h \approx {\bm S}{\bm \varepsilon}_{kh}$, where ${\bm \varepsilon}_{kh}$ represent the forecast error in bottom level series. With linear forecasting this expression will be satisfied. This approximation will lead us to using ordinary unweighted least squares approach instead of WLS as follows [@hyndman2011optimal]
+
+\begin{equation}\label{eq:initialW}
+ \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{S})^{-1}\bm{S}'\hat{\bm{y}}_h
+\end{equation}
+
+Another alternative approach for simplifying the computation of $W_h$ is replacing it by the diagonal of $\bm{W}_1$ ($var({\bf y}_{T+1}-{\hat{\bf y}}_1)$), the variance matrix of forecast errors for the 1-step-ahead base forecasts which  gives good results in practice. $W_1$ is easy to obtain because it is simply the diagonal matrix comprising the residual variances from each of the base forecasts (@mint2018 and @hyndman2016fast).
 
 The most computationally challenging part of the optimal combination method is to produce all the base forecasts that make up $\hat{\bm{y}}_h$. In many applications, there may be thousands or even millions of individual series, and each of them must be forecast independently. The most popular time series forecasting methods such as ETS and ARIMA models [@fpp2] involve non-linear optimization routines to estimate the parameters via maximum likelihood estimation. Usually, multiple models are fitted for each series, and the best is select by minimizing Akaike's Information Citerion [@akaike1998information]. This computational challenges increases with the number of lower level series as well as in the number of aggregations of interest.
 
-We therefore propose a new approach to compute the base forecasts that is both computationally fast while maintaining an acceptable forecasting accuracy level.
+We therefore propose a new approach to compute the base forecasts that is both computationally fast while maintaining an acceptable forecasting accuracy level. 
 
 # Proposed approach: Linear model \label{sec:proposedapproach1}
 
@@ -124,7 +140,7 @@ $$
 \todo[inline]{Not complete - Matrix notation: we need to write this for all $\hat{y}_Z$.} -->
 
 Our proposed approach is based on using linear regression models for computing base forecasts. Suppose we have a linear model that we use for forecasting, and we wish to apply it to $N$ different series which have some aggregation constraints. We have observations $y_{t,i}$  from times $t=1,\dots,T$ and series $i=1,\dots,N$. Then
-\begin{equation}
+\begin{equation}\label{eq:basicequation}
 y_{t,i} = \bm{\beta}_{i}' \bm{x}_{t,i} + \varepsilon_{t,i}
 \end{equation}
 where $\bm{x}_{t,i}=\{1, x_{t,i,1},\dots,x_{t,i,p}\}$ is a $(p+1)$-vector of regression variables. This equation for all the observations in matrix form can be written as follows:
@@ -188,13 +204,13 @@ Note that we use $\bm{X}^*_{t}$ to distinguish this matrix, which combines $\bm{
 
 The reconciliation (of the WLS variety), using Equation \@ref(eq:mint) can be written as
 \begin{equation}\label{eq:recforecasts}
-\tilde{\bm{y}}_{t+h} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}\hat{\bm{y}}_{t+h},
+\tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}\hat{\bm{y}}_{t+h},
 \end{equation}
 where $\bm{W}$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bm{S}$ is the summation matrix containing the aggregation constraints.
 
 Finally, we can combine the two linear equations for computing base forecasts and reconciled forecasts (Equations \@ref(eq:baseforecats) and \@ref(eq:recforecasts)) to obtain the reconciled forecasts with a single equation:
 \begin{equation}\label{eq:singlestep}
-\tilde{\bm{y}}_{t+h} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
+\tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
                         (\bm{X}_{t+h}^* \hat{\bm{B}})
                         = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
                         (\bm{X}_{t+h}^* \bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
@@ -295,9 +311,9 @@ While OLS is popular in practice for forecasting time series, it is often frowne
 
 ## Computational considerations
 
-There are two ways for computing above forecasts. In the first way we can create matrices, $Y$, $X$ and $E$. In this way we need to compute the inverse matrix to compute the coefficients. To avoid numerical issues due to matrix inversion, one can use `separate regression models' to compute the coefficients for each linear model individually.
+There are two ways for computing above forecasts. In the first way we can create matrices, $Y$, $X$ and $E$. Also we need to compute the inverse matrix to compute the coefficients. To avoid numerical issues due to matrix inversion, one can use `separate regression models' to compute the coefficients for each linear model individually. 
 
-Although the matrix, $\bf X'X$, for  which we want to compute the inverse is sparse and block diagonal, it is still faster and more accurate to use the `separate regression models' approach. In [Appendix C](#appendixC) we give the forecast results comparisons for Australian domestic tourism example using these two computation approaches.
+Although the matrix, $\bf X'X$, for  which we want to compute the inverse is sparse and block diagonal, it is still faster and more accurate to use the `separate regression models' approach. In [Appendix B](#appendixB) we give the forecast results comparisons for Australian domestic tourism example using these two computation approaches.
 
 # Applications
 
@@ -306,6 +322,8 @@ In this section we illustrate our approach using two examples: forecasting month
 The two datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.
 
 We apply two methods for generating $h$-step-ahead forecasts, which differ in how they handle unobserved lagged values as inputs. The first approach is *rolling origin*, in that it uses actual values, even when they are future to the forecast origin. This value is known to us because it is in the test set. We call these "rolling origin" forecasts. In the second method, we follow an *fixed origin* approach, and we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin. We call these "fixed origin" forecasts.
+
+In the following two applications, we used the unweighted reconciliation approach from Equation \@ref(eq:initialW). In [Appendix C](#appendixC), we repeat some of the results for the Australian domestic tourism dataset using WLS reconciliation approach in Equation \@ref(eq:mint).
 
 ## Australian domestic tourism
 
@@ -402,9 +420,9 @@ kable(table1,
   kable_styling(position = "center", latex_options = "hold_position")
 ```
 
-We report the forecast results for all these hierarchical levels, as well as the average RMSE across all the levels of the hierarchy. In the predictor matrix for the OLS forecasting model, we include a linear trend, 11 dummy variables, and 12 time series lags^[Since the forecasting results are better with fewer lags, we use a linear trend and dummy seasonality variables and four lags in our linear model for the fixed origin 24-step-ahead model.]. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
+We report the forecast results for all these hierarchical levels, as well as the average RMSE across all the levels of the hierarchy. We used different predictors in the OLS predictor
+matrix for the rolling and fixed origin approaches.  For the rolling origin model, we included a linear trend, 11 dummy variables, and 12 lags. For the fixed origin model, we included a quadratic trend, 11 dummy variables, and lags 1 and 12. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
 
-<!-- \todo[inline]{Why not just use the four lag model from the start?} -->
 
 ```{r Tourismdataresulrolling, results='asis', dependson="Readtourism"}
 bind_cols(
@@ -589,8 +607,8 @@ table2 <- matrix(NA, nrow = 3, ncol = 5)
 table2[, 1] <- c("ETS", "ARIMA", "OLS")
 table2[, 2] <- c("10924.57", "31146.38", "48.40")
 table2[, 3] <- c("10924.60", "31146.52", "48.31")
-table2[, 4] <- c("407.10", "1116.15", "16.66")
-table2[, 5] <- c("407.15", "1116.19", "16.85")
+table2[, 4] <- c("407.10", "1116.15", "17.42")
+table2[, 5] <- c("407.15", "1116.19", "17.80")
 kable(table2,
   align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
   caption = "Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling and fixed origin 24-step-ahead - Tourism dataset",
@@ -652,7 +670,7 @@ The final dataset includes 913 time series, each with length 394. The group stru
 - Level 4 = Purpose
 - Level 5 = bottom level series
 
-For this daily dataset, in the OLS forecasting model we include in the predictor matrix a linear trend, 6 seasonal dummies and 7 lags. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set.
+For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and all 7 lags for rolling, and for fixed origin model we use a quadratic trend, 6 seasonal dummies and lags 1 and 7. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set.
 
 ```{r Readwikipedia, results='hide'}
 error.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/error.wiki.csv")
@@ -697,7 +715,7 @@ knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 
 Table \@ref(tab:wikipediadataresulrolling), \@ref(tab:wikipediadataresultRMSE) and \@ref(tab:wikipediadatacomputationtime) represent the RMSE results and computation time. Although these time series are noisier, we still get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step.
 
-Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin 28-step-ahead forecasts in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels, series have higher counts and therefore their error magnitudes are larger. In  [Appendix B](#appendixB) we display box plots for the errors devided by the error range for easier comparison.
+Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin 28-step-ahead forecasts in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels, series have higher counts and therefore their error magnitudes are larger. <!--In  [Appendix B](#appendixB) we display box plots for the errors devided by the error range for easier comparison.-->
 
 ```{r wikipediadataresulrolling, results='asis', dependson="Readwikipedia"}
 bind_cols(
@@ -896,7 +914,7 @@ kable(table2,
 
 # Conclusion
 
-We proposed a single-step linear model approach to forecast hierarchical or grouped time series in a much faster way, but with accuracy that nearly matches that of forecast methods such as ETS and ARIMA. This is especially useful in large collections of time series, as is typical in hierarchical and grouped structures. Although ETS and ARIMA are advantageous in terms of forecasting power and accuracy, they can be computationally heavy when facing large collections of time series in the hierarchy. Adding another faster option for calculating base forecasts was our purpose in this research. Here we suggest a linear model, OLS, instead of ETS and ARIMA which is not computationally intensive. We also showed that OLS can compete with ETS and ARIMA in terms of forecasting accuracy. An important feature of our model is its ability to easily include external information such as holiday dummies or other external series. We also note that OLS has the additional practical advantage of handling missing data while ETS and ARIMA require imputation. In addition to the computation adjustment, our proposed approach forecasts hierarchical time series in a parsimonious single step whereas other available methods all require a two-step procedure.
+We proposed a linear model approach to forecast hierarchical or grouped time series in a much faster way, but with accuracy that nearly matches that of forecast methods such as ETS and ARIMA. This is especially useful in large collections of time series, as is typical in hierarchical and grouped structures. Although ETS and ARIMA are advantageous in terms of forecasting power and accuracy, they can be computationally heavy when facing large collections of time series in the hierarchy. Adding another faster option for calculating base forecasts was our purpose in this research. Here we suggest a linear model, OLS, instead of ETS and ARIMA which is not computationally intensive. We also showed that OLS can compete with ETS and ARIMA in terms of forecasting accuracy. An important feature of our model is its ability to easily include external information such as holiday dummies or other external series. We also note that OLS has the additional practical advantage of handling missing data while ETS and ARIMA require imputation. In literature @pennings2017 is one example for forecasting hierarchical series. This method is applying state space models and although it is flexible in handling outliers, missing data and external features it is less flexible to different kinds of datasets and it is computationally more complex. In addition to the computation adjustment, since our proposed approach is  computationally cheap it is especially useful for model selection. 
 
 # Acknowledgements {-}
 
@@ -927,7 +945,7 @@ do.call("rbind", error.transform.tourism) %>%
   ggplot(aes(x = id, y = value.scale, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 4, scales = "free_y") +
+  facet_wrap(~Level, ncol = 4, scales = "fixed") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c(
@@ -967,7 +985,7 @@ do.call("rbind", error.transform.tourism.24) %>%
   ggplot(aes(x = id, y = value.scale, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 4, scales = "free_y") +
+  facet_wrap(~Level, ncol = 4, scales = "fixed") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c(
@@ -990,7 +1008,7 @@ do.call("rbind", error.transform.tourism.24) %>%
 
 \clearpage
 
-# Appendix B  {#appendixB -}
+<!--# Appendix B  {#appendixB -}
 
 We provide boxplots of the scaled forecasted errors for the Wikipedia pageviews example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts.
 
@@ -1073,10 +1091,10 @@ do.call("rbind", error.transform.wiki.28) %>%
     legend.position = "none"
   )
 ```
-
+-->
 \clearpage
 
-# Appendix C  {#appendixC -}
+# Appendix B  {#appendixB -}
 
 In Figure \@ref(fig:loopsvsmatrix), we compare the forecasts obtained using separate regression models versus matrix computation for the Australian domestic tourism example. Although mathematically both approaches should yield the same results, the results in practice are slightly different due to numerical deviations. Table \@ref(tab:Tourismdatacomputationtimeappendix) shows the matrix approach is computationally heavier due to greater memory requirements.
 
@@ -1091,6 +1109,7 @@ forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/
   filter(Level == "level7", ForecastInterval == "1Step") %>%
   ggplot(aes(x = OLS.rec, y = OLS.rec.matrix)) + geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
+  ylim(0,2600) +
   xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Rolling origin 24-step-ahead") +
   theme_bw() + guides(linetype = FALSE)
 
@@ -1099,6 +1118,7 @@ forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/
    filter(Level == "level7", ForecastInterval == "24Step") %>%
    ggplot(aes(x = OLS.rec, y = OLS.rec.matrix)) + geom_point() +
    geom_smooth(method = "lm", se = FALSE) +
+   ylim(0,2600) +
    xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Fixed origin 24-step-ahead") +
    theme_bw() + guides(linetype = FALSE)
 
@@ -1123,3 +1143,82 @@ kable(table2,
 ```
 
 \clearpage
+
+# Appendix C  {#appendixC -}
+
+In Figure  \@ref(fig:boxplotrollingtourismweight) and \@ref(fig:boxplottourismwight) we display a box plot comparison of the results using two different reconciliation functions, weighted and unweighted (Equations \@ref(eq:initialW) and \@ref(eq:mint)), for ETS, ARIMA and the proposed OLS methods. We can see that  for the base level the unweighted approach is similar, but for some lower levels the weighted approach provides more accurate forecasts. 
+
+```{r Readtourismweight, results='hide'}
+error.tourism.weight <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.weight.csv")
+```
+
+```{r boxplotrollingtourismweight, fig.align="center", fig.cap="Box plots of forecast errors from OLS and WLS reconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 24-step-ahead tourism demand.", out.width="100%"}
+## 1-step-ahead
+error.tourism.weight %>%
+  filter(ForecastInterval == "1Step") %>%
+  mutate(id = factor(Method,
+    levels = c("weighted.ETS", "ETS", "weighted.ARIMA", "ARIMA", "weighted.OLS", "OLS"),
+    labels = c("weighted.ETS", "ETS", "weighted.ARIMA", "ARIMA", "weighted.OLS", "OLS")
+  )) %>%
+  ggplot(aes(x = id, y = Value, fill = id)) +
+  geom_boxplot(alpha = 0.5) +
+  xlab("Method") + ylab("Error") +
+  facet_wrap(~Level,ncol = 4,  scales = "free_y") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_minimal() +
+  scale_fill_manual(values = c(
+    "weighted.ETS" = "green",
+    "ETS" = "lightgreen",
+    "weighted.ARIMA" = "blue",
+    "ARIMA" = "lightblue",
+    "weighted.OLS" = "pink4",
+    "OLS" = "pink"
+  )) +
+  #coord_flip(clip = "off")+
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    axis.text = element_text(size = 10),
+    strip.text = element_text(size = 12),
+    axis.title = element_text(size = 12, face = "bold"),
+    legend.position = "none"
+  )
+```
+
+```{r boxplottourismwight, fig.align="center", fig.cap= "Box plots of forecast errors from OLS and WLS reconciled ETS, ARIMA and OLS methods at each hierarchical level for fixed origin 24-step-ahead tourism demand.", out.width="100%"}
+## 24-step-ahead
+error.tourism.weight %>%
+  filter(ForecastInterval == "24Step") %>%
+  mutate(id = factor(Method,
+    levels = c("weighted.ETS", "ETS", "weighted.ARIMA", "ARIMA", "weighted.OLS", "OLS"),
+    labels = c("weighted.ETS", "ETS", "weighted.ARIMA", "ARIMA", "weighted.OLS", "OLS")
+  )) %>%
+  ggplot(aes(x = id, y = Value, fill = id)) +
+  geom_boxplot(alpha = 0.5) +
+  xlab("Method") + ylab("Error") +
+  facet_wrap(~Level, ncol = 4, scales = "free_y") +
+  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
+  theme_minimal() +
+  scale_fill_manual(values = c(
+    "weighted.ETS" = "green",
+    "ETS" = "lightgreen",
+    "weighted.ARIMA" = "blue",
+    "ARIMA" = "lightblue",
+    "weighted.OLS" = "pink4",
+    "OLS" = "pink"
+  )) +
+  #coord_flip(clip = "off")+
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    axis.text = element_text(size = 10),
+    strip.text = element_text(size = 12),
+    axis.title = element_text(size = 12, face = "bold"),
+    legend.position = "none"
+  )
+```
+
+\clearpage
+
+
+

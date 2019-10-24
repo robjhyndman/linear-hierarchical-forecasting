@@ -1,4 +1,3 @@
-library(tidyverse)
 library(hts)
 source("olsfc.R")
 library(Matrix)
@@ -45,15 +44,17 @@ n<-nrow(TourismData1)
 
 Xmat<-list()
 freq <-12
-maxlag <- 4
+nolag <- c(1,12)
+maxlag <- 12
 
 ## function for computing predictors (trend, dummy seasonality, lags) for each series
 Xmatrix<-function(X){
   X<-as.vector(X)
-  trend<-seq(NROW(X))
+  trend1<-seq(NROW(X))
+  trend2<-(seq(NROW(X)))^2
   season<-forecast::seasonaldummy(ts(X,frequency = freq))
-  Xlag<-quantmod::Lag(X,k=1:maxlag)
-  X_mat<-cbind.data.frame(trend,season,Xlag)
+  Xlag<-quantmod::Lag(X,k= nolag)
+  X_mat<-cbind.data.frame(trend1, trend2, season, Xlag)
   Xmat[[length(Xmat)+1]] <- X_mat 
 }
 
@@ -62,7 +63,7 @@ Xmatrix<-function(X){
 
 TourismData <- head(TourismData1, (n-k))
 ## empty matrix for the forecasts
-result.fore <- matrix(NA, nrow = k, ncol = NCOL(ally))
+result.fore <- matrix(NA, nrow = k, ncol = 555)
 base.fore <- c()
 
 for(i in 1:k){
@@ -70,7 +71,7 @@ for(i in 1:k){
     TourismData <- TourismData
   else
     TourismData[nrow(TourismData),] <- tail(as.vector(t(base.fore)),304)
-  TourismData <- rbind.data.frame(TourismData, rep(0,304))
+  TourismData <- rbind.data.frame(TourismData, TourismData1[((n-k)+i),])
   TourismData2 <- ts(TourismData, start = 1, frequency = 12)
   ausgts <- gts(TourismData2, characters = list(c(1, 1, 1), 3),
                 gnames = c("State", "Zone", "Region", "Purpose","State x Purpose", "Zone x Purpose"))
@@ -97,6 +98,7 @@ for(i in 1:k){
   base.fore <- as.matrix(mat.test%*%coeff)
   base.fore[base.fore<0] <- 0
   result <- rec.adj %*% base.fore
+  #result <- base.fore
   fore <- as.vector(as.matrix(result)) 
   result.fore [i,] <- fore
 }
