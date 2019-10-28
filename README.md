@@ -1,4 +1,4 @@
-# hierarchical-clustering-forecasting
-Paper with Mahsa on forecasting using clustering and hierarchical information
+# Linear hierarchical forecasting
 
- 
+Paper with Mahsa on forecasting using linear models with reconciliation
+
