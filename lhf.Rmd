@@ -1,5 +1,5 @@
 ---
-title: "A fast and elegant method for forecast reconciliation using linear forecasting models"
+title: "Fast forecast reconciliation using linear models"
 author:
 - familyname: Ashouri
   othernames: Mahsa
