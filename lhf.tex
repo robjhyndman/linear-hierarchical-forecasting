@@ -456,7 +456,7 @@ methods, is that it considers all information in the hierarchy,
 including any correlations among the series.
 
 In the optimal combination method, reconciled forecasts can be computed
-using the following equeation known as weighted least squares (WLS)
+using the following equation known as weighted least squares (WLS)
 \autocite{mint2018} \begin{equation}\label{eq:mint}
   \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}_h^{-1}\hat{\bm{y}}_h,
 \end{equation} where \(\hat{\bm{y}}_h\) represents a vector of
@@ -672,7 +672,7 @@ compute the coefficients for each linear model individually.
 Although the matrix, \(\bf X'X\), for which we want to compute the
 inverse is sparse and block diagonal, it is still faster and more
 accurate to use the `separate regression models' approach. In
-\protect\hyperlink{appendixB}{Appendix B} we give the forecast results
+\protect\hyperlink{appendixA}{Appendix A} we give the forecast results
 comparisons for Australian domestic tourism example using these two
 computation approaches.
 
@@ -703,11 +703,8 @@ approach, and we replace lagged values of \(y\) by their forecasts if
 they occur at periods after the forecast origin. We call these ``fixed
 origin'' forecasts.
 
-In the following two applications, we used the unweighted reconciliation
-approach from Equation \eqref{eq:initialW} (\(W=I\)). In
-\protect\hyperlink{appendixC}{Appendix C}, we repeat some of the results
-for the Australian domestic tourism dataset using WLS reconciliation
-approach in Equation \eqref{eq:mint}.
+In the following two applications, we used the weighted reconciliation
+approach from Equation \eqref{eq:mint2} (\(W=\Lambda\)).
 
 \hypertarget{australian-domestic-tourism}{%
 \subsection{Australian domestic
@@ -886,14 +883,14 @@ our training set.
 \cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-7}
 Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Level 0 & 1516.4 & 1445.5 & 1415.1 & 1533.6 & 1453.4 & 1454.4\\
-Level 1 & 511.4 & 493.1 & 510.8 & 495.9 & 457.6 & 488.3\\
-Level 2 & 214.8 & 219.0 & 224.5 & 209.2 & 207.5 & 212.4\\
-Level 3 & 122.9 & 125.1 & 124.0 & 118.7 & 120.5 & 119.5\\
-Level 4 & 676.0 & 709.2 & 694.5 & 668.3 & 679.7 & 678.5\\
-Level 5 & 213.1 & 220.1 & 216.1 & 210.6 & 209.4 & 211.1\\
-Level 6 & 97.5 & 102.4 & 101.0 & 96.4 & 99.8 & 98.6\\
-Level 7 & 56.2 & 58.2 & 58.2 & 56.0 & 57.7 & 57.2\\
+Level 0 & 1516.4 & 1445.5 & 1415.1 & 1517.2 & 1517.2 & 1414.7\\
+Level 1 & 511.4 & 493.1 & 510.8 & 499.9 & 499.9 & 491.6\\
+Level 2 & 214.8 & 219.0 & 224.5 & 209.6 & 209.6 & 213.6\\
+Level 3 & 122.9 & 125.1 & 124.0 & 119.4 & 119.4 & 120.4\\
+Level 4 & 676.0 & 709.2 & 694.5 & 674.2 & 674.2 & 681.9\\
+Level 5 & 213.1 & 220.1 & 216.1 & 212.7 & 212.7 & 213.3\\
+Level 6 & 97.5 & 102.4 & 101.0 & 96.8 & 96.8 & 99.0\\
+Level 7 & 56.2 & 58.2 & 58.2 & 56.2 & 56.2 & 57.4\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -908,14 +905,14 @@ Level 7 & 56.2 & 58.2 & 58.2 & 56.0 & 57.7 & 57.2\\
 \cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-7}
 Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Level 0 & 2238.6 & 3554.0 & 2528.9 & 2250.2 & 3179.4 & 2594.3\\
-Level 1 & 593.6 & 570.1 & 596.5 & 553.8 & 626.3 & 587.2\\
-Level 2 & 239.5 & 229.6 & 243.3 & 234.2 & 242.5 & 237.4\\
-Level 3 & 132.6 & 129.4 & 127.1 & 126.7 & 129.4 & 124.6\\
-Level 4 & 766.8 & 824.0 & 875.5 & 795.5 & 958.2 & 868.5\\
-Level 5 & 226.7 & 241.2 & 236.7 & 222.5 & 236.9 & 230.7\\
-Level 6 & 103.0 & 105.4 & 104.9 & 102.0 & 103.9 & 103.2\\
-Level 7 & 59.1 & 58.8 & 58.6 & 58.5 & 58.7 & 58.0\\
+Level 0 & 2238.6 & 3554.0 & 2528.9 & 2232.8 & 3460.3 & 2540.1\\
+Level 1 & 593.6 & 570.1 & 596.5 & 555.7 & 658.5 & 579.0\\
+Level 2 & 239.5 & 229.6 & 243.3 & 235.3 & 249.8 & 235.4\\
+Level 3 & 132.6 & 129.4 & 127.1 & 127.6 & 132.4 & 123.8\\
+Level 4 & 766.8 & 824.0 & 875.5 & 801.7 & 1019.3 & 857.2\\
+Level 5 & 226.7 & 241.2 & 236.7 & 224.5 & 245.6 & 229.1\\
+Level 6 & 103.0 & 105.4 & 104.9 & 102.4 & 105.8 & 102.9\\
+Level 7 & 59.1 & 58.8 & 58.6 & 58.8 & 59.3 & 57.9\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -939,7 +936,7 @@ the hierarchical levels. Also, because the higher level series have
 higher counts, the errors are larger in magnitude (see Figures
 \ref{fig:boxplotrollingtourism} and \ref{fig:boxplottourism}). To better
 compare errors across all the hierarchy levels we scaled the errors (See
-\protect\hyperlink{appendixA}{Appendix A}).
+\protect\hyperlink{appendixB}{Appendix B}).
 
 In Figures \ref{fig:boxplotrollingtourism} and \ref{fig:boxplottourism}
 we display the error box plots for both reconciled and unreconciled
@@ -1135,12 +1132,12 @@ magnitudes are larger.
 \cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-7}
 Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Level 0 & 10773.7 & 15060.7 & 12288.0 & 11014.7 & 14276.5 & 12010.0\\
-Level 1 & 8272.9 & 10196.3 & 8564.0 & 7736.9 & 9904.1 & 8518.0\\
-Level 2 & 6524.7 & 6705.0 & 5915.5 & 6257.4 & 7142.5 & 6100.4\\
-Level 3 & 4870.1 & 6333.0 & 5612.5 & 4981.9 & 6370.0 & 5633.6\\
-Level 4 & 5233.5 & 4659.5 & 3935.9 & 5001.4 & 4586.5 & 3900.7\\
-Level 5 & 358.1 & 239.0 & 258.2 & 362.2 & 241.6 & 258.6\\
+Level 0 & 10773.7 & 15060.7 & 12288.0 & 10799.8 & 14665.1 & 12137.3\\
+Level 1 & 8272.9 & 10196.3 & 8564.0 & 7663.7 & 10048.7 & 8565.0\\
+Level 2 & 6524.7 & 6705.0 & 5915.5 & 6216.3 & 7232.7 & 6129.5\\
+Level 3 & 4870.1 & 6333.0 & 5612.5 & 4952.1 & 6429.3 & 5653.0\\
+Level 4 & 5233.5 & 4659.5 & 3935.9 & 5049.4 & 4621.3 & 3917.1\\
+Level 5 & 358.1 & 239.0 & 258.2 & 362.5 & 241.7 & 259.4\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1155,12 +1152,12 @@ Level 5 & 358.1 & 239.0 & 258.2 & 362.2 & 241.6 & 258.6\\
 \cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-7}
 Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Level 0 & 14846.9 & 24298.8 & 20203.7 & 14999.2 & 24649.9 & 19978.0\\
-Level 1 & 13608.7 & 17277.0 & 14985.7 & 12240.3 & 16810.5 & 14894.2\\
-Level 2 & 7117.4 & 10732.0 & 8866.4 & 7523.4 & 11068.8 & 8938.5\\
-Level 3 & 6475.9 & 9580.4 & 7913.7 & 6509.0 & 9799.1 & 8078.9\\
-Level 4 & 5302.7 & 8611.3 & 5694.1 & 5307.3 & 8239.8 & 5688.7\\
-Level 5 & 435.6 & 389.4 & 363.7 & 437.7 & 391.2 & 363.5\\
+Level 0 & 14846.9 & 24298.8 & 20203.7 & 15173.9 & 24426.2 & 20111.0\\
+Level 1 & 13608.7 & 17277.0 & 14985.7 & 12298.2 & 16727.7 & 14939.7\\
+Level 2 & 7117.4 & 10732.0 & 8866.4 & 7560.8 & 11013.6 & 8971.9\\
+Level 3 & 6475.9 & 9580.4 & 7913.7 & 6534.2 & 9763.1 & 8099.8\\
+Level 4 & 5302.7 & 8611.3 & 5694.1 & 5342.9 & 8248.5 & 5694.3\\
+Level 5 & 435.6 & 389.4 & 363.7 & 437.8 & 391.3 & 363.5\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1271,39 +1268,11 @@ Ministry of Science and Technology (MOST), Taiwan {[}Grant
 
 \clearpage
 
+\clearpage
+
 \hypertarget{appendixA}{%
 \section*{Appendix A}\label{appendixA}}
 \addcontentsline{toc}{section}{Appendix A}
-
-We provide boxplots of the scaled forecasted errors for the tourism
-example. These plots are displayed for both rolling forward and
-multiple-step-ahead forecasts.
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.88\linewidth]{lhf_files/figure-latex/boxplotrollingtourismappendix-1} 
-
-}
-
-\caption{Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 24-step-ahead tourism demand.}\label{fig:boxplotrollingtourismappendix}
-\end{figure}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.88\linewidth]{lhf_files/figure-latex/boxplottourismappendix-1} 
-
-}
-
-\caption{Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for fixed origin 24-step-ahead tourism demand.}\label{fig:boxplottourismappendix}
-\end{figure}
-
-\clearpage
-
-\clearpage
-
-\hypertarget{appendixB}{%
-\section*{Appendix B}\label{appendixB}}
-\addcontentsline{toc}{section}{Appendix B}
 
 In Figure \ref{fig:loopsvsmatrix}, we compare the forecasts obtained
 using separate regression models versus matrix computation for the
@@ -1340,36 +1309,31 @@ Separate models & 48.40 & 48.31 & 16.66 & 16.85\\
 
 \clearpage
 
-\hypertarget{appendixC}{%
-\section*{Appendix C}\label{appendixC}}
-\addcontentsline{toc}{section}{Appendix C}
+\hypertarget{appendixB}{%
+\section*{Appendix B}\label{appendixB}}
+\addcontentsline{toc}{section}{Appendix B}
 
-In Figure \ref{fig:boxplotrollingtourismweight} and
-\ref{fig:boxplottourismwight} we display a box plot comparison of the
-results using two different reconciliation functions, weighted and
-unweighted (Equations \eqref{eq:initialW} and \eqref{eq:mint}), for ETS,
-ARIMA and the proposed OLS methods. We can see that for the base level
-the unweighted approach is similar, but for some lower levels the
-weighted approach provides more accurate forecasts.
+We provide boxplots of the scaled forecasted errors for the tourism
+example. These plots are displayed for both rolling forward and
+multiple-step-ahead forecasts.
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/boxplotrollingtourismweight-1} 
+{\centering \includegraphics[width=0.88\linewidth]{lhf_files/figure-latex/boxplotrollingtourismappendix-1} 
 
 }
 
-\caption{Box plots of forecast errors from OLS and WLS reconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 24-step-ahead tourism demand.}\label{fig:boxplotrollingtourismweight}
+\caption{Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 24-step-ahead tourism demand.}\label{fig:boxplotrollingtourismappendix}
 \end{figure}
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/boxplottourismwight-1} 
+{\centering \includegraphics[width=0.88\linewidth]{lhf_files/figure-latex/boxplottourismappendix-1} 
 
 }
 
-\caption{Box plots of forecast errors from OLS and WLS reconciled ETS, ARIMA and OLS methods at each hierarchical level for fixed origin 24-step-ahead tourism demand.}\label{fig:boxplottourismwight}
+\caption{Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for fixed origin 24-step-ahead tourism demand.}\label{fig:boxplottourismappendix}
 \end{figure}
-
 \clearpage
 
 \printbibliography

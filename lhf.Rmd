@@ -86,7 +86,7 @@ If we just forecast each series individually, we are ignoring the hierarchical o
 
 There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts.  However, we may not get good upper-level forecasts because the most disaggregated series can be noisy and so their forecasts are often inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $n$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any  correlations among the series.
 
-In the optimal combination method, reconciled forecasts can be computed using the following equeation known as weighted least squares (WLS) [@mint2018]
+In the optimal combination method, reconciled forecasts can be computed using the following equation known as weighted least squares (WLS) [@mint2018]
 \begin{equation}\label{eq:mint}
   \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{W}_h^{-1}\bm{S})^{-1}\bm{S}'\bm{W}_h^{-1}\hat{\bm{y}}_h,
 \end{equation}
@@ -294,7 +294,7 @@ While OLS is popular in practice for forecasting time series, it is often frowne
 
 There are two ways for computing above forecasts. In the first way we can create matrices, $Y$, $X$ and $E$. Also we need to compute the inverse matrix to compute the coefficients. To avoid numerical issues due to matrix inversion, one can use `separate regression models' to compute the coefficients for each linear model individually.
 
-Although the matrix, $\bf X'X$, for  which we want to compute the inverse is sparse and block diagonal, it is still faster and more accurate to use the `separate regression models' approach. In [Appendix B](#appendixB) we give the forecast results comparisons for Australian domestic tourism example using these two computation approaches.
+Although the matrix, $\bf X'X$, for  which we want to compute the inverse is sparse and block diagonal, it is still faster and more accurate to use the `separate regression models' approach. In [Appendix A](#appendixA) we give the forecast results comparisons for Australian domestic tourism example using these two computation approaches.
 
 # Applications
 
@@ -304,7 +304,7 @@ The two datasets differ in terms of structure, size and behavior. The tourism da
 
 We apply two methods for generating $h$-step-ahead forecasts, which differ in how they handle unobserved lagged values as inputs. The first approach is *rolling origin*, in that it uses actual values, even when they are future to the forecast origin. This value is known to us because it is in the test set. We call these "rolling origin" forecasts. In the second method, we follow an *fixed origin* approach, and we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin. We call these "fixed origin" forecasts.
 
-In the following two applications, we used the unweighted reconciliation approach from Equation \@ref(eq:initialW) ($W=I$). In [Appendix C](#appendixC), we repeat some of the results for the Australian domestic tourism dataset using WLS reconciliation approach in Equation \@ref(eq:mint).
+In the following two applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2) ($W=\Lambda$). 
 
 ## Australian domestic tourism
 
@@ -435,7 +435,7 @@ bind_cols(
 
 In Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), we show the average RMSE for the 1-month and 24-month forecasts. Methods include ETS, ARIMA and our proposed OLS forecasting model. In Table \@ref(tab:Tourismdataresulrolling) we forecast 24 periods ahead by computing rolling origin forecasts, rolling forward month by month. In Table \@ref(tab:TourismdataresultRMSE) we generate fixed origin 24-step-ahead forecasts. In these tables we show forecasts with and without reconciliation.
 
-These results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. Also they show the usefulness of the reconciliation in decreasing the average RMSE in all the three methods. Except for the total series, reconciliation can help in forecasting all the hierarchical levels. Also, because the higher level series have higher counts, the errors are larger in magnitude (see Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism)). To better compare errors across all the hierarchy levels we scaled  the errors (See [Appendix A](#appendixA)).
+These results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. Also they show the usefulness of the reconciliation in decreasing the average RMSE in all the three methods. Except for the total series, reconciliation can help in forecasting all the hierarchical levels. Also, because the higher level series have higher counts, the errors are larger in magnitude (see Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism)). To better compare errors across all the hierarchy levels we scaled  the errors (See [Appendix B](#appendixB)).
 
 In Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism) we display the error box plots for both reconciled and unreconciled forecasts using all three methods, for 1-step ahead and 24-steps ahead. In these figures we can visualize the error distributions across all the models, as well as the usefulness of the reconciliation step in improving the forecasts. In particular, we see that as expected by applying rolling origin 24-step-ahead forecasts, the error densities are closer and more distributed around zero than the fixed origin 24-step-ahead forecasts.
 
@@ -696,7 +696,7 @@ knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 
 Table \@ref(tab:wikipediadataresulrolling), \@ref(tab:wikipediadataresultRMSE) and \@ref(tab:wikipediadatacomputationtime) represent the RMSE results and computation time. Although these time series are noisier, we still get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step.
 
-Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin 28-step-ahead forecasts in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels, series have higher counts and therefore their error magnitudes are larger. <!--In  [Appendix B](#appendixB) we display box plots for the errors devided by the error range for easier comparison.-->
+Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin 28-step-ahead forecasts in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels, series have higher counts and therefore their error magnitudes are larger. 
 
 ```{r wikipediadataresulrolling, results='asis', dependson="Readwikipedia"}
 bind_cols(
@@ -905,6 +905,56 @@ The first and third authors of this research were partially funded by Ministry o
 
 # Appendix A  {#appendixA -}
 
+In Figure \@ref(fig:loopsvsmatrix), we compare the forecasts obtained using separate regression models versus matrix computation for the Australian domestic tourism example. Although mathematically both approaches should yield the same results, the results in practice are slightly different due to numerical deviations. Table \@ref(tab:Tourismdatacomputationtimeappendix) shows the matrix approach is computationally heavier due to greater memory requirements.
+
+```{r Readloopsvsmatrix, results='hide'}
+forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/loopsvsmatrix.csv")
+```
+
+```{r loopsvsmatrix, fig.align="center", fig.cap="Comparison of the forecasts obtained  using a matrix approach and separate regression models to reconcile forecasts for rolling and fixed origin 24-step-ahead tourism demand (bottom level series only).", out.width="100%"}
+### qqplot - rec
+ lvsm.1 <-
+  forecast.tourism.loops.matrix %>%
+  filter(Level == "level7", ForecastInterval == "1Step") %>%
+  ggplot(aes(x = OLS.unrec, y = OLS.unrec.matrix)) + geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  ylim(0,2600) +
+  xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Rolling origin 24-step-ahead") +
+  theme_bw() + guides(linetype = FALSE)
+
+ lvsm.24 <-
+  forecast.tourism.loops.matrix %>%
+   filter(Level == "level7", ForecastInterval == "24Step") %>%
+   ggplot(aes(x = OLS.unrec, y = OLS.unrec.matrix)) + geom_point() +
+   geom_smooth(method = "lm", se = FALSE) +
+   ylim(0,2600) +
+   xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Fixed origin 24-step-ahead") +
+   theme_bw() + guides(linetype = FALSE)
+
+ gridExtra::grid.arrange(lvsm.1,lvsm.24, nrow=1)
+```
+
+```{r Tourismdatacomputationtimeappendix, results='asis'}
+table2 <- matrix(NA, nrow = 2, ncol = 5)
+table2[, 1] <- c("Matrix approach", "Separate models")
+table2[, 2] <- c("202.06", "48.40")
+table2[, 3] <- c("209.84", "48.31")
+table2[, 4] <- c("87.73", "16.66")
+table2[, 5] <- c("105.69", "16.85")
+kable(table2,
+  align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
+  caption = "Computation time (seconds) for OLS using the matrix approach and separate regression models, with and without reconciliation, on a rolling and fixed origin for 24 steps ahead, using the tourism dataset.",
+  col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled")
+) %>%
+  column_spec(1:3, width = "3cm") %>%
+  add_header_above(c("", "Rolling origin" = 2, "Fixed origin" = 2)) %>%
+  kable_styling(position = "center", full_width = FALSE)
+```
+
+\clearpage
+
+# Appendix B  {#appendixB -}
+
 We provide boxplots of the scaled forecasted errors for the tourism example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts.
 
 ```{r boxplotrollingtourismappendix, fig.align="center", fig.cap="Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 24-step-ahead tourism demand.", out.width="88%"}
@@ -986,219 +1036,6 @@ do.call("rbind", error.transform.tourism.24) %>%
     legend.position = "none"
   )
 ```
-
-\clearpage
-
-<!--# Appendix B  {#appendixB -}
-
-We provide boxplots of the scaled forecasted errors for the Wikipedia pageviews example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts.
-
-```{r boxplotrollingwikiappendix, fig.align="center", fig.cap="Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 28-step-ahead Wikipedia pageviews.", out.width="88%"}
-## 1-step-ahead
-error.wiki.1 <- error.wiki %>%
-  filter(ForecastInterval == "1Step") %>%
-  mutate(id = factor(paste(Method, Rec, sep = "."),
-    levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
-    labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
-  ))
-
-error.wiki.2 <- split(error.wiki.1, error.wiki.1$id)
-library(plyr)
-error.transform.wiki <- lapply(error.wiki.2, function(x) ddply(x, "Series", transform,
-    value.scale = (Value - mean(Value)) / (sd(Value))
-  ))
-
-do.call("rbind", error.transform.wiki) %>%
-  ggplot(aes(x = id, y = value.scale, fill = id)) +
-  geom_boxplot(alpha = 0.5) +
-  xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 3, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_minimal() +
-  scale_fill_manual(values = c(
-    "ETS.rec" = "green",
-    "ETS.unrec" = "lightgreen",
-    "ARIMA.rec" = "blue",
-    "ARIMA.unrec" = "lightblue",
-    "OLS.rec" = "pink4",
-    "OLS.unrec" = "pink"
-  )) +
-  theme_light() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-    axis.text = element_text(size = 10),
-    strip.text = element_text(size = 12),
-    axis.title = element_text(size = 12, face = "bold"),
-    legend.position = "none"
-  )
-```
-
-```{r boxplotwikiappendix, fig.align="center", fig.cap="Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA and OLS method at each hierarchical level for fixed origin 28-step-ahead Wikipedia pageviews.", out.width="88%"}
-## 28-step-ahead
-error.wiki.28 <- error.wiki %>%
-  filter(ForecastInterval == "28Step") %>%
-  mutate(id = factor(paste(Method, Rec, sep = "."),
-    levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
-    labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
-  ))
-
-error.wiki.22 <- split(error.wiki.28, error.wiki.1$id)
-library(plyr)
-error.transform.wiki.28 <- lapply(error.wiki.22, function(x) ddply(x, "Series", transform,
-    value.scale = (Value - mean(Value)) / (sd(Value))
-  ))
-
-do.call("rbind", error.transform.wiki.28) %>%
-  ggplot(aes(x = id, y = value.scale, fill = id)) +
-  geom_boxplot(alpha = 0.5) +
-  xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 3, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_minimal() +
-  scale_fill_manual(values = c(
-    "ETS.rec" = "green",
-    "ETS.unrec" = "lightgreen",
-    "ARIMA.rec" = "blue",
-    "ARIMA.unrec" = "lightblue",
-    "OLS.rec" = "pink4",
-    "OLS.unrec" = "pink"
-  )) +
-  theme_light() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-    axis.text = element_text(size = 10),
-    strip.text = element_text(size = 12),
-    axis.title = element_text(size = 12, face = "bold"),
-    legend.position = "none"
-  )
-```
--->
-\clearpage
-
-# Appendix B  {#appendixB -}
-
-In Figure \@ref(fig:loopsvsmatrix), we compare the forecasts obtained using separate regression models versus matrix computation for the Australian domestic tourism example. Although mathematically both approaches should yield the same results, the results in practice are slightly different due to numerical deviations. Table \@ref(tab:Tourismdatacomputationtimeappendix) shows the matrix approach is computationally heavier due to greater memory requirements.
-
-```{r Readloopsvsmatrix, results='hide'}
-forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/loopsvsmatrix.csv")
-```
-
-```{r loopsvsmatrix, fig.align="center", fig.cap="Comparison of the forecasts obtained  using a matrix approach and separate regression models to reconcile forecasts for rolling and fixed origin 24-step-ahead tourism demand (bottom level series only).", out.width="100%"}
-### qqplot - rec
- lvsm.1 <-
-  forecast.tourism.loops.matrix %>%
-  filter(Level == "level7", ForecastInterval == "1Step") %>%
-  ggplot(aes(x = OLS.rec, y = OLS.rec.matrix)) + geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  ylim(0,2600) +
-  xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Rolling origin 24-step-ahead") +
-  theme_bw() + guides(linetype = FALSE)
-
- lvsm.24 <-
-  forecast.tourism.loops.matrix %>%
-   filter(Level == "level7", ForecastInterval == "24Step") %>%
-   ggplot(aes(x = OLS.rec, y = OLS.rec.matrix)) + geom_point() +
-   geom_smooth(method = "lm", se = FALSE) +
-   ylim(0,2600) +
-   xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Fixed origin 24-step-ahead") +
-   theme_bw() + guides(linetype = FALSE)
-
- gridExtra::grid.arrange(lvsm.1,lvsm.24, nrow=1)
-```
-
-```{r Tourismdatacomputationtimeappendix, results='asis'}
-table2 <- matrix(NA, nrow = 2, ncol = 5)
-table2[, 1] <- c("Matrix approach", "Separate models")
-table2[, 2] <- c("202.06", "48.40")
-table2[, 3] <- c("209.84", "48.31")
-table2[, 4] <- c("87.73", "16.66")
-table2[, 5] <- c("105.69", "16.85")
-kable(table2,
-  align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
-  caption = "Computation time (seconds) for OLS using the matrix approach and separate regression models, with and without reconciliation, on a rolling and fixed origin for 24 steps ahead, using the tourism dataset.",
-  col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled")
-) %>%
-  column_spec(1:3, width = "3cm") %>%
-  add_header_above(c("", "Rolling origin" = 2, "Fixed origin" = 2)) %>%
-  kable_styling(position = "center", full_width = FALSE)
-```
-
-\clearpage
-
-# Appendix C  {#appendixC -}
-
-In Figure  \@ref(fig:boxplotrollingtourismweight) and \@ref(fig:boxplottourismwight) we display a box plot comparison of the results using two different reconciliation functions, weighted and unweighted (Equations \@ref(eq:initialW) and \@ref(eq:mint)), for ETS, ARIMA and the proposed OLS methods. We can see that  for the base level the unweighted approach is similar, but for some lower levels the weighted approach provides more accurate forecasts.
-
-```{r Readtourismweight, results='hide'}
-error.tourism.weight <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.weight.csv")
-```
-
-```{r boxplotrollingtourismweight, fig.align="center", fig.cap="Box plots of forecast errors from OLS and WLS reconciled ETS, ARIMA and OLS methods at each hierarchical level for rolling origin 24-step-ahead tourism demand.", out.width="100%"}
-## 1-step-ahead
-error.tourism.weight %>%
-  filter(ForecastInterval == "1Step") %>%
-  mutate(id = factor(Method,
-    levels = c("weighted.ETS", "ETS", "weighted.ARIMA", "ARIMA", "weighted.OLS", "OLS"),
-    labels = c("weighted.ETS", "ETS", "weighted.ARIMA", "ARIMA", "weighted.OLS", "OLS")
-  )) %>%
-  ggplot(aes(x = id, y = Value, fill = id)) +
-  geom_boxplot(alpha = 0.5) +
-  xlab("Method") + ylab("Error") +
-  facet_wrap(~Level,ncol = 4,  scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_minimal() +
-  scale_fill_manual(values = c(
-    "weighted.ETS" = "green",
-    "ETS" = "lightgreen",
-    "weighted.ARIMA" = "blue",
-    "ARIMA" = "lightblue",
-    "weighted.OLS" = "pink4",
-    "OLS" = "pink"
-  )) +
-  #coord_flip(clip = "off")+
-  theme_light() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-    axis.text = element_text(size = 10),
-    strip.text = element_text(size = 12),
-    axis.title = element_text(size = 12, face = "bold"),
-    legend.position = "none"
-  )
-```
-
-```{r boxplottourismwight, fig.align="center", fig.cap= "Box plots of forecast errors from OLS and WLS reconciled ETS, ARIMA and OLS methods at each hierarchical level for fixed origin 24-step-ahead tourism demand.", out.width="100%"}
-## 24-step-ahead
-error.tourism.weight %>%
-  filter(ForecastInterval == "24Step") %>%
-  mutate(id = factor(Method,
-    levels = c("weighted.ETS", "ETS", "weighted.ARIMA", "ARIMA", "weighted.OLS", "OLS"),
-    labels = c("weighted.ETS", "ETS", "weighted.ARIMA", "ARIMA", "weighted.OLS", "OLS")
-  )) %>%
-  ggplot(aes(x = id, y = Value, fill = id)) +
-  geom_boxplot(alpha = 0.5) +
-  xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 4, scales = "free_y") +
-  guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
-  theme_minimal() +
-  scale_fill_manual(values = c(
-    "weighted.ETS" = "green",
-    "ETS" = "lightgreen",
-    "weighted.ARIMA" = "blue",
-    "ARIMA" = "lightblue",
-    "weighted.OLS" = "pink4",
-    "OLS" = "pink"
-  )) +
-  #coord_flip(clip = "off")+
-  theme_light() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-    axis.text = element_text(size = 10),
-    strip.text = element_text(size = 12),
-    axis.title = element_text(size = 12, face = "bold"),
-    legend.position = "none"
-  )
-```
-
 \clearpage
 
 

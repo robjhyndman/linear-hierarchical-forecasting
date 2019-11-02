@@ -3,43 +3,9 @@ source("olsfc.R")
 library(Matrix)
 library(reshape)
 
-########OLS-rec-matrix
-GmatrixG <- function(xmat) {
-  if (is.character(xmat)) {
-    # Convert character to integer
-    gmat <- t(apply(xmat, 1, function(x) as.integer(factor(x, unique(x)))))
-  } else {
-    gmat  <- xmat
-  }
-  # Insert the first & last rows
-  nc.xmat <- ncol(xmat)
-  gmat <- rbind(
-    if (all(gmat[1,] == rep(1L, nc.xmat))) NULL else rep(1L, nc.xmat),
-    gmat,
-    if (all(gmat[NROW(gmat),] == seq(1L, nc.xmat))) NULL else seq(1L, nc.xmat)
-  )
-  #gmat <- gmat[!duplicated(gmat), , drop = FALSE] # Remove possible duplicated... make smarter above.
-  return(structure(gmat, class = "gmatrix"))
-}
-
-SmatrixM <- function(gmat) { 
-  # Sparse matrices stored in coordinate format
-  # gmatrix contains all the information to generate smatrix
-  num.bts <- ncol(gmat)
-  sparse.S <- apply(gmat, 1L, function(x) {
-    ia <- as.integer(x)
-    ra <- as.integer(rep(1L, num.bts))
-    ja <- as.integer(1L:num.bts)
-    s <- sparseMatrix(i = ia, j = ja, x = ra)
-  })
-  sparse <- do.call("rbind", sparse.S)
-  return(sparse)
-}
-
-
 TourismData1 <-read.csv("TourismData_v3.csv", header = TRUE)[-c(1,2)]
 k<-24
-n<-nrow(TourismData1)
+n1<-nrow(TourismData1)
 
 
 Xmat<-list()
@@ -50,60 +16,61 @@ maxlag <- 12
 ## function for computing predictors (trend, dummy seasonality, lags) for each series
 Xmatrix<-function(X){
   X<-as.vector(X)
+  intercept <- rep(1, length(X))
   trend1<-seq(NROW(X))
   trend2<-(seq(NROW(X)))^2
   season<-forecast::seasonaldummy(ts(X,frequency = freq))
   Xlag<-quantmod::Lag(X,k= nolag)
-  X_mat<-cbind.data.frame(trend1, trend2, season, Xlag)
+  X_mat<-cbind.data.frame(intercept, trend1, trend2, season, Xlag)
   Xmat[[length(Xmat)+1]] <- X_mat 
 }
 
 
-#### OLS - rec forecasts
 
 TourismData <- head(TourismData1, (n-k))
 ## empty matrix for the forecasts
 result.fore <- matrix(NA, nrow = k, ncol = 555)
 base.fore <- c()
 
+## for loop for computing base forecasts
 for(i in 1:k){
   if(length(base.fore) == 0)
     TourismData <- TourismData
   else
-    TourismData[nrow(TourismData),] <- tail(as.vector(t(base.fore)),304)
-  TourismData <- rbind.data.frame(TourismData, TourismData1[((n-k)+i),])
-  TourismData2 <- ts(TourismData, start = 1, frequency = 12)
-  ausgts <- gts(TourismData2, characters = list(c(1, 1, 1), 3),
+    TourismData[nrow(TourismData),] <- tail(as.vector(base.fore),304)
+  TourismData <- ts(rbind(TourismData, TourismData1[((n1-k)+i),]), start = 1, frequency = 12)
+  ausgts <- gts(TourismData, characters = list(c(1, 1, 1), 3),
                 gnames = c("State", "Zone", "Region", "Purpose","State x Purpose", "Zone x Purpose"))
-  n1 <- nrow(TourismData2)
-  train_tourist <-window(ausgts, start = c(1,1), end = c(1, (n1-1)))
-  validation_tourist <-window(ausgts, start = c(1, ((n1-1)+1)), end = c(1, ((n1-1)+1)))
+  n <- nrow(TourismData)
   ally <- aggts(ausgts)
-  ally.final <- as.list(ally)
-  
-  ## computing reconceliation matrix
-  gmat<-GmatrixG(ausgts$groups)
-  smatrix<-SmatrixM(gmat)
-  rec.adj<-as.matrix(smatrix%*%solve(((t(smatrix))%*%smatrix))%*%t(smatrix))
-  Xmat.final <- lapply(ally.final, Xmatrix)
-  Xmat.final.train <- lapply(Xmat.final, function(x)x[1:((n1 - 1) + (1 - 1)),])
-  Xmat.final.test <- lapply(Xmat.final, function(x)x[(n1 - 1) + 1,])
+  Xmat.final <- lapply(as.list(ally), Xmatrix)
+  Xmat.final.train <- lapply(Xmat.final, function(x)x[1:((n - 1) + (1 - 1)),])
+  Xmat.final.test <- lapply(Xmat.final, function(x)x[(n - 1) + 1,])
   mat <- bdiag(lapply(Xmat.final.train, function(x){as.matrix(na.omit(x))}))
   mat.inverse <- solve(t(mat)%*%mat)
-  ally.train <- as.data.frame(ally)
-  ally.train <- ally[1:(n1 - 1),]
+  ally.train <- ally[1:(n - 1),]
   y.final <- as.matrix(melt(ally.train[-c(1:maxlag),])$value)
   coeff <- (mat.inverse %*%t(mat))%*%y.final
   mat.test <- bdiag(lapply(Xmat.final.test, function(x){as.matrix(na.omit(x))}))
-  base.fore <- as.matrix(mat.test%*%coeff)
-  base.fore[base.fore<0] <- 0
-  result <- rec.adj %*% base.fore
-  #result <- base.fore
-  fore <- as.vector(as.matrix(result)) 
-  result.fore [i,] <- fore
+  base.fore <- mat.test%*%coeff
+  result.fore [i,] <- as.vector(base.fore) 
 }
+result.fore[result.fore<0] <- 0
+#write.csv(melt(result.fore),"matrix_fixed_unrec.csv")
 
-final.result <- melt(result.fore)
-write.csv(final.result,"matrix_fixed_rec.csv")
 
-## for computing unreconciled forecasts comment out line 99
+## computing reconceliation matrix
+gmat<-GmatrixG(ausgts$groups)
+smatrix<-SmatrixM(gmat)
+wvec<- InvS4g(ausgts$groups)
+lambda <- diag(wvec)
+rec.adj.lambda <- as.matrix(smatrix%*%solve(t(smatrix)%*%solve(lambda)%*%smatrix)%*%t(smatrix)%*%solve(lambda))
+
+## computing reconciled forecasts
+fr.24 <- matrix(NA, nrow = k, ncol = ncol(ally))
+for(i in 1:nrow(result.fore)){
+  f.24 <- matrix(result.fore[i,], ncol = 1, nrow = ncol(result.fore))
+  fr.24 [i,] <- rec.adj.lambda %*% f.24
+}
+#write.csv(melt(fr.24) ,"matrix_fixed_rec.csv")
+
