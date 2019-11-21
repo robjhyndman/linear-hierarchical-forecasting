@@ -193,7 +193,7 @@ Finally, we can combine the two linear equations for computing base forecasts an
 \begin{equation}\label{eq:singlestep}
     \tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}
                             (\bm{X}_{t+h}^* \hat{\bm{B}})
-                         = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}
+                         = \bm{S}(\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}
                             \bm{X}_{t+h}^* (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}.
 \end{equation}
 
@@ -295,7 +295,13 @@ There are two ways for computing the above forecasts. First, we could create the
 
 ## Prediction intervals
 
-\todo[inline]{To be completed.}
+For obtaining  prediction intervals, we need to compute the variance of reconciled forecasts as follows [@mint2018]:  
+
+\begin{equation}\label{eq:variance}
+    var(\tilde{\bm{y}}_{t+h}) = \bm{S}(\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}{\bm{\Sigma}_{t+h}} ((\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda})'\bm{S}'
+                         = \bm{S}\bm{P}{\bm{\Sigma}_{t+h}} \bm{P}'\bm{S}'
+\end{equation}
+where ${\bm{\Sigma}_{t+h}}$ represents the variance of the base forecats and ${\bm{P}} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}$. 
 
 # Applications
 
@@ -309,17 +315,18 @@ We apply two methods for generating forecasts, which differ in how they handle u
 
 ```{r Readtourism, results='hide'}
 error.tourism <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.csv")
+error.tourism$facet <- factor(error.tourism$Level, levels = c("Total", "State", "Zone", "Region", "Purpose", "State*Purpose", "Zone*Purpose", "Bottom level"))
 # Read csv files for tourism results
 rmse <- error.tourism %>%
-  group_by(Rec, Method, Level, ForecastInterval) %>%
+  group_by(Rec, Method, facet, ForecastInterval) %>%
   summarise(
     rmse = sqrt(mean(Value^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, ForecastInterval, Level, ETS, ARIMA, OLS) %>%
+  select(Rec, ForecastInterval, facet, ETS, ARIMA, OLS) %>%
   mutate(
-    Level = str_replace(Level, "level([0-9])", "Level \\1")
+    facet = str_replace(facet, "level([0-9])", "facet \\1")
   )
 easter.error.tourism <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.easter.csv")
 easter.rmse <- easter.error.tourism %>%
@@ -381,8 +388,8 @@ For 'Purpose' we have four groups: Holiday (Hol), Visiting friends and relatives
 - Level 2 = Zone totals
 - Level 3 = Region totals
 - Level 4 = Purpose totals
-- Level 5 = State $\times$ Purpose totals
-- Level 6 = Zone $\times$ Purpose totals
+- Level 5 = State $*$ Purpose totals
+- Level 6 = Zone$*$ Purpose totals
 - Level 7 = bottom level series
 
 ```{r Australiageographicalpurposedivision, results='asis'}
@@ -421,7 +428,7 @@ matrix for the rolling and fixed origin approaches. For the rolling origin model
 ```{r Tourismdataresulrolling, results='asis', dependson="Readtourism"}
 bind_cols(
   filter(rmse, ForecastInterval == "1Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
-  filter(rmse, ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -Level)
+  filter(rmse, ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
     booktabs = TRUE,
@@ -438,7 +445,7 @@ bind_cols(
 ```{r TourismdataresultRMSE, results='asis', dependson="Readtourism"}
 bind_cols(
   filter(rmse, ForecastInterval == "24Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
-  filter(rmse, ForecastInterval == "24Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -Level)
+  filter(rmse, ForecastInterval == "24Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
     booktabs = TRUE, format = "latex", digits = 1, linesep = "",
@@ -464,7 +471,7 @@ error.tourism %>%
   ggplot(aes(x = id, y = Value, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 4, scales = "free_y") +
+  facet_wrap(~facet, ncol = 4, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c(
@@ -496,7 +503,7 @@ error.tourism %>%
   ggplot(aes(x = id, y = Value, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 4, scales = "free_y") +
+  facet_wrap(~facet, ncol = 4, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c(
@@ -665,21 +672,22 @@ bind_cols(
 
 ## Wikipedia pageviews: Grouped structure
 
-The second dataset comprises one year of daily data (2016-06-01 to 2017-06-29) on Wikipedia pageviews for the most popular social networks articles [@ashouri2018]. This dataset is noisier than the Australian monthly tourism data, making forecasting more challenging. The data has a grouped structure with the following attributes: 'Agent': Spider, User, 'Access': Desktop, Mobile app, Mobile web, 'Language': en (English), de (German), es (Spanish), zh (Chinese) and 'Purpose': Blogging related, Business, Gaming, General purpose, Life style, Photo sharing, Reunion, Travel, Video (see Table \@ref(tab:wikipediagroupingstructure)). In Figure \@ref(fig:wikigroupstructure) we show one possible hierarchy for this dataset, but the order of the hierarchy can be switched.
+The second dataset comprises one year of daily data (2016-06-01 to 2017-06-29) on Wikipedia pageviews for the most popular social networks articles [@ashouri2018]. This dataset is noisier than the Australian monthly tourism data, making forecasting more challenging. The data has a grouped structure with the following attributes: 'Agent': Spider, User, 'Access': Desktop, Mobile app, Mobile web, 'Language': en (English), de (German), es (Spanish), zh (Chinese) and 'Purpose': Blogging related, Business, Gaming, General purpose, Life style, Photo sharing, Reunion, Travel, Video (see Table \@ref(tab:wikipediagroupingstructure)). <!--In Figure \@ref(fig:wikigroupstructure) we show one possible hierarchy for this dataset, but the order of the hierarchy can be switched.-->
 
 ```{r Readwikipedia, results='hide'}
 error.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/error.wiki.csv")
+error.wiki$facet <- factor(error.wiki$Level, levels = c("Total", "Agent", "Access", "Language", "Purpose", "Bottom level"))
 # Read csv files for tourism results
 rmse2 <- error.wiki %>%
-  group_by(Rec, Method, Level, ForecastInterval) %>%
+  group_by(Rec, Method, facet, ForecastInterval) %>%
   summarise(
     rmse = sqrt(mean(Value^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, ForecastInterval, Level, ETS, ARIMA, OLS) %>%
+  select(Rec, ForecastInterval, facet, ETS, ARIMA, OLS) %>%
   mutate(
-    Level = str_replace(Level, "level([0-9])", "Level \\1")
+    facet = str_replace(facet, "level([0-9])", "facet \\1")
   )
 
 forecast.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv") %>%
@@ -705,10 +713,10 @@ kable(table1, format = "latex", booktabs = TRUE, linesep = "", caption = "Social
 ```
 
 ```{r wikigroupstructure, echo=FALSE, out.width = "500px", out.height= "250px", fig.align="center", fig.cap="One of the possible hierarchical structures for the Wikipedia pageview dataset."}
-knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
+#knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 ```
 
-The final dataset includes 913 time series, each with length 394. The group structure and different levels include:
+The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include^[There are more 10 levels aggregates for Agent$*$Access, Agent$*$Language, Agent$*$Purpose, Access$*$Language, Access$*$Purpose, Language$*$Purpose, Agent$*$Access$*$Language, Agent$*$Access$*$Purpose, Agent$*$Language$*$Purpose, and Access$*$Language$*$Purpose. Including these 10 additional levels can slightly improve the results but because of simplicity we applied mentioned 6 levels in the text.]:
 
 - Level 0 = Total
 - Level 1 = Agent
@@ -717,7 +725,7 @@ The final dataset includes 913 time series, each with length 394. The group stru
 - Level 4 = Purpose
 - Level 5 = bottom level series
 
-\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}
+<!--\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}-->
 
 For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and all 7 lags for rolling, and for fixed origin model we use a quadratic trend, 6 seasonal dummies and lags 1 and 7. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set.
 
@@ -726,7 +734,7 @@ Tables \@ref(tab:wikipediadataresulrolling) and \@ref(tab:wikipediadataresultRMS
 ```{r wikipediadataresulrolling, results='asis', dependson="Readwikipedia"}
 bind_cols(
   filter(rmse2, ForecastInterval == "1Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
-  filter(rmse2, ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -Level)
+  filter(rmse2, ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
     booktabs = TRUE, format = "latex", digits = 1, linesep = "",
@@ -740,7 +748,7 @@ bind_cols(
 ```{r wikipediadataresultRMSE, results='asis', dependson="Readwikipedia"}
 bind_cols(
   filter(rmse2, ForecastInterval == "28Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
-  filter(rmse2, ForecastInterval == "28Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -Level)
+  filter(rmse2, ForecastInterval == "28Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
     booktabs = TRUE, format = "latex", digits = 1, linesep = "",
@@ -762,7 +770,7 @@ error.wiki %>%
   ggplot(aes(x = id, y = Value, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 3, scales = "free_y") +
+  facet_wrap(~facet, ncol = 3, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c(
@@ -794,7 +802,7 @@ error.wiki %>%
   ggplot(aes(x = id, y = Value, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 3, scales = "free_y") +
+  facet_wrap(~facet, ncol = 3, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c(
@@ -1011,7 +1019,7 @@ do.call("rbind", error.transform.tourism) %>%
   ggplot(aes(x = id, y = value.scale, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 4, scales = "fixed") +
+  facet_wrap(~facet, ncol = 4, scales = "fixed") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c(
@@ -1051,7 +1059,7 @@ do.call("rbind", error.transform.tourism.24) %>%
   ggplot(aes(x = id, y = value.scale, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
-  facet_wrap(~Level, ncol = 4, scales = "fixed") +
+  facet_wrap(~facet, ncol = 4, scales = "fixed") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
   theme_minimal() +
   scale_fill_manual(values = c(
