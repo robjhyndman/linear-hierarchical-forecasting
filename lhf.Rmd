@@ -676,7 +676,8 @@ The second dataset comprises one year of daily data (2016-06-01 to 2017-06-29) o
 
 ```{r Readwikipedia, results='hide'}
 error.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/error.wiki.csv")
-error.wiki$facet <- factor(error.wiki$Level, levels = c("Total", "Agent", "Access", "Language", "Purpose", "Bottom level"))
+error.wiki <- error.wiki[error.wiki$Level == c("Total", "Access", "Agent", "Language", "Purpose", "Bottom level"),]
+error.wiki$facet <- factor(error.wiki$Level, levels = c("Total", "Access", "Agent", "Language", "Purpose", "Bottom level"))
 # Read csv files for tourism results
 rmse2 <- error.wiki %>%
   group_by(Rec, Method, facet, ForecastInterval) %>%
@@ -704,8 +705,8 @@ forecast.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.
 ```{r wikipediagroupingstructure, echo=FALSE, message = FALSE, results='asis'}
 table1 <- matrix(NA, nrow = 13, ncol = 4)
 colnames(table1) <- c("Grouping", "Series", "Grouping", "Series")
-table1[, 1] <- c("Total", "", "Agent", "", "", "Access", "", "", "", "Language", "", "", "")
-table1[, 2] <- c("", "1. Social Network", "", "2. Spider", "3. User", "", "4. Desktop", "5. Mobile app", "6. Mobile web", "", "7. en (English)", "8. de (German)", "9. es (Spanish)")
+table1[, 1] <- c("Total", "", "Access", "", "", "Agent", "", "", "", "Language", "", "", "")
+table1[, 2] <- c("", "1. Social Network", "", "2. Desktop", "3. Mobile app", "", "4.  Mobile web", "5. Spider", "6. User", "", "7. en (English)", "8. de (German)", "9. es (Spanish)")
 table1[, 3] <- c("Language", "", "Purpose", "", "", "", "", "", "", "", "", "", "")
 table1[, 4] <- c("", "10. zh (Chinese)", "", "11. Blogging related", "12. Business", "13. Gaming", "14. General purpose", "15. Life style", "16. Photo sharing", "17. Reunion", "18. Travel", "19. Video", "")
 kable(table1, format = "latex", booktabs = TRUE, linesep = "", caption = "Social networking Wikipedia article grouping structure") %>%
@@ -716,18 +717,24 @@ kable(table1, format = "latex", booktabs = TRUE, linesep = "", caption = "Social
 #knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 ```
 
-The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include^[There are more 10 levels aggregates for Agent$*$Access, Agent$*$Language, Agent$*$Purpose, Access$*$Language, Access$*$Purpose, Language$*$Purpose, Agent$*$Access$*$Language, Agent$*$Access$*$Purpose, Agent$*$Language$*$Purpose, and Access$*$Language$*$Purpose. Including these 10 additional levels can slightly improve the results but because of simplicity we applied mentioned 6 levels in the text.]:
+The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include^[There are 4 more levels aggregates for  Agent$*$Access$*$Language, Agent$*$Access$*$Purpose, Agent$*$Language$*$Purpose, and Access$*$Language$*$Purpose. Including these 4 additional levels might slightly improve the results but because of simplicity we applied mentioned 12 levels in the text.]:
 
 - Level 0 = Total
-- Level 1 = Agent
-- Level 2 = Access
+- Level 1 = Access
+- Level 2 = Agent
 - Level 3 = Language
 - Level 4 = Purpose
-- Level 5 = bottom level series
+- Level 5 = Access $*$ Agent
+- Level 6 = Access $*$ Language
+- Level 7 = Access $*$ Purpose
+- Level 8 = Agent $*$ Language
+- Level 9 = Agent $*$ Purpose
+- Level 10 = Language $*$ Purpose
+- Level 11 = bottom level series
 
 <!--\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}-->
 
-For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and all 7 lags for rolling, and for fixed origin model we use a quadratic trend, 6 seasonal dummies and lags 1 and 7. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set.
+For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and all 7 lags for rolling, and for fixed origin model we use a quadratic trend, 6 seasonal dummies and lags 1 and 7. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set. In this example, the results in tables and figures are represented for single groups although we applied all the above levels in the group structure for reconciliation. 
 
 Tables \@ref(tab:wikipediadataresulrolling) and \@ref(tab:wikipediadataresultRMSE) show the RMSE results. Although these time series are noisier, we still get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step.
 
@@ -868,13 +875,17 @@ h2 <- forecast.wiki %>%
 gridExtra::grid.arrange(h1, h2, nrow = 2)
 ```
 
-```{r forecstrolling28wiki, fig.align="center", fig.cap="The actual test set for the 'desktopusenPho21' bottom level series compared to the forecasts from reconciled and unreconciled ETS, ARIMA and OLS methods for rolling and fixed origin forecasts of Wikipedia pageviews.", out.width="100%"}
+```{r forecstrolling28wiki, fig.align="center", fig.cap="The actual test set for the 'desktopusenPho02' bottom level series compared to the forecasts from reconciled and unreconciled ETS, ARIMA and OLS methods for rolling and fixed origin forecasts of Wikipedia pageviews.", out.width="100%"}
 ### one of the bottom level series
+ylim <- forecast.wiki %>%
+  filter(Series == "desktopusenPho02") %>%
+  pull(Count) %>%
+  range()
 f1 <- forecast.wiki %>%
-  filter(Series == "desktopusenPho21", ForecastInterval == "1Step") %>%
+  filter(Series == "desktopusenPho02", ForecastInterval == "1Step") %>%
   rename(Reconciled = Rec) %>%
   ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
-  geom_line() +
+  geom_line() + ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle(" Rolling origin 1-step forecasts") +
   scale_color_manual(
     name = "Series",
@@ -889,10 +900,10 @@ f1 <- forecast.wiki %>%
   ) +
   theme_bw() + guides(linetype = FALSE)
 f2 <- forecast.wiki %>%
-  filter(Series == "desktopusenPho21", ForecastInterval == "28Step") %>%
+  filter(Series == "desktopusenPho02", ForecastInterval == "28Step") %>%
   rename(Reconciled = Rec) %>%
   ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
-  geom_line() +
+  geom_line() + ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle("Fixed origin multi-step forecasts") +
   scale_color_manual(
     name = "Series",
@@ -918,10 +929,10 @@ Table \@ref(tab:wikipediadatacomputationtime) presents the computation times for
 ```{r wikipediadatacomputationtime, echo=FALSE, results='asis',message = FALSE}
 table2 <- matrix(NA, nrow = 3, ncol = 5)
 table2[, 1] <- c("ETS", "ARIMA", "OLS")
-table2[, 2] <- c("13963.93", "10327.02", "82.55")
-table2[, 3] <- c("13963.96", "10327.15", "82.62")
-table2[, 4] <- c("450.89", "670.40", "35.39")
-table2[, 5] <- c("450.92", "670.44", "35.43")
+table2[, 2] <- c("20613.08", "29419.36", "116.27")
+table2[, 3] <- c("20613.14", "29419.39", "116.31")
+table2[, 4] <- c("871.55", "1169.52", "61.33")
+table2[, 5] <- c("871.58", "1169.56", "61.38")
 kable(table2,
   align = c("c", "c"), format = "latex", booktabs = T, linesep = "", caption = "Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling and fixed origin forecasts - Wikipedia dataset",
   col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled")

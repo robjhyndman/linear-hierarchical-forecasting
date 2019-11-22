@@ -100,47 +100,5 @@ for (i in seq(dim(errors.level)[3])) {
   errors.level[, , i, "Reconciled"] <- ally.test - revisedfc
 }
 
-errors.level <- as.data.frame(errors.level)
-n.base <- ncol(errors.level) / 2
 
-## reconciled
-error.rec <- errors.level[1:n.base]
 
-error.rec.level0 <- as.data.frame(error.rec[, 1])
-sqrt(mean(melt(error.rec.level0)$value^2))
-
-error.rec.level1 <- error.rec[, 2:3]
-sqrt(mean(melt(error.rec.level1)$value^2))
-
-error.rec.level2 <- error.rec[, 4:6]
-sqrt(mean(melt(error.rec.level2)$value^2))
-
-error.rec.level3 <- error.rec[, 7:10]
-sqrt(mean(melt(error.rec.level3)$value^2))
-
-error.rec.level4 <- error.rec[, 11:19]
-sqrt(mean(melt(error.rec.level4)$value^2))
-
-error.rec.level5 <- error.rec[, 20:n.base]
-sqrt(mean(melt(error.rec.level5)$value^2))
-
-## unreconciled
-error.unrec <- errors.level[(n.base + 1):(n.base * 2)]
-
-error.unrec.level0 <- as.data.frame(error.unrec[, 1])
-sqrt(mean(melt(error.unrec.level0)$value^2))
-
-error.unrec.level1 <- error.unrec[, 2:3]
-sqrt(mean(melt(error.unrec.level1)$value^2))
-
-error.unrec.level2 <- error.unrec[, 4:6]
-sqrt(mean(melt(error.unrec.level2)$value^2))
-
-error.unrec.level3 <- error.unrec[, 7:10]
-sqrt(mean(melt(error.unrec.level3)$value^2))
-
-error.unrec.level4 <- error.unrec[, 11:19]
-sqrt(mean(melt(error.unrec.level4)$value^2))
-
-error.unrec.level5 <- error.unrec[, 20:n.base]
-sqrt(mean(melt(error.unrec.level5)$value^2))
