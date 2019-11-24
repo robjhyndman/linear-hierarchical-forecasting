@@ -101,4 +101,58 @@ for (i in seq(dim(errors.level)[3])) {
 }
 
 
+##### How to define the groups if you need to include all 2-and 3-way combinations (it is not possible with using above method and package can not support)
+wikipedia_data <-read.csv("wikipedia_data.csv", header = TRUE)
+wikipedia_wide <- wikipedia_data$views %>%
+  matrix(nrow = 394, ncol = 913) %>%
+  as.data.frame() %>%
+  ts(frequency = 7)
+colnames(wikipedia_wide) <- unique(wikipedia_data$cat_column) %>% substr(1,14)
+## using hierarchies and groupings up to 2-way and 3-way combinations
+col_1<-substr(wikipedia_data$access , start = 1, stop = 7)
+col_2<-substr(wikipedia_data$agent, start = 1, stop = 2)
+col_3 <-substr(wikipedia_data$language , start = 1, stop = 2)
+col_4 <-substr(wikipedia_data$Purpose , start = 1, stop = 3)
+m<-as.character(as.numeric(wikipedia_data$article,length=2))
+col_5 <-str_pad(m, 2, pad = "0")
+wikipedia_data$cat<-paste(col_1, col_2, col_3, col_4, col_5, sep = "")
 
+names <- as.vector(unique(wikipedia_data$cat))
+names(wikipedia_wide) <- c(names)
+
+name_length <- str_length(names)
+grouping_hts <- rbind(
+  #access
+  str_sub(names, start = name_length - 15, end = name_length - 9),
+  #agent
+  str_sub(names, start = name_length - 8, end = name_length - 7),
+  #language
+  str_sub(names, start = name_length - 6, end = name_length - 5),
+  #purpose
+  str_sub(names, start = name_length - 4, end = name_length - 2),
+  #Access x Agent
+  str_sub(names, start = name_length - 15, end = name_length - 9),
+  #Access x Language
+  paste(str_sub(names, start = name_length - 15, end = name_length - 9), str_sub(names, start = name_length - 6, end = name_length - 5), sep = ""),
+  #Access x Purpose
+  paste(str_sub(names, start = name_length - 15, end = name_length - 9), str_sub(names, start = name_length - 4, end = name_length - 2), sep = ""),
+  #Agent x Language
+  str_sub(names, start = name_length - 8, end = name_length - 5),
+  #Agent x Purpose
+  paste(str_sub(names, start = name_length - 8, end = name_length - 7), str_sub(names, start = name_length - 4, end = name_length - 2), sep = ""),
+  #Language x Purpose
+  str_sub(names, start = name_length - 6, end = name_length - 2),
+  #Access x Agent x Language
+  paste(str_sub(names, start = name_length - 15, end = name_length - 9), str_sub(names, start = name_length - 8, end = name_length - 7),
+        str_sub(names, start = name_length - 6, end = name_length - 5), sep = ""),
+  #Access x Agent x Purpose
+  paste(str_sub(names, start = name_length - 15, end = name_length - 9), str_sub(names, start = name_length - 8, end = name_length - 7),
+        str_sub(names, start = name_length - 4, end = name_length - 2), sep = ""),
+  #Access x Language x Purpose
+  paste(str_sub(names, start = name_length - 15, end = name_length - 9), str_sub(names, start = name_length - 6, end = name_length - 5),
+        str_sub(names, start = name_length - 4, end = name_length - 2), sep = ""),
+  #Agent x Language x Purpose
+  paste(str_sub(names, start = name_length - 8, end = name_length - 7), str_sub(names, start = name_length - 6, end = name_length - 5),
+        str_sub(names, start = name_length - 4, end = name_length - 2), sep = "")
+)
+wikigts <- gts(wikipedia_wide, groups = grouping_hts) 

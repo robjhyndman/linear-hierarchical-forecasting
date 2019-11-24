@@ -41,7 +41,7 @@ rec.adj.test <- as.matrix(smatrix%*%solve(t(smatrix)%*%solve(lambda)%*%smatrix)%
 
 forecast.wiki <- read.csv("forecast.wiki.csv", header = TRUE)
 
-forecast.wiki.1 <- forecast.wiki[forecast.wiki$ForecastInterval == "1Step",]
+forecast.wiki.1 <- forecast.wiki[forecast.wiki$ForecastInterval == "28Step",]
 
 forecast.wiki.1.OLS <- as.matrix(forecast.wiki.1$OLS.unrec)
 #forecast.wiki.1.actual <- forecast.wiki.1$Actual
