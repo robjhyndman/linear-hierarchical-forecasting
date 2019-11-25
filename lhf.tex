@@ -920,26 +920,6 @@ Bottom level & 59.1 & 58.8 & 58.6 & 58.8 & 59.3 & 57.9\\
 \end{tabular}
 \end{table}
 
-In Tables \ref{tab:Tourismdataresulrolling} and
-\ref{tab:TourismdataresultRMSE}, we show the average RMSE for the test
-set forecasts. Methods include ETS, ARIMA and our proposed OLS
-forecasting model. In Table \ref{tab:Tourismdataresulrolling} we
-forecast 24 1-step-ahead forecasts for the test set, rolling forward
-month by month. In Table \ref{tab:TourismdataresultRMSE} we generate
-fixed origin forecasts up to 24 steps ahead. In these tables we show
-forecasts with and without reconciliation.
-
-These results show that our proposed OLS forecasting model produces
-forecast accuracy similar to ETS and ARIMA, which are computationally
-heavy for many time series. Also they show the usefulness of the
-reconciliation in decreasing the average RMSE in all three methods.
-Except for the total series, reconciliation has helped in forecasting
-all the hierarchical levels. Also, because the higher level series have
-higher counts, the errors are larger in magnitude (see Figures
-\ref{fig:boxplotrollingtourism} and \ref{fig:boxplottourism}). To better
-compare errors across all the hierarchy levels we scaled the errors (See
-\protect\hyperlink{appendixA}{Appendix A}).
-
 \begin{figure}
 
 {\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/boxplotrollingtourism-1} 
@@ -958,6 +938,36 @@ compare errors across all the hierarchy levels we scaled the errors (See
 \caption{Box plots of fixed origin forecast errors for reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for tourism demand.}\label{fig:boxplottourism}
 \end{figure}
 
+In Figures \ref{fig:boxplotrollingtourism} and \ref{fig:boxplottourism}
+we display the error box plots for both reconciled and unreconciled
+forecasts using all three methods, for the rolling origin and fixed
+origin forecasts. In these figures we see the error distributions across
+all the models.
+
+Together with Tables \ref{tab:Tourismdataresulrolling} and
+\ref{tab:TourismdataresultRMSE}, results show that our proposed OLS
+forecasting model produces forecast accuracy similar to ETS and ARIMA,
+which are computationally heavy for many time series. We also see the
+usefulness of the reconciliation in decreasing the average RMSE in all
+three methods. Except for the total series, reconciliation improves
+forecasts in all the hierarchy levels. Also, because the higher level
+series have higher counts, the errors are larger in magnitude
+(\protect\hyperlink{appendixA}{Appendix A} shows the box plots with
+scaled errors, to better compare errors across all the hierarchy
+levels). In addition, we see that (as expected) by applying rolling
+origin 1-step-ahead forecasts, the error densities are closer and more
+tightly distributed around zero than the fixed origin multi-step-ahead
+forecasts.
+
+Figures \ref{fig:forecstrolling24tourismtotal} and
+\ref{fig:forecstrolling24tourism} show the rolling and fixed origin
+forecast results for the total series and one of the bottom level
+series, BACBus (Geelong - Business). In these plots we have both
+reconciled (solid lines) and unreconciled (dashed lines) forecasts and
+we see that the reconciliation step improves the forecasts in this
+series. We also see that the OLS model forecast accuracy is similar to
+the other two methods.
+
 \begin{figure}
 
 {\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/forecstrolling24tourismtotal-1} 
@@ -975,25 +985,6 @@ compare errors across all the hierarchy levels we scaled the errors (See
 
 \caption{The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled ETS, ARIMA and OLS methods for rolling and fixed origin tourism demand.}\label{fig:forecstrolling24tourism}
 \end{figure}
-
-In Figures \ref{fig:boxplotrollingtourism} and \ref{fig:boxplottourism}
-we display the error box plots for both reconciled and unreconciled
-forecasts using all three methods, for the rolling orign and fixed
-origin forecasts. In these figures we can visualize the error
-distributions across all the models, as well as the usefulness of the
-reconciliation step in improving the forecasts. In particular, we see
-that (as expected) by applying rolling origin 1-step-ahead forecasts,
-the error densities are closer and more tightly distributed around zero
-than the fixed origin multi-step-ahead forecasts.
-
-Figures \ref{fig:forecstrolling24tourismtotal} and
-\ref{fig:forecstrolling24tourism} show the rolling and fixed origin
-forecast results for the total series and one of the bottom level
-series, BACBus (Geelong - Business). In these plots we have both
-reconciled (solid lines) and unreconciled (dashed lines) forecasts and
-we see that the reconciliation step improves the forecasts in this
-series. We also see that the OLS model forecast accuracy is similar to
-the other two methods.
 
 Table \ref{tab:Tourismdatacomputationtime} compares the computation time
 of the three methods for rolling and fixed origin forecasting. We see
@@ -1031,7 +1022,7 @@ matrix approach (even using sparse matrix algebra).
 
 \begin{table}[t]
 
-\caption{\label{tab:Tourismdatacomputationtimeappendix}Computation time (seconds) for OLS using the matrix approach and separate regression models, with and without reconciliation, on a rolling and fixed origin for 24 steps ahead, using the tourism dataset.}
+\caption{\label{tab:Tourismdatacomputationtimeappendix}Computation time (seconds) for OLS using the matrix approach and separate regression models, with and without reconciliation, on a rolling and fixed origin for 24 steps ahead.}
 \centering
 \begin{tabular}{>{\raggedright\arraybackslash}p{3cm}>{\raggedleft\arraybackslash}p{3cm}>{\raggedleft\arraybackslash}p{3cm}rr}
 \toprule
@@ -1045,6 +1036,7 @@ Separate models & 48.40 & 48.31 & 16.66 & 16.85\\
 \end{tabular}
 \end{table}
 
+\clearpage
 \FloatBarrier
 
 \hypertarget{wikipedia-pageviews-grouped-structure}{%
@@ -1121,7 +1113,7 @@ applied group structure and different levels include\footnote{There are
 \item
   Level 10 = Language \(\times\) Purpose
 \item
-  Level 11 = bottom level series
+  Level 11 = Bottom level series
 \end{itemize}
 
 For this daily dataset, in the OLS forecasting model we include in the
