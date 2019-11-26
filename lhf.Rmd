@@ -172,7 +172,7 @@ where $\bm{y}_i = \{y_{1,i}, y_{2,i}, \dots, y_{T,i}\}$ is a $T$-vector, ${\bm{\
 \end{equation}
 
 Equation \@ref(eq:linearmodel) can be written as $\bm{Y} = \bm{X} \bm{B} + \bm{E}$, with parameter estimates given by $\hat{\bm{B}} = (\bm{X}'\bm{X})^{-1} \bm{X}'\bm{Y}$. Then the base forecasts are obtained using
-\begin{equation}\label{eq:baseforecats}
+\begin{equation}\label{eq:baseforecasts}
   \hat{\bm{y}}_{t+h} = \bm{X}_{t+h}^* \hat{\bm{B}},
 \end{equation}
 where $\hat{\bm{y}}_{t+h}$ is an $N$-vector of forecasts, $\hat{\bm{B}}$ comprises $N$ stacked $(p+1)$-vectors of estimated coefficients, and $\bm{X}_{t+h}^*$ is the $N\times N(p+1)$ matrix
@@ -189,7 +189,7 @@ where $\hat{\bm{y}}_{t+h}$ is an $N$-vector of forecasts, $\hat{\bm{B}}$ compris
 \end{equation}
 Note that we use $\bm{X}^*_{t}$ to distinguish this matrix, which combines $\bm{x}_{t,i}$ across all series for one time from $\bm{X}_i$ which combines $\bm{x}_{t,i}$ across all time for one series.
 
-Finally, we can combine the two linear equations for computing base forecasts and reconciled forecasts (Equations \@ref(eq:mint2) and \@ref(eq:baseforecats)) to obtain the reconciled forecasts with a single equation:
+Finally, we can combine the two linear equations for computing base forecasts and reconciled forecasts (Equations \@ref(eq:mint2) and \@ref(eq:baseforecasts)) to obtain the reconciled forecasts with a single equation:
 \begin{equation}\label{eq:singlestep}
     \tilde{\bm{y}}_{t+h} = \bm{S}(\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}
                             (\bm{X}_{t+h}^* \hat{\bm{B}})
@@ -227,7 +227,7 @@ If we have the same set of predictor variables, $\bm{X}$, for all the series, we
   \varepsilon_{T1} & \dots & \varepsilon_{TN}
   \end{pmatrix},
 \end{equation}
-where $\bm{Y}$, $\bm{X}$, $\bm{B}$ and $\bm{E}$ are now matrices of size $T\times N$, $T\times (p+1)$, $(p+1)\times N$ and $T \times N$, respectively. Equations \@ref(eq:baseforecats) to \@ref(eq:singlestep) can be written accordingly using Equation \@ref(eq:linearmodelsameX) and here $\bm{X}^*_{t+h,i} = \bm{X}^*_{t+h}$, where $\bm{X}^*_{t+h}$ is an $h\times (p+1)$ matrix.
+where $\bm{Y}$, $\bm{X}$, $\bm{B}$ and $\bm{E}$ are now matrices of size $T\times N$, $T\times (p+1)$, $(p+1)\times N$ and $T \times N$, respectively. Equations \@ref(eq:baseforecasts) to \@ref(eq:singlestep) can be written accordingly using Equation \@ref(eq:linearmodelsameX) and here $\bm{X}^*_{t+h,i} = \bm{X}^*_{t+h}$, where $\bm{X}^*_{t+h}$ is an $h\times (p+1)$ matrix.
 
 <!--We can represent Equation \@ref(eq:linearmodelsameX) as follows
 \begin{equation}\label{eq:linearmodelmatrixsameX}
@@ -259,7 +259,7 @@ Then the base forecasts can be written as
  \end{pmatrix},
 \end{equation}
 or in shorter form,
-\begin{equation}\label{eq:baseforecatssameX}
+\begin{equation}\label{eq:baseforecastssameX}
 \hat{\bm{Y}} = \bm{X}^* \hat{\bm{B}}.
 \end{equation}
 Then the reconciliationfor all the forecasted points, $h$, and all the series, $N$, can be written as
@@ -268,7 +268,7 @@ Then the reconciliationfor all the forecasted points, $h$, and all the series, $
 \end{equation}
 where again $\bm{W}$ is an $N\times N$ diagonal matrix with $(i,i)$th element $\sigma_i^2$, and $\bm{S}$ is the summation matrix containing the aggregation constraints. Also in the above equation, $\tilde{\bm{Y}}$ includes all the reconciled forecasts for all the bottom level series.
 
-At the end, we can combine the two linear equations for computing base forecasts and reconciliation (Equations \@ref(eq:baseforecatssameX) and \@ref(eq:recforecastssameX)) to obtain the reconciled forecasts with a single equation
+At the end, we can combine the two linear equations for computing base forecasts and reconciliation (Equations \@ref(eq:baseforecastssameX) and \@ref(eq:recforecastssameX)) to obtain the reconciled forecasts with a single equation
 \begin{equation}\label{eq:singlestepsameX}
 \tilde{\bm{Y}} = (\bm{S}'\bm{W}\bm{S})^{-1}\bm{S}'\bm{W}
                         (\bm{X}^* \hat{\bm{B}})
@@ -295,13 +295,17 @@ There are two ways for computing the above forecasts. First, we could create the
 
 ## Prediction intervals
 
-For obtaining  prediction intervals, we need to compute the variance of reconciled forecasts as follows [@mint2018]:  
-
+For obtaining  prediction intervals, we need to compute the variance of reconciled forecasts as follows [@mint2018]:
 \begin{equation}\label{eq:variance}
-    var(\tilde{\bm{y}}_{t+h}) = \bm{S}(\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}{\bm{\Sigma}_{t+h}} ((\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda})'\bm{S}'
-                         = \bm{S}\bm{P}{\bm{\Sigma}_{t+h}} \bm{P}'\bm{S}'
+    \text{Var}(\tilde{\bm{y}}_{t+h})
+        = \bm{S}\bm{P}{\bm{\Sigma}_{t+h}} \bm{P}'\bm{S}',
 \end{equation}
-where ${\bm{\Sigma}_{t+h}}$ represents the variance of the base forecats and ${\bm{P}} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}$. 
+where $\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}$ and ${\bm{\Sigma}_{t+h}}$ denotes the variance of the base forecasts given by the usual linear model formula (??ref)
+$$
+  \bm{\Sigma}_{t+h} = \sigma^2\left[1 + \bm{X}_{t+h}^*(\bm{X}'\bm{X})^{-1}(\bm{X}_{t+h}^*)'\right].
+$$
+Assuming normally distributed errors, we can easily obtain any required prediction intervals corresponding to elements of $\bm{y}_{t+h}$ using the diagonals of \eqref{eq:variance}.
+
 
 # Applications
 
@@ -523,7 +527,7 @@ error.tourism %>%
 
 In Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism) we display the error box plots for both reconciled and unreconciled forecasts using all three methods, for the rolling origin and fixed origin forecasts. In these figures we see the error distributions across all the models.
 
-Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors, to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts. 
+Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors, to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts.
 
 
 Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin forecast results for the total series and one of the bottom level series, BACBus (Geelong - Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods.
@@ -780,7 +784,7 @@ The final dataset includes 913 time series, each with length 394. The applied gr
 
 <!--\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}-->
 
-For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and all 7 lags for rolling, and for fixed origin model we use a quadratic trend, 6 seasonal dummies and lags 1 and 7. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set. In this example, the results in tables and figures are represented for single groups although we applied all the above levels in the group structure for reconciliation. 
+For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and all 7 lags for rolling, and for fixed origin model we use a quadratic trend, 6 seasonal dummies and lags 1 and 7. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set. In this example, the results in tables and figures are represented for single groups although we applied all the above levels in the group structure for reconciliation.
 
 Tables \@ref(tab:wikipediadataresulrolling) and \@ref(tab:wikipediadataresultRMSE) show the RMSE results. Although these time series are noisier, we still get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step.
 
