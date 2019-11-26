@@ -762,7 +762,7 @@ kable(table1, format = "latex", booktabs = TRUE, linesep = "", caption = "Social
 # knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 ```
 
-The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include^[There are 4 more levels aggregates for Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these 4 additional levels might slightly improve the results but for simplicity, we applied the method with 12 levels, as described in the text.] the following aggregations:
+We consider the main aggregation factors and two-way combinations of them. The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include the following aggregations:^[There are four more 3-way aggregation combinations that we do not include: Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these four additional aggregations might slightly improve the results but for simplicity, we excluded them.]
 
 - Total
 - Access
@@ -775,7 +775,8 @@ The final dataset includes 913 time series, each with length 394. The applied gr
 - Agent $\times$ Language
 - Agent $\times$ Purpose
 - Language $\times$ Purpose
-- Bottom level series
+- Bottom level: Access $\times$ Agent $\times$  Language $\times$ Purpose
+
 
 <!--\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}-->
 

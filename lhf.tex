@@ -347,11 +347,11 @@ Modern data collection tools have dramatically increased the amount of available
 \hypertarget{hierarchical-and-grouped-time-series}{%
 \subsection{Hierarchical and grouped time series}\label{hierarchical-and-grouped-time-series}}
 
-In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \ref{fig:hierarchicalexample} shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AW and AX. Finally, the bottom level series (level 2), includes the most disaggregated series.
+In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \ref{fig:hierarchicalexample} shows a schematic of such a hierarchical time series structure with three levels. The top level is the total series, formed by aggregating all the bottom level series. In the middle level, series are aggregations of their own child series; for instance, series A is the aggregation of AW and AX. Finally, the bottom level series, includes the most disaggregated series.
 
 \begin{figure}
 
-{\centering \includegraphics[width=280px,height=170px]{Paper-Figures/hierarchical_example} 
+{\centering \includegraphics[width=200px,height=170px,trim=0 0 190 0,clip=true]{Paper-Figures/hierarchical_example} 
 
 }
 
@@ -538,7 +538,7 @@ For obtaining prediction intervals, we need to compute the variance of reconcile
     \text{Var}(\tilde{\bm{y}}_{t+h})
         = \bm{S}\bm{P}{\bm{\Sigma}_{t+h}} \bm{P}'\bm{S}',
 \end{equation}
-where \(\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}\) and \({\bm{\Sigma}_{t+h}}\) denotes the variance of the base forecasts given by the usual linear model formula (??ref)
+where \(\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}\) and \({\bm{\Sigma}_{t+h}}\) denotes the variance of the base forecasts given by the usual linear model formula \autocite{fpp2}
 \[
   \bm{\Sigma}_{t+h} = \sigma^2\left[1 + \bm{X}_{t+h}^*(\bm{X}'\bm{X})^{-1}(\bm{X}_{t+h}^*)'\right].
 \]
@@ -647,47 +647,31 @@ Region &  &  & 92 & Flinders Range and Outback & DCD\\
 
 In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven `States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 `Zones' and 76 `Regions' (for details about Australia geographic divisions see Figure \ref{fig:Australiahierarchystructure} and Table \ref{tab:Australiageographicaldivision} and also Figure \ref{fig:Australiahierarchystructuremap} which shows Australia map divided by tourism region and colored by states\footnote{\url{www.tra.gov.au/tra/2016/Tourism_Region_Profiles/Region_profiles/index.html}}).
 
-For `Purpose' we have four groups: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). Based on the geographic hierarchy and purpose grouping, we end up with 8 hierarchical levels with 555 series in total:
-
-\begin{itemize}
-\tightlist
-\item
-  Level 0 = Total for Australia
-\item
-  Level 1 = State totals
-\item
-  Level 2 = Zone totals
-\item
-  Level 3 = Region totals
-\item
-  Level 4 = Purpose totals
-\item
-  Level 5 = State \(\times\) Purpose totals
-\item
-  Level 6 = Zone \(\times\) Purpose totals
-\item
-  Level 7 = bottom level series
-\end{itemize}
+We have four purposes of travel: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). So there are \(76\times4 = 304\) series at the most disaggregate level. Based on the geographic hierarchy and purpose grouping, we end up with 8 aggregation levels with 555 series in total as shown in Table \ref{tab:Australiageographicalpurposedivision}.
 
 \begin{table}[!h]
 
-\caption{\label{tab:Australiageographicalpurposedivision}Number of Australian domestic tourism series in each level of the hierarchy and group structure.}
+\caption{\label{tab:Australiageographicalpurposedivision}Number of Australian domestic tourism series at each aggregation level.}
 \centering
-\begin{tabular}[t]{lrrr}
+\begin{tabular}[t]{lr}
 \toprule
-Geographic division & \# series (geographic division) & \# series (purpose of travel) & Total\\
+Division & Series\\
 \midrule
-Australia & 1 & 4 & 5\\
-State & 7 & 28 & 35\\
-Zone & 27 & 108 & 135\\
-Region & 76 & 304 & 380\\
+Australia & 1\\
+State & 7\\
+Zone & 27\\
+Region & 76\\
+Purpose & 4\\
+State x Purpose & 28\\
+Zone x Purpose & 108\\
+Region x Purpose & 304\\
 \hline
-Total & 111 & 444 & 555\\
+Total & 555\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-We report the forecast results for all these hierarchical levels, as well as the average RMSE across all the levels of the hierarchy. We used different predictors in the OLS predictor
+We report the forecast results for all these aggregation levels, as well as the average RMSE across all the levels of the hierarchy. We used different predictors in the OLS predictor
 matrix for the rolling and fixed origin approaches. For the rolling origin model, we included a linear trend, 11 dummy variables, and 12 lags. For the fixed origin model, we included a quadratic trend, 11 dummy variables, and lags 1 and 12. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
 
 \begin{table}[!h]
@@ -707,7 +691,7 @@ Region & 122.9 & 125.1 & 124.0 & 119.4 & 119.4 & 120.4\\
 Purpose & 676.0 & 709.2 & 694.5 & 674.2 & 674.2 & 681.9\\
 State x Purpose & 213.1 & 220.1 & 216.1 & 212.7 & 212.7 & 213.3\\
 Zone x Purpose & 97.5 & 102.4 & 101.0 & 96.8 & 96.8 & 99.0\\
-Bottom level & 56.2 & 58.2 & 58.2 & 56.2 & 56.2 & 57.4\\
+Region x Purpose & 56.2 & 58.2 & 58.2 & 56.2 & 56.2 & 57.4\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -729,7 +713,7 @@ Region & 132.6 & 129.4 & 127.1 & 127.6 & 132.4 & 123.8\\
 Purpose & 766.8 & 824.0 & 875.5 & 801.7 & 1019.3 & 857.2\\
 State x Purpose & 226.7 & 241.2 & 236.7 & 224.5 & 245.6 & 229.1\\
 Zone x Purpose & 103.0 & 105.4 & 104.9 & 102.4 & 105.8 & 102.9\\
-Bottom level & 59.1 & 58.8 & 58.6 & 58.8 & 59.3 & 57.9\\
+Region x Purpose & 59.1 & 58.8 & 58.6 & 58.8 & 59.3 & 57.9\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -848,34 +832,34 @@ Language &  &  & 17. Reunion\\
 \end{tabular}
 \end{table}
 
-The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include\footnote{There are 4 more levels aggregates for Agent \(\times\) Access \(\times\) Language, Agent \(\times\) Access \(\times\) Purpose, Agent \(\times\) Language \(\times\) Purpose, and Access \(\times\) Language \(\times\) Purpose. Including these 4 additional levels might slightly improve the results but for simplicity, we applied the method with 12 levels, as described in the text.}:
+We consider the main aggregation factors and two-way combinations of them. The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include the following aggregations:\footnote{There are four more 3-way aggregation combinations that we do not include: Agent \(\times\) Access \(\times\) Language, Agent \(\times\) Access \(\times\) Purpose, Agent \(\times\) Language \(\times\) Purpose, and Access \(\times\) Language \(\times\) Purpose. Including these four additional aggregations might slightly improve the results but for simplicity, we excluded them.}
 
 \begin{itemize}
 \tightlist
 \item
-  Level 0 = Total
+  Total
 \item
-  Level 1 = Access
+  Access
 \item
-  Level 2 = Agent
+  Agent
 \item
-  Level 3 = Language
+  Language
 \item
-  Level 4 = Purpose
+  Purpose
 \item
-  Level 5 = Access \(\times\) Agent
+  Access \(\times\) Agent
 \item
-  Level 6 = Access \(\times\) Language
+  Access \(\times\) Language
 \item
-  Level 7 = Access \(\times\) Purpose
+  Access \(\times\) Purpose
 \item
-  Level 8 = Agent \(\times\) Language
+  Agent \(\times\) Language
 \item
-  Level 9 = Agent \(\times\) Purpose
+  Agent \(\times\) Purpose
 \item
-  Level 10 = Language \(\times\) Purpose
+  Language \(\times\) Purpose
 \item
-  Level 11 = Bottom level series
+  Bottom level: Access \(\times\) Agent \(\times\) Language \(\times\) Purpose
 \end{itemize}
 
 For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and all 7 lags for rolling, and for fixed origin model we use a quadratic trend, 6 seasonal dummies and lags 1 and 7. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set. In this example, the results in tables and figures are represented for single groups although we applied all the above levels in the group structure for reconciliation.
