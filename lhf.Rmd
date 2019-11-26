@@ -318,8 +318,13 @@ We apply two methods for generating forecasts, which differ in how they handle u
 ## Australian domestic tourism
 
 ```{r Readtourism, results='hide'}
-error.tourism <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.csv")
-error.tourism$facet <- factor(error.tourism$Level, levels = c("Total", "State", "Zone", "Region", "Purpose", "State x Purpose", "Zone x Purpose", "Bottom level"))
+error.tourism <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.csv") %>%
+  mutate(
+    Level = recode(Level, "Bottom level" = "Region x Purpose"),
+    facet = factor(Level,
+      levels = c("Total", "State", "Zone", "Region", "Purpose", "State x Purpose", "Zone x Purpose", "Region x Purpose")
+    )
+  )
 # Read csv files for tourism results
 rmse <- error.tourism %>%
   group_by(Rec, Method, facet, ForecastInterval) %>%
@@ -385,48 +390,38 @@ knitr::include_graphics("Paper-Figures/ausTurRegions.pdf")
 
 In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven 'States' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 'Zones' and 76 'Regions' (for details about Australia geographic divisions see Figure \@ref(fig:Australiahierarchystructure) and Table \@ref(tab:Australiageographicaldivision) and also Figure \@ref(fig:Australiahierarchystructuremap) which shows Australia map divided by tourism region and colored by states^[\url{www.tra.gov.au/tra/2016/Tourism_Region_Profiles/Region_profiles/index.html}]).
 
-For 'Purpose' we have four groups: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). Based on the geographic hierarchy and purpose grouping, we end up with 8 hierarchical levels with 555 series in total:
-
-- Level 0 = Total for Australia
-- Level 1 = State totals
-- Level 2 = Zone totals
-- Level 3 = Region totals
-- Level 4 = Purpose totals
-- Level 5 = State $\times$ Purpose totals
-- Level 6 = Zone $\times$ Purpose totals
-- Level 7 = bottom level series
+We have four purposes of travel: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). So there are $76\times4 = 304$ series at the most disaggregate level. Based on the geographic hierarchy and purpose grouping, we end up with 8 aggregation levels with 555 series in total as shown in Table \@ref(tab:Australiageographicalpurposedivision).
 
 ```{r Australiageographicalpurposedivision, results='asis'}
 groups <- tribble(
-    ~Division, ~Series,
-    "Australia", 1,
-    "State", 7,
-    "Zone", 27,
-    "Region", 76,
-    "Total", NA
-  )
-groups[5,2] <- sum(groups[1:4,2])
+  ~Division, ~Series,
+  "Australia", 1,
+  "State", 7,
+  "Zone", 27,
+  "Region", 76,
+  "Purpose", 4,
+  "State x Purpose", NA,
+  "Zone x Purpose", NA,
+  "Region x Purpose", NA,
+  "Total", NA
+)
+groups[6:8, 2] <- groups[2:4, 2] * c(groups[5, 2])
+groups[9, 2] <- sum(groups[1:8, 2])
 groups %>%
-  mutate(
-    Purpose = 4*Series,
-    Total = Series + Purpose
-  ) %>%
   kable(
     format = "latex",
     booktabs = TRUE,
     linesep = "",
-    caption = "Number of Australian domestic tourism series in each level of the hierarchy and group structure.",
-    col.names = c("Geographic division",
-                  "# series (geographic division)",
-                  "# series (purpose of travel)",
-                  "Total")
+    caption = "Number of Australian domestic tourism series at each aggregation level."
   ) %>%
-  kable_styling(position = "center",
-                latex_options = "hold_position") %>%
-  row_spec(row=4, hline_after=TRUE)
+  kable_styling(
+    position = "center",
+    latex_options = "hold_position"
+  ) %>%
+  row_spec(row = 8, hline_after = TRUE)
 ```
 
-We report the forecast results for all these hierarchical levels, as well as the average RMSE across all the levels of the hierarchy. We used different predictors in the OLS predictor
+We report the forecast results for all these aggregation levels, as well as the average RMSE across all the levels of the hierarchy. We used different predictors in the OLS predictor
 matrix for the rolling and fixed origin approaches. For the rolling origin model, we included a linear trend, 11 dummy variables, and 12 lags. For the fixed origin model, we included a quadratic trend, 11 dummy variables, and lags 1 and 12. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
 
 ```{r Tourismdataresulrolling, results='asis', dependson="Readtourism"}
@@ -645,25 +640,25 @@ forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/
 
 ```{r loopsvsmatrix, fig.align="center", fig.cap="Comparison of the forecasts obtained using a matrix approach and separate regression models to reconcile forecasts for rolling and fixed origin 24-step-ahead tourism demand (bottom level series only).", out.width="100%", eval=FALSE}
 ### qqplot - rec
- lvsm.1 <-
+lvsm.1 <-
   forecast.tourism.loops.matrix %>%
   filter(Level == "level7", ForecastInterval == "1Step") %>%
   ggplot(aes(x = OLS.unrec, y = OLS.unrec.matrix)) + geom_point() +
   geom_smooth(method = "lm", se = FALSE) +
-  ylim(0,2600) +
+  ylim(0, 2600) +
   xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Rolling origin") +
   theme_bw() + guides(linetype = FALSE)
 
- lvsm.24 <-
+lvsm.24 <-
   forecast.tourism.loops.matrix %>%
-   filter(Level == "level7", ForecastInterval == "24Step") %>%
-   ggplot(aes(x = OLS.unrec, y = OLS.unrec.matrix)) + geom_point() +
-   geom_smooth(method = "lm", se = FALSE) +
-   ylim(0,2600) +
-   xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Fixed origin") +
-   theme_bw() + guides(linetype = FALSE)
+  filter(Level == "level7", ForecastInterval == "24Step") %>%
+  ggplot(aes(x = OLS.unrec, y = OLS.unrec.matrix)) + geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  ylim(0, 2600) +
+  xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Fixed origin") +
+  theme_bw() + guides(linetype = FALSE)
 
- gridExtra::grid.arrange(lvsm.1,lvsm.24, nrow=1)
+gridExtra::grid.arrange(lvsm.1, lvsm.24, nrow = 1)
 ```
 
 ```{r Tourismdatacomputationtimeappendix, results='asis'}
@@ -726,7 +721,7 @@ The second dataset comprises one year of daily data (2016-06-01 to 2017-06-29) o
 ```{r Readwikipedia, results='hide'}
 error.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/error.wiki.csv")
 selected <- c("Total", "Access", "Agent", "Language", "Purpose", "Bottom level")
-error.wiki <- error.wiki[error.wiki$Level %in% selected,]
+error.wiki <- error.wiki[error.wiki$Level %in% selected, ]
 error.wiki$facet <- factor(error.wiki$Level, levels = c("Total", "Access", "Agent", "Language", "Purpose", "Bottom level"))
 # Read csv files for tourism results
 rmse2 <- error.wiki %>%
@@ -764,23 +759,23 @@ kable(table1, format = "latex", booktabs = TRUE, linesep = "", caption = "Social
 ```
 
 ```{r wikigroupstructure, echo=FALSE, out.width = "500px", out.height= "250px", fig.align="center", fig.cap="One of the possible hierarchical structures for the Wikipedia pageview dataset."}
-#knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
+# knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 ```
 
-The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include^[There are 4 more levels aggregates for  Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these 4 additional levels might slightly improve the results but for simplicity, we applied the method with  12 levels, as described in the text.]:
+The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include^[There are 4 more levels aggregates for Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these 4 additional levels might slightly improve the results but for simplicity, we applied the method with 12 levels, as described in the text.] the following aggregations:
 
-- Level 0 = Total
-- Level 1 = Access
-- Level 2 = Agent
-- Level 3 = Language
-- Level 4 = Purpose
-- Level 5 = Access $\times$ Agent
-- Level 6 = Access $\times$ Language
-- Level 7 = Access $\times$ Purpose
-- Level 8 = Agent $\times$ Language
-- Level 9 = Agent $\times$ Purpose
-- Level 10 = Language $\times$ Purpose
-- Level 11 = Bottom level series
+- Total
+- Access
+- Agent
+- Language
+- Purpose
+- Access $\times$ Agent
+- Access $\times$ Language
+- Access $\times$ Purpose
+- Agent $\times$ Language
+- Agent $\times$ Purpose
+- Language $\times$ Purpose
+- Bottom level series
 
 <!--\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}-->
 
@@ -1022,9 +1017,11 @@ error.tourism.1 <- error.tourism %>%
 
 error.tourism.2 <- split(error.tourism.1, error.tourism.1$id)
 library(plyr)
-error.transform.tourism <- lapply(error.tourism.2, function(x) ddply(x, "Series", transform,
+error.transform.tourism <- lapply(error.tourism.2, function(x) {
+  ddply(x, "Series", transform,
     value.scale = (Value - mean(Value)) / (sd(Value))
-  ))
+  )
+})
 
 do.call("rbind", error.transform.tourism) %>%
   ggplot(aes(x = id, y = value.scale, fill = id)) +
@@ -1062,9 +1059,11 @@ error.tourism.24 <- error.tourism %>%
 
 error.tourism.22 <- split(error.tourism.24, error.tourism.1$id)
 library(plyr)
-error.transform.tourism.24 <- lapply(error.tourism.22, function(x) ddply(x, "Series", transform,
+error.transform.tourism.24 <- lapply(error.tourism.22, function(x) {
+  ddply(x, "Series", transform,
     value.scale = (Value - mean(Value)) / (sd(Value))
-  ))
+  )
+})
 
 do.call("rbind", error.transform.tourism.24) %>%
   ggplot(aes(x = id, y = value.scale, fill = id)) +
