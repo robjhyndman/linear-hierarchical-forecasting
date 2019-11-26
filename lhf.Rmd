@@ -300,7 +300,7 @@ For obtaining  prediction intervals, we need to compute the variance of reconcil
     \text{Var}(\tilde{\bm{y}}_{t+h})
         = \bm{S}\bm{P}{\bm{\Sigma}_{t+h}} \bm{P}'\bm{S}',
 \end{equation}
-where $\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}$ and ${\bm{\Sigma}_{t+h}}$ denotes the variance of the base forecasts given by the usual linear model formula (??ref)
+where $\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}$ and ${\bm{\Sigma}_{t+h}}$ denotes the variance of the base forecasts given by the usual linear model formula [@fpp2]
 $$
   \bm{\Sigma}_{t+h} = \sigma^2\left[1 + \bm{X}_{t+h}^*(\bm{X}'\bm{X})^{-1}(\bm{X}_{t+h}^*)'\right].
 $$
