@@ -51,9 +51,9 @@ Modern data collection tools have dramatically increased the amount of available
 
 ## Hierarchical and grouped time series
 
-In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure with three levels. The top level (level 0) is the total series, formed by aggregating all the bottom level series. In the middle level (level 1), series are aggregations of their own child series; for instance, series A is the aggregation of AW and AX. Finally, the bottom level series (level 2), includes the most disaggregated series.
+In many cases, these time series can be structured and disaggregated based on hierarchies or groups such as geographic location, product type, gender, etc. An example of hierarchical time series is sales in restaurant chains, which can be disaggregated into different stores and then different types of food or drinks. Figure \@ref(fig:hierarchicalexample) shows a schematic of such a hierarchical time series structure with three levels. The top level is the total series, formed by aggregating all the bottom level series. In the middle level, series are aggregations of their own child series; for instance, series A is the aggregation of AW and AX. Finally, the bottom level series, includes the most disaggregated series.
 
-```{r hierarchicalexample, out.width = "280px", out.height= "170px", fig.align="center", fig.cap="An example of a two level hierarchical structure."}
+```{r hierarchicalexample, out.width = "200px", out.height= "170px,trim=0 0 190 0,clip=true", fig.align="center", fig.cap="An example of a two level hierarchical structure."}
 knitr::include_graphics("Paper-Figures/hierarchical_example.jpg")
 ```
 
