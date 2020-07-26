@@ -27,7 +27,7 @@ Xmatrix<-function(X){
 
 
 
-TourismData <- head(TourismData1, (n-k))
+TourismData <- head(TourismData1, (n1-k))
 ## empty matrix for the forecasts
 result.fore <- matrix(NA, nrow = k, ncol = 555)
 base.fore <- c()

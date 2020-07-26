@@ -46,3 +46,40 @@ InvS4g <- function(xgroup) {
   inv.s <- 1/unlist(mapply(rep, repcount, mlevel, SIMPLIFY = FALSE))
   return(inv.s)
 }
+
+
+GmatrixH <- function(xlist) {
+  l.xlist <- length(xlist)
+  num.bts <- sum(xlist[[l.xlist]])
+  nlist <- unlist(lapply(xlist, length))
+  # Create an empty matrix to contain the gmatrix
+  gmat <- matrix(, nrow = l.xlist, ncol = num.bts)
+  # Insert the bottom level
+  gmat[nrow(gmat), ] <- seq(1L, num.bts)
+  # Insert the middle levels in the reverse order
+  if (l.xlist > 1L) {
+    repcount <- xlist[[l.xlist]]
+    for (i in (l.xlist - 1L):1L) {
+      gmat[i, ] <- rep(1L:nlist[i + 1], repcount)
+      repcount <- rowsum(repcount, rep(1L:nlist[i], xlist[[i]]))
+    }
+  }
+  # Insert the top level
+  gmat <- rbind(rep(1L, num.bts), gmat)
+  
+  dimnames(gmat) <- list(paste("Level", 0L:(nrow(gmat) - 1L)), colnames(xlist))
+  class(gmat) <- "gmatrix"
+  return(gmat)
+}
+
+InvS4h <- function(xlist) {
+  gmat <- GmatrixH(xlist)
+  uniq <- apply(gmat, 1, unique)
+  len <- nrow(gmat)
+  inv.s <- vector(length = len, mode = "list")
+  for (i in 1L:len) {
+    inv.s[[i]] <- sapply(uniq[[i]], function(x) length(gmat[i, gmat[i, ] == x]))
+  }
+  inv.s <- 1/unlist(inv.s)
+  return(inv.s)
+}

@@ -43,11 +43,12 @@ library(kableExtra)
 library(png)
 library(grid)
 library(gridExtra)
+library(bindrcpp)
 ```
 
 # Introduction
 
-Modern data collection tools have dramatically increased the amount of available time series data. For example, the Internet of Things and point-of-sale scanning produce huge volumes of time series in a short period of time. Naturally, there is an interest in forecasting these time series, yet forecasting large collections of time series is computationally challenging.
+Modern data collection tools have dramatically increased the amount of available time series data [@januschowski2013forecasting]. For example, the internet of things and point-of-sale scanning produce huge volumes of time series in a short period of time. Naturally, there is an interest in forecasting these time series, yet forecasting large collections of time series is computationally challenging.
 
 ## Hierarchical and grouped time series
 
@@ -82,9 +83,9 @@ We use the same notation [following @fpp2] for both hierarchical and grouped tim
 
 ## Forecasting hierarchical time series
 
-If we just forecast each series individually, we are ignoring the hierarchical or grouping structure, and the forecasts will not be "coherent" (they will not add up appropriately).
+If we just forecast each series individually, we are ignoring the hierarchical or grouping structure, and the forecasts will not be "coherent" (they will not add up appropriately). \textcolor{blue}{This means we need the forecasts to add up in a way which is consistent with the aggregation structure of the time series collection} [@fpp2]. 
 
-There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts. However, we may not get good upper-level forecasts because the most disaggregated series can be noisy and so their forecasts are often inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $n$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any correlations among the series.
+There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts. However, we may not get good upper-level forecasts because the most disaggregated series can be noisy and so their forecasts are often inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $N$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any correlations among the series.
 
 In the optimal combination method, reconciled forecasts can be computed using the following equation known as weighted least squares (WLS) [@mint2018]
 \begin{equation}\label{eq:mint}
@@ -97,7 +98,7 @@ Several possible simple methods for estimating $\bm{W}_h$ are available. @mint20
   \tilde{\bm{y}}_{h}=\bm{S}(\bm{S}'\bm{\Lambda}^{-1}\bm{S})^{-1}\bm{S}'\bm{\Lambda}^{-1}\hat{\bm{y}}_h.
 \end{equation}
 
-The most computationally challenging part of the optimal combination method is to produce all the base forecasts that make up $\hat{\bm{y}}_h$. In many applications, there may be thousands or even millions of individual series, and each of them must be forecast independently. The most popular time series forecasting methods such as ETS and ARIMA models [@fpp2] involve non-linear optimization routines to estimate the parameters via maximum likelihood estimation. Usually, multiple models are fitted for each series, and the best is select by minimizing Akaike's Information Citerion [@akaike1998information]. This computational challenges increases with the number of lower level series as well as in the number of aggregations of interest.
+The most computationally challenging part of the optimal combination method is to produce all the base forecasts that make up $\hat{\bm{y}}_h$. In many applications, there may be thousands or even millions of individual series, and each of them must be forecast independently. The most popular time series forecasting methods such as ETS and ARIMA models [@fpp2] involve non-linear optimization routines to estimate the parameters via maximum likelihood estimation. Usually, multiple models are fitted for each series, and the best is selected by minimizing Akaike's Information Citerion [@akaike1998information]. This computational challenges increases with the number of lower level series as well as in the number of aggregations of interest.
 
 We therefore propose a new approach to compute the base forecasts that is both computationally fast while maintaining an acceptable forecasting accuracy level.
 
@@ -285,7 +286,9 @@ As an example of the $\bm{X}_t$ matrix in Equation \@ref(eq:linearmodel), we can
 \end{equation}
 Here, $s_{j,t}$ is a dummy variable taking value 1 if time $t$ is in season $j$ ($j=1, 2, \dots, m$), $y_{t-k}$ is the $k$th lagged value for $y_t$ and $z_t$ is some external information at time $t$. The seasonal period $m$ depends on the problem; for instance, if we have daily data with day-of-week seasonality, then $m=7$.
 
-Because of using lags and external series as predictors in Equation \@ref(eq:linearmodelexample), we do not have same set of predictors for all the series, $y_t$. However, if we just use trend and seasonality dummies as the predictors, then the simpler equations given in Section \@ref(sec:proposedapproach1) can be written using multivariate regression models.
+Because of using lags and external series as predictors in Equation \@ref(eq:linearmodelexample), we do not have same set of predictors for all the series, $y_t$. However, if we just use trend and seasonality dummies as the predictors, then the simpler equations, \textcolor{blue}{Equation} \@ref(eq:linearmodelsameX),  <!--given in Section \@ref(sec:proposedapproach1)!--> can be written using multivariate regression models.
+
+\textcolor{blue}{When there are many options for choosing predictors, such as many seasonal dummy variables, lags, or high order trend terms, we can consider applying a model selection approach such as leave-one-out cross-validation (LOOCV) for time series to select the best set of predictors in terms of prediction. In practice, LOOCV can be computationally heavy, and therefore using linear models provide a viable solution. Also, when the number of seasons m is large (e.g. in hourly data), Fourier terms can sometimes result in  fewer predictors than dummy variables. The number of Fourier terms can also be determined using the same LOOCV approach} [@fpp2]. 
 
 While OLS is popular in practice for forecasting time series, it is often frowned upon due to its independence assumption. This can cause issues for parametric inference but is less of a problem for forecasting. In fact it often performs sufficiently well for forecasting as can be seen by its popular use in practice. Further, the use of autoregressive terms in the above model should model most of the autocorrelation in the data.
 
@@ -304,17 +307,21 @@ where $\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}$ and ${\bm{\
 $$
   \bm{\Sigma}_{t+h} = \sigma^2\left[1 + \bm{X}_{t+h}^*(\bm{X}'\bm{X})^{-1}(\bm{X}_{t+h}^*)'\right].
 $$
-Assuming normally distributed errors, we can easily obtain any required prediction intervals corresponding to elements of $\bm{y}_{t+h}$ using the diagonals of \eqref{eq:variance}.
+\textcolor{blue}{Where the  $\sigma^2$ is the $N\times N$ diagonal matrix of forecasted error variances}. Assuming normally distributed errors, we can easily obtain any required prediction intervals corresponding to elements of $\tilde{\bm{y}}_{t+h}$ using the diagonals of \eqref{eq:variance}.
 
 
 # Applications
 
-In this section we illustrate our approach using two examples: forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. We compare the forecasting accuracy of ETS, ARIMA and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors.
+In this section we illustrate our approach using two \textcolor{blue}{real data} examples \textcolor{blue}{and one simulated dataset example}^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 1.2.5019.]. \textcolor{blue}{The real examples study includes }forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. \textcolor{blue}{In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and modify the forecasting horizon, noise level, hierarchy levels, and number of series.}. We compare the forecasting accuracy of ETS, ARIMA^[\textcolor{blue}{For running ETS and ARIMA, we applied 'ets' and 'auto.arima' functions in 'forecast' package} [@hyndman2020package]. \textcolor{blue}{Also, The two sets of functions were run independently and not immediately one after the other.}] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. \textcolor{blue}{For visibility, we suppress plotting the outliers.}
 
-The two datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.
+The two \textcolor{blue}{real} datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.
 
+\textcolor{blue}{We apply two methods for generating forecasts that align with two different practical forecasting scenarios. The first approach is} *rolling origin* \textcolor{blue}{forecasting, where we generate one-step-ahead forecasts ($\tilde{\bm{y}}_{t+h}$ where $t$ changes). This assumes a scenario where data are refreshed every time period. In the second} *fixed origin* \textcolor{blue}{method, forecasts are generated at fixed time $t$ for $h$ steps ahead:  $\tilde{\bm{y}}_{t+1}$, $\tilde{\bm{y}}_{t+2}$,...,
+$\tilde{\bm{y}}_{t+h}$ (we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin).}
+
+<!--
 We apply two methods for generating forecasts, which differ in how they handle unobserved lagged values as inputs. The first approach is ex post in that it uses actual values, even when they are future to the forecast origin. These values are known to us because they are in the test set. We call these *rolling origin* forecasts. In the second ex ante method, we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin. We call these *fixed origin* forecasts.
-
+-->
 ## Australian domestic tourism
 
 ```{r Readtourism, results='hide'}
@@ -351,8 +358,9 @@ easter.rmse <- easter.error.tourism %>%
   ) %>%
   left_join(rmse) %>%
   select(-ETS)
-forecast.tourism <- readr::read_csv("Paper-Figures/results_Tourism/forecast.tourism.csv") %>%
-  select(-X1) %>%
+forecast.tourism.data <- readr::read_csv("Paper-Figures/results_Tourism/forecast.tourism.csv") 
+forecast.tourism <- forecast.tourism.data %>%
+  select(-X1, -OLS.var.rec, -OLS.var.unrec) %>%
   gather(-Series, -ForecastInterval, -date, key = "Method", value = "Count") %>%
   mutate(
     Rec = str_extract(Method, "[a-z]*$"),
@@ -422,7 +430,7 @@ groups %>%
 ```
 
 We report the forecast results for all these aggregation levels, as well as the average RMSE across all the levels of the hierarchy. We used different predictors in the OLS predictor
-matrix for the rolling and fixed origin approaches. For the rolling origin model, we included a linear trend, 11 dummy variables, and 12 lags. For the fixed origin model, we included a quadratic trend, 11 dummy variables, and lags 1 and 12. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
+matrix for the rolling and fixed origin approaches. \textcolor{blue}{For the rolling and fixed origin model, we include a linear trend, 11 dummy variables, and lags 1 and 12.} This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
 
 ```{r Tourismdataresulrolling, results='asis', dependson="Readtourism"}
 bind_cols(
@@ -458,6 +466,20 @@ bind_cols(
 
 ```{r boxplotrollingtourism, fig.align="center", fig.cap="Box plots of rolling origin forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for tourism demand.", out.width="100%"}
 ## 1-step-ahead
+boxplot.stat <- function(x) {
+  coef <- 1.5
+  n <- sum(!is.na(x))
+  # calculate quantiles
+  stats <- quantile(x, probs = c(0.0, 0.25, 0.5, 0.75, 1.0))
+  names(stats) <- c("ymin", "lower", "middle", "upper", "ymax")
+  iqr <- diff(stats[c(2, 4)])
+  # set whiskers
+  outliers <- x < (stats[2] - coef * iqr) | x > (stats[4] + coef * iqr)
+  if (any(outliers)) {
+    stats[c(1, 5)] <- range(c(stats[2:4], x[!outliers]), na.rm = TRUE)
+  }
+  return(stats)
+}
 error.tourism %>%
   filter(ForecastInterval == "1Step") %>%
   mutate(id = factor(paste(Method, Rec, sep = "."),
@@ -465,7 +487,8 @@ error.tourism %>%
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
   ggplot(aes(x = id, y = Value, fill = id)) +
-  geom_boxplot(alpha = 0.5) +
+  stat_summary(fun.data = boxplot.stat, geom="boxplot", alpha = 0.5) + 
+  #geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
   facet_wrap(~facet, ncol = 4, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
@@ -497,7 +520,8 @@ error.tourism %>%
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
   ggplot(aes(x = id, y = Value, fill = id)) +
-  geom_boxplot(alpha = 0.5) +
+  stat_summary(fun.data = boxplot.stat, geom="boxplot", alpha = 0.5) + 
+  #geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
   facet_wrap(~facet, ncol = 4, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
@@ -522,10 +546,10 @@ error.tourism %>%
 
 In Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism) we display the error box plots for both reconciled and unreconciled forecasts using all three methods, for the rolling origin and fixed origin forecasts. In these figures we see the error distributions across all the models.
 
-Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series. We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors, to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts.
+Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series \textcolor{blue}{(see Table} \@ref(tab:Tourismdatacomputationtime)). We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors^[\textcolor{blue}{Scaled errors are computed by subtracting the mean and dividing by the standard deviation.}], to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts.
 
 
-Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin forecast results for the total series and one of the bottom level series, BACBus (Geelong - Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods.
+Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin forecast results for the total series and one of the bottom level series, BACBus (Geelong - Business). \textcolor{blue} {In these plots we have both reconciled (dashed lines) and unreconciled (dotted lines) forecasts} and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods.
 
 ```{r forecstrolling24tourismtotal, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled ETS, ARIMA and OLS methods for rolling and fixed origin tourism demand.", out.width="100%"}
 ### total series
@@ -535,11 +559,12 @@ ylim <- forecast.tourism %>%
   range()
 g1 <- forecast.tourism %>%
   filter(Series == "Total", ForecastInterval == "1Step") %>%
-  rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
+  #rename(Reconciled = Rec) %>%
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle("Rolling origin 1-step forecasts") +
+  scale_linetype_manual(name = "Reconciled", values=c(Actual = "solid", rec = "dashed", unrec = "dotted"))+
   scale_color_manual(
     name = "Series",
     values = c(
@@ -552,11 +577,12 @@ g1 <- forecast.tourism %>%
   theme_bw() + guides(linetype = FALSE)
 g2 <- forecast.tourism %>%
   filter(Series == "Total", ForecastInterval == "24Step") %>%
-  rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
+  #rename(Reconciled = Rec) %>%
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle("Fixed origin multi-step forecasts") +
+  scale_linetype_manual(name = "Reconciled", values=c(Actual = "solid", rec = "dashed", unrec = "dotted"))+
   scale_color_manual(
     name = "Series",
     values = c(
@@ -578,10 +604,11 @@ ylim <- forecast.tourism %>%
   range()
 p1 <- forecast.tourism %>%
   filter(Series == "BACBus", ForecastInterval == "1Step") %>%
-  rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
+  #rename(Reconciled = Rec) %>%
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
   geom_line() + ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle("Rolling origin 1-step forecasts") +
+  scale_linetype_manual(name = "Reconciled", values=c(Actual = "solid", rec = "dashed", unrec = "dotted"))+
   scale_color_manual(
     name = "Series",
     values = c(
@@ -594,10 +621,11 @@ p1 <- forecast.tourism %>%
   theme_bw() + guides(linetype = FALSE)
 p2 <- forecast.tourism %>%
   filter(Series == "BACBus", ForecastInterval == "24Step") %>%
-  rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
+  #rename(Reconciled = Rec) %>%
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
   geom_line() + ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle("Fixed origin multi-step forecasts") +
+  scale_linetype_manual(name = "Reconciled", values=c(Actual = "solid", rec = "dashed", unrec = "dotted"))+
   scale_color_manual(
     name = "Series",
     values = c(
@@ -609,6 +637,61 @@ p2 <- forecast.tourism %>%
   ) +
   theme_bw() + guides(color = FALSE)
 gridExtra::grid.arrange(p1, p2, nrow = 2)
+```
+
+Figures \@ref(fig:predinttotal) and \@ref(fig:predintBACBus) \textcolor{blue}{display the prediction interval for the OLS approach, with and without reconciliation forecasts for the total series and one of the bottom level series, BACBus (Geelong - Business).}
+
+```{r predinttotal, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for fixed origin tourism demand.", out.width="100%"}
+### total series
+total.series.24 <- forecast.tourism.data %>%
+  filter(Series == "Total", ForecastInterval == "24Step") 
+
+total.series.24$int.low.unrec <- total.series.24$OLS.unrec - (1.96*sqrt(total.series.24$OLS.var.unrec))
+total.series.24$int.high.unrec <- total.series.24$OLS.unrec + (1.96*sqrt(total.series.24$OLS.var.unrec))
+total.series.24$int.low.rec <- total.series.24$OLS.rec - (1.96*sqrt(total.series.24$OLS.var.rec))
+total.series.24$int.high.rec <- total.series.24$OLS.rec + (1.96*sqrt(total.series.24$OLS.var.rec))
+
+total.series.24.OLS.int <- total.series.24  %>%
+  select("Series",  "ForecastInterval", "Actual", "OLS.rec", "OLS.unrec", "int.low.unrec", "int.high.unrec"
+         , "int.low.rec", "int.high.rec", "date")
+
+ggplot(data = total.series.24.OLS.int, aes(x = date, y = Actual, colour = 'Actual'))+
+  geom_ribbon(aes(x=date, ymax = int.high.rec, ymin = int.low.rec), fill="pink", colour = "pink", alpha=.5) +
+  geom_ribbon(aes(x=date, ymax = int.high.unrec, ymin = int.low.unrec), fill="lightskyblue", colour = "lightskyblue", alpha=.3) +
+  geom_line(aes(y = OLS.rec, colour = 'OLS.rec'))+
+  geom_line(aes(y = OLS.unrec, colour = 'OLS.unrec'))+
+  geom_line() +
+  xlab("Horizon") + ylab("Count") + ggtitle("Fixed origin multi-step forecasts") +
+  scale_colour_manual("Method", breaks = c("Actual", "OLS.rec", "OLS.unrec"),
+                      values = c("black", "red", "blue")) +
+  theme_bw()
+```
+
+
+```{r predintBACBus, fig.align="center", fig.cap="The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for fixed origin tourism demand.", out.width="100%"}
+### one series example series
+BACBus.series.24 <- forecast.tourism.data %>%
+  filter(Series == "BACBus", ForecastInterval == "24Step") 
+
+BACBus.series.24$int.low.unrec <- BACBus.series.24$OLS.unrec - (1.96*sqrt(BACBus.series.24$OLS.var.unrec))
+BACBus.series.24$int.high.unrec <- BACBus.series.24$OLS.unrec + (1.96*sqrt(BACBus.series.24$OLS.var.unrec))
+BACBus.series.24$int.low.rec <- BACBus.series.24$OLS.rec - (1.96*sqrt(BACBus.series.24$OLS.var.rec))
+BACBus.series.24$int.high.rec <- BACBus.series.24$OLS.rec + (1.96*sqrt(BACBus.series.24$OLS.var.rec))
+
+BACBus.series.24.OLS.int <- BACBus.series.24  %>%
+  select("Series",  "ForecastInterval", "Actual", "OLS.rec", "OLS.unrec", "int.low.unrec", "int.high.unrec"
+         , "int.low.rec", "int.high.rec", "date")
+
+ggplot(data = BACBus.series.24.OLS.int ,aes(x = date, y = Actual, colour = 'Actual'))+
+  geom_ribbon(aes(x=date, ymax = int.high.rec, ymin = int.low.rec), fill="pink", colour = "pink", alpha=.5) +
+  geom_ribbon(aes(x=date, ymax = int.high.unrec, ymin = int.low.unrec), fill="lightskyblue", colour = "lightskyblue", alpha=.3) +
+  geom_line(aes(y = OLS.rec, colour = 'OLS.rec'))+
+  geom_line(aes(y = OLS.unrec, colour = 'OLS.unrec'))+
+  geom_line() +
+  xlab("Horizon") + ylab("Count") + ggtitle("Fixed origin multi-step forecasts") +
+  scale_colour_manual("Method", breaks = c("Actual", "OLS.rec", "OLS.unrec"),
+                      values = c("black", "red", "blue")) +
+  theme_bw()
 ```
 
 Table \@ref(tab:Tourismdatacomputationtime) compares the computation time of the three methods for rolling and fixed origin forecasting. We see that the OLS forecasting model is much faster compared to the other methods. Also, since reconciliation is a linear process, in all methods it is very fast and does not affect computation time significantly.
@@ -677,9 +760,10 @@ kable(table2,
   add_header_above(c("", "Rolling origin" = 2, "Fixed origin" = 2)) %>%
   kable_styling(position = "center", full_width = FALSE)
 ```
+
 <!--Now since we are using a linear model for forecasting, we can easily include information about the timing of Easter to check its effect on forecasting results. We also add this information on ARIMA models and compare with the OLS forecasting model. In Tables \@ref(tab:easterroolingRMSE) and \@ref(tab:easterRMSE), we display the average RMSE of ARIMA and OLS including the easter information, ARIMAX and OLSX, across different levels with and without reconciliation. These tables are for 1-step-ahead and 24-step-ahead forecasts. Figure \@ref(fig:forecstrolling24tourism) shows the 1-step-ahead and 24-step-ahead forecast results for one of the bottom level series, BACBus (Geelong/Business). In these plots we have both reconciled (solid lines) and unreconciled (dashed lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods. These results show that adding this external data does not change the forecasting results significantly. However in different cases, trying different external data can be helpful in improving the forecasting results.
 
-```{r easterroolingRMSE, results='asis'}
+```{r easterroolingRMSE, results='asis', eval = FALSE}
 bind_cols(
   filter(easter.rmse, ForecastInterval == "1Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
   filter(easter.rmse, ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -Level)
@@ -694,7 +778,7 @@ bind_cols(
   kable_styling(position = "center")
 ```
 
-```{r easterRMSE, results='asis'}
+```{r easterRMSE, results='asis', eval = FALSE}
 bind_cols(
   filter(easter.rmse, ForecastInterval == "24Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
   filter(easter.rmse, ForecastInterval == "24Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -Level)
@@ -710,13 +794,329 @@ bind_cols(
 ```
 
 \todo[inline]{I can't see much point including these Easter results.}
-!-->
+-->
+
+## Australian domestic tourism simulation study
+
+\textcolor{blue}{In this part, we provide results from two simulation studies based on the Australian domestic tourism dataset, to evaluate the sensitivity of our results to several factors. In the first study, we simulate bottom-level series similar to the real bottom-level series of the tourism data, with the same number of series and the same length. We then generate forecasts for four forecast horizons (12, 24, 36 and 48 months) with four different noise levels (standard deviation=0.01, 0.1, 0.5 and 1)}^[\textcolor{blue}{Since the level of the series are different, we first scale the simulated series (subtracting by mean and dividing by standard deviation), add the white noise series and then we rescale the series.}]. 
+
+```{r Readsimtourism, results='hide'}
+error.sim.tourism.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.noise.FH.csv")[,-1] 
+fc.sim.fix.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.level.NS.csv")[,-1]
+rmse.sim.noise.FH <- error.sim.tourism.noise.FH %>%
+  group_by(Rec, Method, noise , ForecastHorizon) %>%
+  summarise(
+    rmse = sqrt(mean(Error^2))
+  ) %>%
+  spread(value = rmse, key = Method) %>%
+  ungroup() %>%
+  select(Rec, noise , ForecastHorizon, ETS, ARIMA, OLS)
+
+error.sim.tourism.rolling.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.rolling.noise.FH.csv")[,-1] #%>%
+rmse.sim.rolling.noise.FH <- error.sim.tourism.rolling.noise.FH %>%
+  group_by(Rec, Method, noise , ForecastHorizon) %>%
+  summarise(
+    rmse = sqrt(mean(Error^2))
+  ) %>%
+  spread(value = rmse, key = Method) %>%
+  ungroup() %>%
+  select(Rec, noise , ForecastHorizon, ETS, ARIMA, OLS)
+com.time.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/computation.noise.FH.csv")
+
+## changing number of levels and series
+rmse.sim.level.NS.fix <- fc.sim.fix.level.NS %>%
+  group_by(Rec, Method, Series , Levels) %>%
+  summarise(
+    rmse = sqrt(mean(Error^2))
+  ) %>%
+  spread(value = rmse, key = Method) %>%
+  ungroup() %>%
+  select(Rec, Series , Levels, ETS, ARIMA, OLS)
+
+com.time.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/computation.level.NS.csv")
+```
+
+Tables \@ref(tab:TourismdatasimrollingnoiseFH) and \@ref(tab:TourismdatasimfixnoiseFH) \textcolor{blue}{display the average of the RMSEs for 12 to 48 month-ahead forecasts with different noise levels. Results are shown for the base and the reconciled forecasts for both rolling and fixed origin approaches. The results show that, as expected, by increasing the forecast horizon and/or noise level, the average RMSE increases in all the three methods. Also, the proposed OLS approach shows similar results compared with ETS and ARIMA. It should be noted that for both rolling and fixed origin forecasts in the OLS approach we use the same set of predictors as the Australian domestic tourism example.}
+
+```{r TourismdatasimrollingnoiseFH, results='asis', dependson="Readsimtouris"}
+kable(rmse.sim.rolling.noise.FH, 
+    align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
+     digits = 2,
+     caption = "Mean(RMSE) on one to four year test set with different error levels for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset", 
+     col.names = c("Reconceliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS"))%>%
+  kable_styling(position = "center", latex_options = "hold_position")
+# bind_cols(
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.01") %>% select( -noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.5") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.01") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.5") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "1") %>% select(-noise, -Rec, -ForecastHorizon)
+# ) %>%
+  # kable(
+  #   booktabs = TRUE,
+  #   format = "latex",
+  #   digits = 1,
+  #   linesep = "",
+  #   caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset",
+  #   col.names = c("Forecast Horizon", rep(c("ETS", "ARIMA", "OLS"), 8))
+  # ) %>%
+  # add_header_above(c("", "0.01" = 3, "0.1" = 3, "0.5" = 3, "1" = 3)) %>%
+  # add_header_above(c("", "Unreconciled" = 12, "Reconciled" = 12)) %>%
+  # kable_styling(position = "center", latex_options = "hold_position")
+```
+
+
+```{r TourismdatasimfixnoiseFH, results='asis', dependson="Readsimtouris"}
+kable(rmse.sim.noise.FH, 
+    align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
+     digits = 2,
+     caption = "Mean(RMSE) on one to four year test set with different error levels for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset", 
+     col.names = c("Reconceliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS"))%>%
+  kable_styling(position = "center", latex_options = "hold_position")
+# bind_cols(
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.01") %>% select( -noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.5") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.01") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.5") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "1") %>% select(-noise, -Rec, -ForecastHorizon)
+# ) %>%
+  # kable(
+  #   booktabs = TRUE,
+  #   format = "latex",
+  #   digits = 1,
+  #   linesep = "",
+  #   caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset",
+  #   col.names = c("Forecast Horizon", rep(c("ETS", "ARIMA", "OLS"), 8))
+  # ) %>%
+  # add_header_above(c("", "0.01" = 3, "0.1" = 3, "0.5" = 3, "1" = 3)) %>%
+  # add_header_above(c("", "Unreconciled" = 12, "Reconciled" = 12)) %>%
+  # kable_styling(position = "center", latex_options = "hold_position")
+```
+
+Figures \@ref(fig:TourismsimcomputationtimerollingnoiseFH) and \@ref(fig:TourismsimcomputationtimefixednoiseFH) \textcolor{blue}{show the computation time (seconds) for ETS, ARIMA and OLS methods on rolling and fixed origin forecasts. From these figures we see that increasing the forecast horizon from one to four years increases computation time almost linearly, while the noise level does not change the computation time. Also, the computation time for ARIMA and ETS is much longer than OLS. Note that the computation time for the reconciliation step is less than a second and therefore the computation time for base and reconciled forecasts is similar.} 
+
+```{r TourismsimcomputationtimerollingnoiseFH, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling  origin forecasts on one to four year test set and different error values - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset.", out.width="100%"}
+com.time.noise.FH %>%
+ filter(ForecastInterval == "rolling") %>% 
+  ggplot() +
+   geom_line(aes(x = ForecastHorizon, y = ComputationTime, color = Method, linetype = Rec)) +
+   scale_color_manual(name = "Series", values = c(ETS = "green", ARIMA = "blue", OLS = "red"))+
+   scale_linetype_manual(name = "Reconciled", values=c( rec = "dashed", unrec = "dotted"))+
+   facet_wrap(.~Error, nrow = 2) +
+   scale_x_continuous(breaks=c(12,24,36,48)) +
+   xlab("Forecast horizon") + ylab("Computation time") +
+   theme_light()+
+   theme(
+    axis.text = element_text(size = 10),
+    strip.text = element_text(size = 12),
+    axis.title = element_text(size = 12, face = "bold")
+    )
+```
+
+```{r TourismsimcomputationtimefixednoiseFH, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Fixed origin forecasts on one to four year test set and different error values - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset.", out.width="100%"}
+com.time.noise.FH %>%
+ filter(ForecastInterval == "fixed") %>% 
+  ggplot() +
+   geom_line(aes(x = ForecastHorizon, y = ComputationTime, color = Method, linetype = Rec)) +
+   scale_color_manual(name = "Series", values = c(ETS = "green", ARIMA = "blue", OLS = "red"))+
+   scale_linetype_manual(name = "Reconciled", values=c( rec = "dashed", unrec = "dotted"))+
+   facet_wrap(.~Error, nrow = 2) +
+   scale_x_continuous(breaks=c(12,24,36,48)) +
+   xlab("Forecast horizon") + ylab("Computation time") +
+   theme_light()+
+   theme(
+    axis.text = element_text(size = 10),
+    strip.text = element_text(size = 12),
+    axis.title = element_text(size = 12, face = "bold")
+    )
+```
+
+
+\textcolor{blue}{In the second simulation study, we fix the forecast horizon at h=24 and the noise at 0.5, and then create 4 different hierarchy levels (8, 10, 12 and 18) -- these obtained using the hierarchy structures in Table} \@ref(tab:Australiageographicalpurposedivision), \@ref(tab:simlevel1), \@ref(tab:simlevel1level2) and \@ref(tab:simlevel1level2group1) (8 = same as Australian domestic tourism data; 9= adding one hierarchy factor, resulting in 10 levels; 10= adding two hierarchy factors, resulting in 12 levels; and 11 = adding two hierarchy factors and one grouping factor, resulting in 18 levels)^[For simplicity we just include 2-way aggregation combinations.]). 
+
+```{r simlevel1, results='asis'}
+groups <- tribble(
+  ~Division, ~Series,
+  "Australia", 1,
+  "Level 1", 3, 
+  "State", 7,
+  "Zone", 27,
+  "Region", 76,
+  "Purpose", 4,
+  "Level 1 x Purpose", NA,
+  "State x Purpose", NA,
+  "Zone x Purpose", NA,
+  "Region x Purpose", NA,
+  "Total", NA
+)
+groups[7:10, 2] <- groups[2:5, 2] * c(groups[6, 2])
+groups[11, 2] <- sum(groups[1:10, 2])
+groups %>%
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
+    caption = "Number of simulated Australian domestic tourism series at each aggregation level - adding one hierarchy variable (Level 1)"
+  ) %>%
+  kable_styling(
+    position = "center",
+    latex_options = "hold_position"
+  ) %>%
+  row_spec(row = 10, hline_after = TRUE)
+```
+
+```{r simlevel1level2, results='asis'}
+groups <- tribble(
+  ~Division, ~Series,
+  "Australia", 1,
+  "Level 1", 3, 
+  "Level 2", 5, 
+  "State", 7,
+  "Zone", 27,
+  "Region", 76,
+  "Purpose", 4,
+  "Level 1 x Purpose", NA,
+  "Level 2 x Purpose", NA,
+  "State x Purpose", NA,
+  "Zone x Purpose", NA,
+  "Region x Purpose", NA,
+  "Total", NA
+)
+groups[8:12, 2] <- groups[2:6, 2] * c(groups[7, 2])
+groups[13, 2] <- sum(groups[1:12, 2])
+groups %>%
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
+    caption = "Number of simulated Australian domestic tourism series at each aggregation level - adding two hierarchy variables (Level 1 and Level 2)"
+  ) %>%
+  kable_styling(
+    position = "center",
+    latex_options = "hold_position"
+  ) %>%
+  row_spec(row = 12, hline_after = TRUE)
+```
+
+```{r simlevel1level2group1, results='asis'}
+groups <- tribble(
+  ~Division, ~Series,
+  "Australia", 1,
+  "Level 1", 3, 
+  "Level 2", 5, 
+  "State", 7,
+  "Zone", 27,
+  "Region", 76,
+  "Purpose", 4,
+  "Group 1", 5, 
+  "Level 1 x Purpose", NA,
+  "Level 2 x Purpose", NA,
+  "State x Purpose", NA,
+  "Zone x Purpose", NA,
+  "Level 1 x Group 1", 5,
+  "Level 2 x Group 1", 6,
+  "State x Group 1", 7,
+  "Zone x Group 1", 27,
+  "Purpose x Group 1", NA,
+  "Bottom level", 304,
+  "Total", NA
+)
+groups[9:12, 2] <- groups[2:5, 2] * c(groups[7, 2])
+groups[17, 2] <- groups[7, 2] * c(groups[8, 2])
+groups[19, 2] <- sum(groups[1:18, 2])
+groups %>%
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
+    caption = "Number of simulated Australian domestic tourism series at each aggregation level - adding two hierarchy and one grouping variables (Level 1, Level 2 and Group 1)"
+  ) %>%
+  kable_styling(
+    position = "center",
+    latex_options = "hold_position"
+  ) %>%
+  row_spec(row = 18, hline_after = TRUE)
+```
+
+\textcolor{blue}{ We also simulated four  sizes of bottom-level series (304, 608, 1520 and 3040). In order to add series, we change the number of ‘Purpose’ categories (grouping factor) in the Australian domestic tourism example.} Table \@ref(tab:TourismsimlevelNS) \textcolor{blue}{displays the total number of series based on 304, 608, 1520 and 3040 bottom levels series with 8, 10, 12 and 18 hierarchy levels.}
+
+```{r TourismsimlevelNS, results='asis'}
+table2 <- matrix(NA, nrow = 4, ncol = 5)
+table2[, 1] <- c("304", "608", "1520", "3040")
+table2[, 2] <- c("555", "999", "2331", "4551")
+table2[, 3] <- c("570", "1026", "2394", "4674")
+table2[, 4] <- c("595", "1071", "2499", "2643")
+table2[, 5] <- c("665", "1161", "2649", "5129")
+kable(table2,
+  align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
+  caption = "Total number of the series in the hierarchy structure based on the different number of series with 8, 10, 12 and 18 levels of the hierarchy.",
+  col.names = c("Bottom level series", "8", "10", "12", "18")
+) %>%
+  #column_spec(1:3, width = "3cm") %>%
+  add_header_above(c("", "Total series" = 4)) %>%
+  kable_styling(position = "center", full_width = FALSE)
+```
+
+```{r TourismdatasimfixlevelNS, results='asis', dependson="Readsimtouris"}
+kable(rmse.sim.level.NS.fix, 
+    align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
+     digits = 2,
+     caption = "Mean(RMSE) on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - Fixed origin - Simulated tourism dataset", 
+     col.names = c("Reconceliation", "Series", "Levels", "ETS", "ARIMA", "OLS"))%>%
+  kable_styling(position = "center", latex_options = "hold_position")
+# bind_cols(
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.01") %>% select( -noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "0.5") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'rec', noise == "1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.01") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.1") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "0.5") %>% select(-noise, -Rec),
+#   filter(rmse.sim,  Rec == 'unrec', noise == "1") %>% select(-noise, -Rec, -ForecastHorizon)
+# ) %>%
+  # kable(
+  #   booktabs = TRUE,
+  #   format = "latex",
+  #   digits = 1,
+  #   linesep = "",
+  #   caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset",
+  #   col.names = c("Forecast Horizon", rep(c("ETS", "ARIMA", "OLS"), 8))
+  # ) %>%
+  # add_header_above(c("", "0.01" = 3, "0.1" = 3, "0.5" = 3, "1" = 3)) %>%
+  # add_header_above(c("", "Unreconciled" = 12, "Reconciled" = 12)) %>%
+  # kable_styling(position = "center", latex_options = "hold_position")
+```
+
+```{r TourismsimcomputationtimefixedlevelNS, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Fixed origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.", out.width="100%"}
+com.time.level.NS %>%
+ filter(ForecastInterval == "fixed") %>% 
+  ggplot() +
+   geom_line(aes(x = NS, y = ComputationTime, color = Method, linetype = Rec)) +
+   scale_color_manual(name = "Series", values = c(ETS = "green", ARIMA = "blue", OLS = "red"))+
+   scale_linetype_manual(name = "Reconciled", values=c( rec = "dashed", unrec = "dotted"))+
+   facet_wrap(.~Level, nrow = 2) +
+   scale_x_continuous(breaks=c(304,608,1520,3040)) +
+   xlab("Levels of the hierarchy") + ylab("Computation time") +
+   theme_light()+
+   theme(
+    axis.text = element_text(size = 10),
+    strip.text = element_text(size = 12),
+    axis.title = element_text(size = 12, face = "bold")
+    )
+```
+
 \clearpage
 \FloatBarrier
 
 ## Wikipedia pageviews: Grouped structure
 
-The second dataset comprises one year of daily data (2016-06-01 to 2017-06-29) on Wikipedia pageviews for the most popular social networks articles [@ashouri2018]. This dataset is noisier than the Australian monthly tourism data, making forecasting more challenging. The data has a grouped structure with the following attributes: "Agent": Spider, User, "Access": Desktop, Mobile app, Mobile web, "Language": en (English), de (German), es (Spanish), zh (Chinese) and "Purpose": Blogging related, Business, Gaming, General purpose, Life style, Photo sharing, Reunion, Travel, Video (see Table \@ref(tab:wikipediagroupingstructure)). <!--In Figure \@ref(fig:wikigroupstructure) we show one possible hierarchy for this dataset, but the order of the hierarchy can be switched.-->
+The second dataset comprises one year of daily data (2016-06-01 to 2017-06-29) on Wikipedia pageviews for the most popular social networks articles [@ashouri2018]. This dataset is noisier than the Australian monthly tourism data, making forecasting more challenging. The data has a grouped structure with the following attributes: "Agent": Spider, User, "Access": Desktop, Mobile app, Mobile web, "Language": en (English), de (German), es (Spanish), zh (Chinese) and "Purpose": Blogging related, Business, Gaming, General purpose, Life style, Photo sharing, Reunion, Travel, Video (see Table \@ref(tab:wikipediagroupingstructure)). In Figure \@ref(fig:wikigroupstructure) ([Appendix B](#appendixB)), \textcolor{blue}{we show one possible hierarchy for this dataset, but the order of the hierarchy can be switched.}
 
 ```{r Readwikipedia, results='hide'}
 error.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/error.wiki.csv")
@@ -758,29 +1158,45 @@ kable(table1, format = "latex", booktabs = TRUE, linesep = "", caption = "Social
   kable_styling(position = "center")
 ```
 
-```{r wikigroupstructure, echo=FALSE, out.width = "500px", out.height= "250px", fig.align="center", fig.cap="One of the possible hierarchical structures for the Wikipedia pageview dataset."}
-# knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
+
+We consider the main aggregation factors and two-way combinations of them ^[There are four more 3-way aggregation combinations that we do not include: Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these four additional aggregations might slightly improve the results but for simplicity, we excluded them.]. The final dataset includes 913 time series, each with length 394. Table \@ref(tab:wikidivision) \textcolor{blue}{shows the group structure’s different levels and the number of series in each level.} 
+
+```{r wikidivision, results='asis'}
+groups <- tribble(
+  ~Division, ~Series,
+  "Total pageviews", 1,
+  "Access", 3,
+  "Agent", 2,
+  "Language", 4,
+  "Purpose", 9,
+  "Access x Agent", 5,
+  "Access x Language", 12,
+  "Access x Purpose", 27,
+  "Agent x Language", 8,
+  "Agent x Purpose", 18,
+  "Language x Purpose", 33,
+  "Bottom level", 913,
+  "Total", NA
+)
+groups[13, 2] <- sum(groups[1:12, 2])
+groups %>%
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
+    caption = "Number of Wikipedia pageviews series at each aggregation level."
+  ) %>%
+  kable_styling(
+    position = "center",
+    latex_options = "hold_position"
+  ) %>%
+  row_spec(row = 12, hline_after = TRUE)
 ```
-
-We consider the main aggregation factors and two-way combinations of them. The final dataset includes 913 time series, each with length 394. The applied group structure and different levels include the following aggregations:^[There are four more 3-way aggregation combinations that we do not include: Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these four additional aggregations might slightly improve the results but for simplicity, we excluded them.]
-
-- Total
-- Access
-- Agent
-- Language
-- Purpose
-- Access $\times$ Agent
-- Access $\times$ Language
-- Access $\times$ Purpose
-- Agent $\times$ Language
-- Agent $\times$ Purpose
-- Language $\times$ Purpose
-- Bottom level: Access $\times$ Agent $\times$  Language $\times$ Purpose
 
 
 <!--\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}-->
 
-For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and all 7 lags for rolling, and for fixed origin model we use a quadratic trend, 6 seasonal dummies and lags 1 and 7. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set. In this example, the results in tables and figures are represented for single groups although we applied all the above levels in the group structure for reconciliation.
+For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and \textcolor{blue} {lags 1 and 7 for rolling and fixed origin models}. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set. In this example, the results in tables and figures are represented for single groups although we applied all the above levels in the group structure for reconciliation.
 
 Tables \@ref(tab:wikipediadataresulrolling) and \@ref(tab:wikipediadataresultRMSE) show the RMSE results. Although these time series are noisier, we still get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step.
 
@@ -821,7 +1237,8 @@ error.wiki %>%
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
   ggplot(aes(x = id, y = Value, fill = id)) +
-  geom_boxplot(alpha = 0.5) +
+  stat_summary(fun.data = boxplot.stat, geom="boxplot", alpha = 0.5) + 
+  #geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
   facet_wrap(~facet, ncol = 3, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
@@ -853,7 +1270,8 @@ error.wiki %>%
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
   ggplot(aes(x = id, y = Value, fill = id)) +
-  geom_boxplot(alpha = 0.5) +
+  stat_summary(fun.data = boxplot.stat, geom="boxplot", alpha = 0.5) + 
+  #geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
   facet_wrap(~facet, ncol = 3, scales = "free_y") +
   guides(fill = guide_legend(nrow = 1, bycol = TRUE)) +
@@ -884,10 +1302,11 @@ ylim <- forecast.wiki %>%
   range()
 h1 <- forecast.wiki %>%
   filter(Series == "Total", ForecastInterval == "1Step") %>%
-  rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
+  #rename(Reconciled = Rec) %>%
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
   geom_line() + ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle("Rolling origin 1-step forecasts") +
+  scale_linetype_manual(name = "Reconciled", values=c(Actual = "solid", rec = "dashed", unrec = "dotted"))+
   scale_color_manual(
     name = "Series",
     values = c(
@@ -902,10 +1321,11 @@ h1 <- forecast.wiki %>%
   theme_bw() + guides(linetype = FALSE)
 h2 <- forecast.wiki %>%
   filter(Series == "Total", ForecastInterval == "28Step") %>%
-  rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
+  #rename(Reconciled = Rec) %>%
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
   geom_line() + ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle("Fixed origin multi-step forecasts") +
+  scale_linetype_manual(name = "Reconciled", values=c(Actual = "solid", rec = "dashed", unrec = "dotted"))+
   scale_color_manual(
     name = "Series",
     values = c(
@@ -929,10 +1349,11 @@ ylim <- forecast.wiki %>%
   range()
 f1 <- forecast.wiki %>%
   filter(Series == "desktopusenPho04", ForecastInterval == "1Step") %>%
-  rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
+  #rename(Reconciled = Rec) %>%
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
   geom_line() + ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle(" Rolling origin 1-step forecasts") +
+  scale_linetype_manual(name = "Reconciled", values=c(Actual = "solid", rec = "dashed", unrec = "dotted"))+
   scale_color_manual(
     name = "Series",
     values = c(
@@ -947,10 +1368,11 @@ f1 <- forecast.wiki %>%
   theme_bw() + guides(linetype = FALSE)
 f2 <- forecast.wiki %>%
   filter(Series == "desktopusenPho04", ForecastInterval == "28Step") %>%
-  rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Reconciled)) +
+  #rename(Reconciled = Rec) %>%
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
   geom_line() + ylim(ylim) +
   xlab("Horizon") + ylab("Count") + ggtitle("Fixed origin multi-step forecasts") +
+  scale_linetype_manual(name = "Reconciled", values=c(Actual = "solid", rec = "dashed", unrec = "dotted"))+
   scale_color_manual(
     name = "Series",
     values = c(
@@ -968,7 +1390,7 @@ gridExtra::grid.arrange(f1, f2, nrow = 2)
 
 Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin forecasts over 28 days in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels, series have higher counts and therefore their error magnitudes are larger.
 
-In Figures \@ref(fig:forecstrolling28wikitotal) and \@ref(fig:forecstrolling28wiki), we display results for the total and one of the bottom level series, "desktopusenPho04" (desktop-user-english-photo sharing). The plot shows rolling and fixed origin forecast results over the 28 day test set for ETS, ARIMA and OLS, with (solid lines) and without (dashed lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
+In Figures \@ref(fig:forecstrolling28wikitotal) and \@ref(fig:forecstrolling28wiki), we display results for the total and one of the bottom level series, "desktopusenPho04" (desktop-user-english-photo sharing). The plot shows rolling and fixed origin forecast results over the 28 day test set for ETS, ARIMA and OLS, \textcolor{blue}{with (dashed lines) and without (dotted lines)} applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
 
 Table \@ref(tab:wikipediadatacomputationtime) presents the computation times for all three methods. ETS and ARIMA are clearly much more computationally heavy compared with OLS. As in the Australian tourism dataset, running reconciliation does not have much effect on computation time.
 
@@ -1026,6 +1448,7 @@ error.transform.tourism <- lapply(error.tourism.2, function(x) {
 
 do.call("rbind", error.transform.tourism) %>%
   ggplot(aes(x = id, y = value.scale, fill = id)) +
+  #stat_summary(fun.data = calc_boxplot_stat, geom="boxplot", alpha = 0.5) + 
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
   facet_wrap(~facet, ncol = 4, scales = "fixed") +
@@ -1068,6 +1491,7 @@ error.transform.tourism.24 <- lapply(error.tourism.22, function(x) {
 
 do.call("rbind", error.transform.tourism.24) %>%
   ggplot(aes(x = id, y = value.scale, fill = id)) +
+  #stat_summary(fun.data = calc_boxplot_stat, geom="boxplot", alpha = 0.5) + 
   geom_boxplot(alpha = 0.5) +
   xlab("Method") + ylab("Error") +
   facet_wrap(~facet, ncol = 4, scales = "fixed") +
@@ -1090,5 +1514,12 @@ do.call("rbind", error.transform.tourism.24) %>%
     legend.position = "none"
   )
 ```
+
+# Appendix B {#appendixB -}
+
+```{r wikigroupstructure, echo=FALSE, out.width = "500px", out.height= "250px", fig.align="center", fig.cap="One of the possible hierarchical structures for the Wikipedia pageview dataset."}
+knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
+```
+
 
 \clearpage

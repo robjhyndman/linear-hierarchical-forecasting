@@ -85,12 +85,20 @@ write.csv(errors.arima.ets,"errors.arima.ets.rolling.csv")
 
 #### creating forecast by OLS and OLSlog
 #### OLS rolling function
-OLSmodel<-function(X,freq,maxlag,h){
+OLSmodel<-function(X,freq,maxlag,h, nolag = NULL){
   X<-as.vector(X)
   trend<-seq(NROW(X))
   season<-forecast::seasonaldummy(ts(X,frequency = freq))
-  Xlag<-quantmod::Lag(X,k=1:maxlag)
-  X_mat<-cbind.data.frame(X,trend,season,Xlag)
+  if(maxlag>0)
+  {
+    Xlag <- quantmod::Lag(X,k=1:maxlag)
+    if(length(nolag) == 0)
+      X_mat <- cbind.data.frame(X, trend, season)
+    else
+      X_mat <- cbind.data.frame(X, trend, season, Xlag[,nolag])
+  }
+  else
+    X_mat<-cbind.data.frame(X,trend,season)
   n <- nrow(X_mat)
   fore_base_OLS<-matrix(NA,nrow = h,ncol=1)
   for (i in 1:h) {
@@ -113,9 +121,9 @@ dimnames(fc.OLS.base) <- list(
 for(i in seq(NCOL(ally)))
 {
   # OLS forecasts
-  fc.OLS.base[,i,"OLS"] <- OLSmodel(ally[,i],12,12,24)
+  fc.OLS.base[,i,"OLS"] <- OLSmodel(ally[,i],12,12,24, nolag = c(1,12))
   # OLS forecasts using logs
-  fc.OLS.base[,i,"OLSlog"] <- exp(OLSmodel(log(ally[,i]+1),12,12,24))-1
+  fc.OLS.base[,i,"OLSlog"] <- exp(OLSmodel(log(ally[,i]+1),12,12,24, nolag = c(1,12)))-1
 }
 ### setting negative base forecasts zero
 fc.OLS.base[fc.OLS.base<0]<-0
