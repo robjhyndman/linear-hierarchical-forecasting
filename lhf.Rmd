@@ -302,19 +302,18 @@ For obtaining  prediction intervals, we need to compute the variance of reconcil
 \end{equation}
 where $\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}$ and ${\bm{\Sigma}_{t+h}}$ denotes the variance of the base forecasts given by the usual linear model formula [@fpp2]
 $$
-  \bm{\Sigma}_{t+h} = \sigma^2\left[1 + \bm{X}_{t+h}^*(\bm{X}'\bm{X})^{-1}(\bm{X}_{t+h}^*)'\right].
+  \bm{\Sigma}_{t+h} = \sigma^2\left[1 + \bm{X}_{t+h}^*(\bm{X}'\bm{X})^{-1}(\bm{X}_{t+h}^*)'\right],
 $$
-\textcolor{blue}{Where the  $\sigma^2$ is the $N\times N$ diagonal matrix of forecasted error variances}. Assuming normally distributed errors, we can easily obtain any required prediction intervals corresponding to elements of $\tilde{\bm{y}}_{t+h}$ using the diagonals of \eqref{eq:variance}.
-
+where $\sigma^2$ is the variance of the base model residuals. Assuming normally distributed errors, we can easily obtain any required prediction intervals corresponding to elements of $\tilde{\bm{y}}_{t+h}$ using the diagonals of \eqref{eq:variance}.
 
 # Applications
 
-In this section we illustrate our approach using two \textcolor{blue}{real data} examples \textcolor{blue}{and one simulated dataset example}^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 1.2.5019.]. \textcolor{blue}{The real examples study includes }forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. \textcolor{blue}{In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and modify the forecasting horizon, noise level, hierarchy levels, and number of series.}. We compare the forecasting accuracy of ETS, ARIMA^[\textcolor{blue}{For running ETS and ARIMA, we applied 'ets' and 'auto.arima' functions in 'forecast' package} [@Rforecast]. \textcolor{blue}{Also, The two sets of functions were run independently and not immediately one after the other.}] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. \textcolor{blue}{For visibility, we suppress plotting the outliers.}
+In this section we illustrate our approach using two real data sets and one simulated example\todo{Check R version. Currently 4.02}^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 1.2.5019.]. The real data study includes forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. We compare the forecasting accuracy of ETS, ARIMA^[For running ETS and ARIMA, we applied 'ets' and 'auto.arima' functions from the 'forecast' package} [@Rforecast]. The two sets of functions were run independently and not immediately one after the other.] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
 
-The two \textcolor{blue}{real} datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.
+The two real datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.
 
-\textcolor{blue}{We apply two methods for generating forecasts that align with two different practical forecasting scenarios. The first approach is} *rolling origin* \textcolor{blue}{forecasting, where we generate one-step-ahead forecasts ($\tilde{\bm{y}}_{t+h}$ where $t$ changes). This assumes a scenario where data are refreshed every time period. In the second} *fixed origin* \textcolor{blue}{method, forecasts are generated at fixed time $t$ for $h$ steps ahead:  $\tilde{\bm{y}}_{t+1}$, $\tilde{\bm{y}}_{t+2}$,...,
-$\tilde{\bm{y}}_{t+h}$ (we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin).}
+We apply two methods for generating forecasts that align with two different practical forecasting scenarios. The first approach is *rolling origin* forecasting, where we generate one-step-ahead forecasts ($\tilde{\bm{y}}_{t+1}$ where $t$ changes). This mimics the scenario where data are refreshed every time period. In the second *fixed origin* method, forecasts are generated at a fixed time $t$ for $h$ steps ahead: $\tilde{\bm{y}}_{t+1}, \tilde{\bm{y}}_{t+2},\dots,
+\tilde{\bm{y}}_{t+h}$ (we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin).
 
 <!--
 We apply two methods for generating forecasts, which differ in how they handle unobserved lagged values as inputs. The first approach is ex post in that it uses actual values, even when they are future to the forecast origin. These values are known to us because they are in the test set. We call these *rolling origin* forecasts. In the second ex ante method, we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin. We call these *fixed origin* forecasts.
@@ -442,7 +441,7 @@ groups %>%
 ```
 
 We report the forecast results for all these aggregation levels, as well as the average RMSE across all the levels of the hierarchy. We used different predictors in the OLS predictor
-matrix for the rolling and fixed origin approaches. \textcolor{blue}{For the rolling and fixed origin model, we include a linear trend, 11 dummy variables, and lags 1 and 12.} This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
+matrix for the rolling and fixed origin approaches. For the rolling and fixed origin model, we include a linear trend, 11 dummy variables, and lags 1 and 12. This is intended to capture the monthly seasonality. In addition, before running the model, we partition the data into training and test sets, with the last 24 months (2 years) as our test set, and the rest as our training set.
 
 ```{r Tourismdataresulrolling, results='asis', dependson="Readtourism"}
 bind_cols(
@@ -454,7 +453,7 @@ bind_cols(
     format = "latex",
     digits = 1,
     linesep = "",
-    caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset",
+    caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset.",
     col.names = c("Level", rep(c("ETS", "ARIMA", "OLS"), 2))
   ) %>%
   add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
@@ -468,7 +467,7 @@ bind_cols(
 ) %>%
   kable(
     booktabs = TRUE, format = "latex", digits = 1, linesep = "",
-    caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - Tourism dataset",
+    caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - Tourism dataset.",
     col.names = c("Level", rep(c("ETS", "ARIMA", "OLS"), 2))
   ) %>%
   add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
@@ -559,9 +558,9 @@ error.tourism %>%
 
 In Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism) we display the error box plots for both reconciled and unreconciled forecasts using all three methods, for the rolling origin and fixed origin forecasts. In these figures we see the error distributions across all the models.
 
-Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series \textcolor{blue}{(see Table} \@ref(tab:Tourismdatacomputationtime)). We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors^[\textcolor{blue}{Scaled errors are computed by subtracting the mean and dividing by the standard deviation.}], to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts.
+Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series (see Table \@ref(tab:Tourismdatacomputationtime)). We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors^[\textcolor{blue}{Scaled errors are computed by subtracting the mean and dividing by the standard deviation.}], to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts.
 
-Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin forecast results for the total series and one of the bottom level series, BACBus (Geelong - Business). \textcolor{blue} {In these plots we have both reconciled (dashed lines) and unreconciled (dotted lines) forecasts} and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods.
+Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin forecast results for the total series and one of the bottom level series, BACBus (Geelong - Business). In these plots we have both reconciled (dashed lines) and unreconciled (dotted lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods.
 
 ```{r forecstrolling24tourismtotal, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled ETS, ARIMA and OLS methods for rolling and fixed origin tourism demand.", out.width="100%"}
 ### total series
@@ -665,7 +664,7 @@ p2 <- forecast.tourism %>%
 p1 / p2
 ```
 
-Figures \@ref(fig:predinttotal) and \@ref(fig:predintBACBus) \textcolor{blue}{display the prediction interval for the OLS approach, with and without reconciliation forecasts for the total series and one of the bottom level series, BACBus (Geelong - Business).}
+Figures \@ref(fig:predinttotal) and \@ref(fig:predintBACBus) display the prediction interval for the OLS approach, with and without reconciliation forecasts for the total series and one of the bottom level series, BACBus (Geelong - Business).\todo{Why don't the intervals increase with the horizon?}
 
 ```{r predinttotal, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for fixed origin tourism demand.", out.width="100%", fig.height=3}
 ### total series
