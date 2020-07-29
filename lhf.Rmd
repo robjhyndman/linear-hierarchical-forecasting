@@ -80,7 +80,7 @@ We use the same notation [following @fpp2] for both hierarchical and grouped tim
 
 ## Forecasting hierarchical time series
 
-If we just forecast each series individually, we are ignoring the hierarchical or grouping structure, and the forecasts will not be "coherent" (they will not add up appropriately). \textcolor{blue}{This means we need the forecasts to add up in a way which is consistent with the aggregation structure of the time series collection} [@fpp2]. 
+If we just forecast each series individually, we are ignoring the hierarchical or grouping structure, and the forecasts will not be "coherent". That is, they will not add up in a way that is consistent with the aggregation structure of the time series collection [@fpp2].
 
 There are several available methods that consider the hierarchical structure information when forecasting time series. These include the top-down [@gross1990disaggregation;@fliedner2001hierarchical], bottom-up [@kahn1998revisiting], middle-out and optimal combination [@hyndman2011optimal] approaches. In the top-down approach, we first forecast the total series and then disaggregate the forecast to form lower level series forecasts based on a set of historical and forecasted proportions [for details see @athanasopoulos2009hierarchical]. In the bottom-up approach, the forecasts in each level of the hierarchy can be computed by aggregating the bottom level series forecasts. However, we may not get good upper-level forecasts because the most disaggregated series can be noisy and so their forecasts are often inaccurate. In the middle-out approach, the process can be started from one of the middle levels and other forecasts can be computed using aggregation for upper levels and disaggregation for lower levels. Finally, optimal combination uses all the $N$ forecasts for all of the series in the entire structure, and then uses an optimization process to reconcile the resulting forecasts. The advantage of the optimal combination method, compared with the other methods, is that it considers all information in the hierarchy, including any correlations among the series.
 
@@ -283,9 +283,9 @@ As an example of the $\bm{X}_t$ matrix in Equation \@ref(eq:linearmodel), we can
 \end{equation}
 Here, $s_{j,t}$ is a dummy variable taking value 1 if time $t$ is in season $j$ ($j=1, 2, \dots, m$), $y_{t-k}$ is the $k$th lagged value for $y_t$ and $z_t$ is some external information at time $t$. The seasonal period $m$ depends on the problem; for instance, if we have daily data with day-of-week seasonality, then $m=7$.
 
-Because of using lags and external series as predictors in Equation \@ref(eq:linearmodelexample), we do not have same set of predictors for all the series, $y_t$. However, if we just use trend and seasonality dummies as the predictors, then the simpler equations, \textcolor{blue}{Equation} \@ref(eq:linearmodelsameX),  <!--given in Section \@ref(sec:proposedapproach1)!--> can be written using multivariate regression models.
+Because of using lags and external series as predictors in Equation \@ref(eq:linearmodelexample), we do not have same set of predictors for all the series, $y_t$. However, if we just use trend and seasonality dummies as the predictors, then the simpler equations, Equation \@ref(eq:linearmodelsameX),  <!--given in Section \@ref(sec:proposedapproach1)!--> can be written using multivariate regression models.
 
-\textcolor{blue}{When there are many options for choosing predictors, such as many seasonal dummy variables, lags, or high order trend terms, we can consider applying a model selection approach such as leave-one-out cross-validation (LOOCV) for time series to select the best set of predictors in terms of prediction. In practice, LOOCV can be computationally heavy, and therefore using linear models provide a viable solution. Also, when the number of seasons m is large (e.g. in hourly data), Fourier terms can sometimes result in  fewer predictors than dummy variables. The number of Fourier terms can also be determined using the same LOOCV approach} [@fpp2]. 
+When there are many options for choosing predictors, such as many seasonal dummy variables, lags, or high order trend terms, we can consider applying a model selection approach such as Akaike's Information Criterion or leave-one-out cross-validation (LOOCV) to select the best set of predictors in terms of prediction. In practice, LOOCV can be computationally heavy except in the special case of linear models [@christensenplane] and therefore using linear models provide a viable solution. Also, when the number of seasons $m$ is large (e.g. in hourly data), Fourier terms can result in fewer predictors than dummy variables. The number of Fourier terms can also be determined using the same AIC or LOOCV approach [@fpp2].
 
 While OLS is popular in practice for forecasting time series, it is often frowned upon due to its independence assumption. This can cause issues for parametric inference but is less of a problem for forecasting. In fact it often performs sufficiently well for forecasting as can be seen by its popular use in practice. Further, the use of autoregressive terms in the above model should model most of the autocorrelation in the data.
 
@@ -309,7 +309,7 @@ $$
 
 # Applications
 
-In this section we illustrate our approach using two \textcolor{blue}{real data} examples \textcolor{blue}{and one simulated dataset example}^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 1.2.5019.]. \textcolor{blue}{The real examples study includes }forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. \textcolor{blue}{In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and modify the forecasting horizon, noise level, hierarchy levels, and number of series.}. We compare the forecasting accuracy of ETS, ARIMA^[\textcolor{blue}{For running ETS and ARIMA, we applied 'ets' and 'auto.arima' functions in 'forecast' package} [@hyndman2020package]. \textcolor{blue}{Also, The two sets of functions were run independently and not immediately one after the other.}] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. \textcolor{blue}{For visibility, we suppress plotting the outliers.}
+In this section we illustrate our approach using two \textcolor{blue}{real data} examples \textcolor{blue}{and one simulated dataset example}^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 1.2.5019.]. \textcolor{blue}{The real examples study includes }forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. \textcolor{blue}{In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and modify the forecasting horizon, noise level, hierarchy levels, and number of series.}. We compare the forecasting accuracy of ETS, ARIMA^[\textcolor{blue}{For running ETS and ARIMA, we applied 'ets' and 'auto.arima' functions in 'forecast' package} [@Rforecast]. \textcolor{blue}{Also, The two sets of functions were run independently and not immediately one after the other.}] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. \textcolor{blue}{For visibility, we suppress plotting the outliers.}
 
 The two \textcolor{blue}{real} datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.
 
@@ -319,6 +319,7 @@ $\tilde{\bm{y}}_{t+h}$ (we replace lagged values of $y$ by their forecasts if th
 <!--
 We apply two methods for generating forecasts, which differ in how they handle unobserved lagged values as inputs. The first approach is ex post in that it uses actual values, even when they are future to the forecast origin. These values are known to us because they are in the test set. We call these *rolling origin* forecasts. In the second ex ante method, we replace lagged values of $y$ by their forecasts if they occur at periods after the forecast origin. We call these *fixed origin* forecasts.
 -->
+
 ## Australian domestic tourism
 
 ```{r Readtourism, results='hide'}
@@ -474,7 +475,6 @@ bind_cols(
   kable_styling(position = "center")
 ```
 
-
 ```{r boxplotrollingtourism, fig.align="center", fig.cap="Box plots of rolling origin forecast errors from reconciled and unreconciled ETS, ARIMA and OLS methods at each hierarchical level for tourism demand.", out.width="100%"}
 ## 1-step-ahead
 boxplot.stat <- function(x) {
@@ -560,7 +560,6 @@ error.tourism %>%
 In Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism) we display the error box plots for both reconciled and unreconciled forecasts using all three methods, for the rolling origin and fixed origin forecasts. In these figures we see the error distributions across all the models.
 
 Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series \textcolor{blue}{(see Table} \@ref(tab:Tourismdatacomputationtime)). We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors^[\textcolor{blue}{Scaled errors are computed by subtracting the mean and dividing by the standard deviation.}], to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts.
-
 
 Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin forecast results for the total series and one of the bottom level series, BACBus (Geelong - Business). \textcolor{blue} {In these plots we have both reconciled (dashed lines) and unreconciled (dotted lines) forecasts} and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods.
 
@@ -744,10 +743,6 @@ tibble(
   kable_styling(position = "center", full_width = FALSE)
 ```
 
-Since we are using a linear model, we can easily include exogenous variables which can often be helpful in improving forecast accuracy. In this application, we tried including an "Easter" dummy variable indicating the timing of Easter, but its affect on forecast accuracy was minimal, so it was omitted in the model reported here.
-
-Finally, Table \@ref(tab:Tourismdatacomputationtimeappendix) shows that, as mentioned in Section \@ref(sec:computationalconsiderations), computation is faster using separate regression models compared to the matrix approach (even using sparse matrix algebra).
-
 ```{r Readloopsvsmatrix, results='hide', eval=FALSE}
 forecast.tourism.loops.matrix <- readr::read_csv("Paper-Figures/results_Tourism/loopsvsmatrix.csv")
 ```
@@ -838,7 +833,7 @@ bind_cols(
 
 ## Australian domestic tourism simulation study
 
-\textcolor{blue}{In this part, we provide results from two simulation studies based on the Australian domestic tourism dataset, to evaluate the sensitivity of our results to several factors. In the first study, we simulate bottom-level series similar to the real bottom-level series of the tourism data, with the same number of series and the same length. We then generate forecasts for four forecast horizons (12, 24, 36 and 48 months) with four different noise levels (standard deviation=0.01, 0.1, 0.5 and 1)}^[\textcolor{blue}{Since the level of the series are different, we first scale the simulated series (subtracting by mean and dividing by standard deviation), add the white noise series and then we rescale the series.}]. 
+\textcolor{blue}{In this part, we provide results from two simulation studies based on the Australian domestic tourism dataset, to evaluate the sensitivity of our results to several factors. In the first study, we simulate bottom-level series similar to the real bottom-level series of the tourism data, with the same number of series and the same length. We then generate forecasts for four forecast horizons (12, 24, 36 and 48 months) with four different noise levels (standard deviation=0.01, 0.1, 0.5 and 1)}^[\textcolor{blue}{Since the level of the series are different, we first scale the simulated series (subtracting by mean and dividing by standard deviation), add the white noise series and then we rescale the series.}].
 
 ```{r Readsimtourism, results='hide'}
 error.sim.tourism.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.noise.FH.csv")[, -1]
@@ -980,8 +975,7 @@ com.time.noise.FH %>%
   )
 ```
 
-
-\textcolor{blue}{In the second simulation study, we fix the forecast horizon at h=24 and the noise at 0.5, and then create 4 different hierarchy levels (8, 10, 12 and 18) -- these obtained using the hierarchy structures in Table} \@ref(tab:Australiageographicalpurposedivision), \@ref(tab:simlevel1), \@ref(tab:simlevel1level2) and \@ref(tab:simlevel1level2group1) (8 = same as Australian domestic tourism data; 9= adding one hierarchy factor, resulting in 10 levels; 10= adding two hierarchy factors, resulting in 12 levels; and 11 = adding two hierarchy factors and one grouping factor, resulting in 18 levels)^[For simplicity we just include 2-way aggregation combinations.]). 
+\textcolor{blue}{In the second simulation study, we fix the forecast horizon at h=24 and the noise at 0.5, and then create 4 different hierarchy levels (8, 10, 12 and 18) -- these obtained using the hierarchy structures in Table} \@ref(tab:Australiageographicalpurposedivision), \@ref(tab:simlevel1), \@ref(tab:simlevel1level2) and \@ref(tab:simlevel1level2group1) (8 = same as Australian domestic tourism data; 9= adding one hierarchy factor, resulting in 10 levels; 10= adding two hierarchy factors, resulting in 12 levels; and 11 = adding two hierarchy factors and one grouping factor, resulting in 18 levels)^[For simplicity we just include 2-way aggregation combinations.]).
 
 ```{r simlevel1, results='asis'}
 groups <- tribble(
@@ -1212,8 +1206,7 @@ tibble(
   kable_styling(position = "center")
 ```
 
-
-We consider the main aggregation factors and two-way combinations of them ^[There are four more 3-way aggregation combinations that we do not include: Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these four additional aggregations might slightly improve the results but for simplicity, we excluded them.]. The final dataset includes 913 time series, each with length 394. Table \@ref(tab:wikidivision) \textcolor{blue}{shows the group structure’s different levels and the number of series in each level.} 
+We consider the main aggregation factors and two-way combinations of them ^[There are four more 3-way aggregation combinations that we do not include: Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these four additional aggregations might slightly improve the results but for simplicity, we excluded them.]. The final dataset includes 913 time series, each with length 394. Table \@ref(tab:wikidivision) \textcolor{blue}{shows the group structure’s different levels and the number of series in each level.}
 
 ```{r wikidivision, results='asis'}
 groups <- tribble(
@@ -1246,7 +1239,6 @@ groups %>%
   ) %>%
   row_spec(row = 12, hline_after = TRUE)
 ```
-
 
 <!--\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}-->
 
@@ -1583,6 +1575,5 @@ error.tourism %>%
 ```{r wikigroupstructure, echo=FALSE, out.width = "500px", out.height= "250px", fig.align="center", fig.cap="One of the possible hierarchical structures for the Wikipedia pageview dataset."}
 knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 ```
-
 
 \clearpage
