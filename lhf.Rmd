@@ -40,10 +40,7 @@ knitr::opts_chunk$set(echo = FALSE, cache = TRUE, message = FALSE, warning = FAL
 library(tidyverse)
 library(knitr)
 library(kableExtra)
-library(png)
-library(grid)
-library(gridExtra)
-library(bindrcpp)
+library(patchwork)
 ```
 
 # Introduction
@@ -63,9 +60,9 @@ Grouped time series involve more complicated aggregation structures compared to 
 We can think of such structures as hierarchical time series without a unique hierarchy. A schematic of this grouped time series structure is shown in Figure \@ref(fig:groupexample) with two grouping factors, each of two levels (A/B and C/D). The series in this structure can be split first into groups A and B and then subdivided further into C and D (left side), or split first into C and D and then subdivided into A and B (right side). The final disaggregation is identical in both cases, but the middle level aggregates are different.
 
 ```{r groupexample, out.width = "330px", out.height= "180px", fig.align="center", fig.cap="An example of a two level grouped structure."}
-G1 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_1.png")), interpolate = FALSE)
-G2 <- rasterGrob(as.raster(readPNG("Paper-Figures/Group_2.png")), interpolate = FALSE)
-grid.arrange(G1, G2, ncol = 2)
+G1 <- grid::rasterGrob(as.raster(png::readPNG("Paper-Figures/Group_1.png")), interpolate = FALSE)
+G2 <- grid::rasterGrob(as.raster(png::readPNG("Paper-Figures/Group_2.png")), interpolate = FALSE)
+gridExtra::grid.arrange(G1, G2, ncol = 2)
 ```
 
 We use the same notation [following @fpp2] for both hierarchical and grouped time series. We denote the total series at time $t$ by $y_t$, and the series at node $Z$ (subaggregation level $Z$) and time $t$ by $y_{Z,t}$. For describing the relationships between series, we use an $N\times M$ matrix, called the "summing matrix", denoted by $\bm{S}$, in which $N$ is the overall number of nodes and $M$ is the number of bottom level nodes. For example in Figure \@ref(fig:hierarchicalexample), $N = 7$ and $M = 4$, while in Figure \@ref(fig:groupexample), $N=9$ and $M=4$. Then we can write $\bm{y}_t=\bm{S}\bm{b}_t$, where $\bm{y}_t$ is a vector of all the level nodes at time $t$ and $\bm{b}_t$ is the vector of all the bottom level nodes at time $t$. For the example shown in Figure \@ref(fig:groupexample), the equation can be written as follows:
@@ -593,7 +590,8 @@ g2 <- forecast.tourism %>%
     )
   ) +
   theme_bw() + guides(color = FALSE)
-gridExtra::grid.arrange(g1, g2, nrow = 2)
+  guides(color = FALSE)
+(g1 / g2)
 ```
 
 ```{r forecstrolling24tourism, fig.align="center", fig.cap="The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled ETS, ARIMA and OLS methods for rolling and fixed origin tourism demand.", out.width="100%"}
@@ -636,7 +634,8 @@ p2 <- forecast.tourism %>%
     )
   ) +
   theme_bw() + guides(color = FALSE)
-gridExtra::grid.arrange(p1, p2, nrow = 2)
+  guides(color = FALSE)
+p1 / p2
 ```
 
 Figures \@ref(fig:predinttotal) and \@ref(fig:predintBACBus) \textcolor{blue}{display the prediction interval for the OLS approach, with and without reconciliation forecasts for the total series and one of the bottom level series, BACBus (Geelong - Business).}
@@ -741,7 +740,7 @@ lvsm.24 <-
   xlab("Separate regression models") + ylab("Matrix approach") + ggtitle("Fixed origin") +
   theme_bw() + guides(linetype = FALSE)
 
-gridExtra::grid.arrange(lvsm.1, lvsm.24, nrow = 1)
+lvsm.1 | lvsm.24
 ```
 
 ```{r Tourismdatacomputationtimeappendix, results='asis'}
@@ -1339,6 +1338,7 @@ h2 <- forecast.wiki %>%
   ) +
   theme_bw() + guides(color = FALSE)
 gridExtra::grid.arrange(h1, h2, nrow = 2)
+h1 / h2
 ```
 
 ```{r forecstrolling28wiki, fig.align="center", fig.cap="The actual test set for the 'desktopusenPho04' bottom level series compared to the forecasts from reconciled and unreconciled ETS, ARIMA and OLS methods for rolling and fixed origin forecasts of Wikipedia pageviews.", out.width="100%"}
@@ -1385,7 +1385,8 @@ f2 <- forecast.wiki %>%
     )
   ) +
   theme_bw() + guides(color = FALSE)
-gridExtra::grid.arrange(f1, f2, nrow = 2)
+  guides(color = FALSE)
+f1 / f2
 ```
 
 Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin forecasts over 28 days in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels, series have higher counts and therefore their error magnitudes are larger.
