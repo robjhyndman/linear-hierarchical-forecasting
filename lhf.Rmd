@@ -897,7 +897,7 @@ kable(rmse.sim.rolling.noise.FH,
   linesep = "",
   digits = c(0, 2, 0, 1, 1, 1),
   caption = "Mean RMSE on one to four year test set with different error levels for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset",
-  col.names = c("Reconceliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS")
+  col.names = c("Reconciliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS")
 ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
 # bind_cols(
@@ -931,7 +931,7 @@ kable(rmse.sim.noise.FH,
   linesep = "",
   digits = c(0, 2, 0, 1, 1, 1),
   caption = "Mean(RMSE) on one to four year test set with different error levels for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset",
-  col.names = c("Reconceliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS")
+  col.names = c("Reconciliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS")
 ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
 # bind_cols(
@@ -1138,7 +1138,7 @@ rmse.sim.level.NS.fix %>%
     linesep = "",
     digits = 0,
     caption = "Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - Fixed origin - Simulated tourism dataset",
-    col.names = c("Reconceliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
+    col.names = c("Reconciliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
   ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
 # bind_cols(
