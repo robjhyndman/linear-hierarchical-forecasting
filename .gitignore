@@ -11,7 +11,7 @@
 *.blg
 *.out
 *.run.xml
-
+*.log
 
 # History files
 *.Rhistory

@@ -371,22 +371,28 @@ This dataset has 19 years of monthly visitor nights in Australia by Australian t
 
 ```{r Australiageographicaldivision, results='asis'}
 tibble(
-  series = c("Total", "1",
-             "State", "2", "3", "4", "5", "6", "7", "8",
-             "Zone", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35",
-             "Region", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54"),
-  name = c("", "Australia",
-           "", "NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT",
-           "", "Metro NSW", "Nth Coast NSW", "Sth Coast NSW", "Sth NSW", "Nth NSW", "ACT", "Metro VIC", "West Coast VIC", "East Coast VIC", "Nth East VIC", "Nth West VIC", "Metro QLD", "Central Coast QLD", "Nth Coast QLD", "Inland QLD", "Metro SA", "Sth Coast SA", "Inland SA", "West Coast SA", "West Coast WA", "Nth WA", "Sth WA", "Sth TAS", "Nth East TAS", "Nth West TAS", "Nth Coast NT", "Central NT",
-           "", "Sydney", "Central Coast", "Hunter", "North Coast NSW", "Northern Rivers Tropical NSW", "South Coast", "Snowy Mountains", "Capital Country", "The Murray", "Riverina", "Central NSW", "New England North West", "Outback NSW", "Blue Mountains", "Canberra", "Melbourne", "Peninsula", "Geelong", "Western"),
-  label = c("", "Total",
-            "", "A", "B", "C", "D", "E", "F", "G",
-            "", "AA", "AB", "AC", "AD", "AE", "AF", "BA", "BB", "BC", "BD", "BE", "CA", "CB", "CC", "CD", "DA", "DB", "DC", "DD", "EA", "EB", "EC", "FA", "FB", "FC", "GA", "GB",
-            "", "AAA", "AAB", "ABA", "ABB", "ABC", "ACA", "ADA", "ADB", "ADC", "ADD", "AEA", "AEB", "AEC", "AED", "AFA", "BAA", "BAB", "BAC", "BBA"),
+  series = c(
+    "Total", "1",
+    "State", "2", "3", "4", "5", "6", "7", "8",
+    "Zone", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35",
+    "Region", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54"
+  ),
+  name = c(
+    "", "Australia",
+    "", "NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT",
+    "", "Metro NSW", "Nth Coast NSW", "Sth Coast NSW", "Sth NSW", "Nth NSW", "ACT", "Metro VIC", "West Coast VIC", "East Coast VIC", "Nth East VIC", "Nth West VIC", "Metro QLD", "Central Coast QLD", "Nth Coast QLD", "Inland QLD", "Metro SA", "Sth Coast SA", "Inland SA", "West Coast SA", "West Coast WA", "Nth WA", "Sth WA", "Sth TAS", "Nth East TAS", "Nth West TAS", "Nth Coast NT", "Central NT",
+    "", "Sydney", "Central Coast", "Hunter", "North Coast NSW", "Northern Rivers Tropical NSW", "South Coast", "Snowy Mountains", "Capital Country", "The Murray", "Riverina", "Central NSW", "New England North West", "Outback NSW", "Blue Mountains", "Canberra", "Melbourne", "Peninsula", "Geelong", "Western"
+  ),
+  label = c(
+    "", "Total",
+    "", "A", "B", "C", "D", "E", "F", "G",
+    "", "AA", "AB", "AC", "AD", "AE", "AF", "BA", "BB", "BC", "BD", "BE", "CA", "CB", "CC", "CD", "DA", "DB", "DC", "DD", "EA", "EB", "EC", "FA", "FB", "FC", "GA", "GB",
+    "", "AAA", "AAB", "ABA", "ABB", "ABC", "ACA", "ADA", "ADB", "ADC", "ADD", "AEA", "AEB", "AEC", "AED", "AFA", "BAA", "BAB", "BAC", "BBA"
+  ),
   series2 = c("Region", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "80", "81", "82", "83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97", "98", "99", "100", "101", "102", "103", "104", "105", "106", "107", "108", "109", "110", "111"),
   name2 = c("", "Lakes", "Gippsland", "Phillip Island", "General Murray", "Goulburn", "High Country", "Melbourne East", "Upper Yarra", "Murray East", "Wimmera+Mallee", "Western Grampians", "Bendigo Loddon", "Macedon", "Spa Country", "Ballarat", "Central Highlands", "Gold Coast", "Brisbane", "Sunshine Coast", "Central Queensland", "Bundaberg", "Fraser Coast", "Mackay", "Whitsundays", "Northern", "Tropical North Queensland", "Darling Downs", "Outback", "Adelaide", "Barossa", "Adelaide Hills", "Limestone Coast", "Fleurieu Peninsula", "Kangaroo Island", "Murraylands", "Riverland", "Clare Valley", "Flinders Range and Outback", "Eyre Peninsula", "Yorke Peninsula", "Australia's Coral Coast", "Experience Perth", "Australia's SouthWest", "Australia's North West", "Australia's Golden Outback", "Hobart and the South", "East Coast", "Launceston, Tamar and the North", "North West", "Wilderness West", "Darwin", "Kakadu Arnhem", "Katherine Daly", "Barkly", "Lasseter", "Alice Springs", "MacDonnell"),
   label2 = c("", "BCA", "BCB", "BCC", "BDA", "BDB", "BDC", "BDD", "BDE", "BDF", "BEA", "BEB", "BEC", "BED", "BEE", "BEF", "BEG", "CAA", "CAB", "CAC", "CBA", "CBB", "CBC", "CBD", "CCA", "CCB", "CCC", "CDA", "CDB", "DAA", "DAB", "DAC", "DBA", "DBB", "DBC", "DCA", "DCB", "DCC", "DCD", "DDA", "DDB", "EAA", "EAB", "EAC", "EBA", "ECA", "FAA", "FBA", "FBB", "FCA", "FCB", "GAA", "GAB", "GAC", "GBA", "GBB", "GBC", "GBD")
-  ) %>%
+) %>%
   kable(
     align = c("r", "l", "l", "r", "l", "l"),
     format = "latex",
@@ -394,7 +400,7 @@ tibble(
     linesep = "",
     longtable = TRUE,
     caption = "Australia geographic hierarchical structure.",
-    col.names = c("Series","Name","Label","Series","Name","Label")
+    col.names = c("Series", "Name", "Label", "Series", "Name", "Label")
   ) %>%
   kable_styling(position = "center", font_size = 9)
 ```
@@ -445,13 +451,13 @@ matrix for the rolling and fixed origin approaches. For the rolling and fixed or
 
 ```{r Tourismdataresulrolling, results='asis', dependson="Readtourism"}
 bind_cols(
-    rmse %>% filter(ForecastInterval == "1Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
-    rmse %>% filter(ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
-  ) %>%
+  rmse %>% filter(ForecastInterval == "1Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
+  rmse %>% filter(ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
+) %>%
   kable(
     booktabs = TRUE,
     format = "latex",
-    digits = 1,
+    digits = 0,
     linesep = "",
     caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset.",
     col.names = c("Level", rep(c("ETS", "ARIMA", "OLS"), 2))
@@ -466,7 +472,10 @@ bind_cols(
   filter(rmse, ForecastInterval == "24Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
-    booktabs = TRUE, format = "latex", digits = 1, linesep = "",
+    booktabs = TRUE,
+    format = "latex",
+    digits = 0,
+    linesep = "",
     caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - Tourism dataset.",
     col.names = c("Level", rep(c("ETS", "ARIMA", "OLS"), 2))
   ) %>%
@@ -558,7 +567,7 @@ error.tourism %>%
 
 In Figures \@ref(fig:boxplotrollingtourism) and \@ref(fig:boxplottourism) we display the error box plots for both reconciled and unreconciled forecasts using all three methods, for the rolling origin and fixed origin forecasts. In these figures we see the error distributions across all the models.
 
-Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series (see Table \@ref(tab:Tourismdatacomputationtime)). We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors^[\textcolor{blue}{Scaled errors are computed by subtracting the mean and dividing by the standard deviation.}], to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts.
+Together with Tables \@ref(tab:Tourismdataresulrolling) and \@ref(tab:TourismdataresultRMSE), results show that our proposed OLS forecasting model produces forecast accuracy similar to ETS and ARIMA, which are computationally heavy for many time series (see Table \@ref(tab:Tourismdatacomputationtime)). We also see the usefulness of the reconciliation in decreasing the average RMSE in all three methods. Except for the total series, reconciliation improves forecasts in all the hierarchy levels. Also, because the higher level series have higher counts, the errors are larger in magnitude ([Appendix A](#appendixA) shows the box plots with scaled errors^[Scaled errors are computed by subtracting the mean and dividing by the standard deviation.], to better compare errors across all the hierarchy levels). In addition, we see that (as expected) by applying rolling origin 1-step-ahead forecasts, the error densities are closer and more tightly distributed around zero than the fixed origin multi-step-ahead forecasts.
 
 Figures \@ref(fig:forecstrolling24tourismtotal) and \@ref(fig:forecstrolling24tourism) show the rolling and fixed origin forecast results for the total series and one of the bottom level series, BACBus (Geelong - Business). In these plots we have both reconciled (dashed lines) and unreconciled (dotted lines) forecasts and we see that the reconciliation step improves the forecasts in this series. We also see that the OLS model forecast accuracy is similar to the other two methods.
 
@@ -726,16 +735,20 @@ Finally, Table \@ref(tab:Tourismdatacomputationtimeappendix) shows that, as ment
 
 ```{r Tourismdatacomputationtime, results='asis'}
 tibble(
-    model = c("ETS", "ARIMA", "OLS"),
-    rolling_unreconciled = c(10924.57, 31146.38, 48.40),
-    rolling_reconciled = c(10924.60, 31146.52, 48.31),
-    fixed_unreconciled = c(407.10, 1116.15, 17.42),
-    fixed_reconciled = c(407.15, 1116.19, 17.80)
-  ) %>%
+  model = c("ETS", "ARIMA", "OLS"),
+  rolling_unreconciled = c(10924.57, 31146.38, 48.40),
+  rolling_reconciled = c(10924.60, 31146.52, 48.31),
+  fixed_unreconciled = c(407.10, 1116.15, 17.42),
+  fixed_reconciled = c(407.15, 1116.19, 17.80)
+) %>%
   kable(
-    align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
+    align = c("l", rep("r", 4)),
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
     caption = "Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling and fixed origin forecasts on a 24 month test set - Tourism dataset",
-    col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled")
+    col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled"),
+    digits = 1,
   ) %>%
   column_spec(1:3, width = "3cm") %>%
   add_header_above(c("", "Rolling origin" = 2, "Fixed origin" = 2)) %>%
@@ -779,16 +792,20 @@ lvsm.1 | lvsm.24
 
 ```{r Tourismdatacomputationtimeappendix, results='asis'}
 tibble(
-    method = c("Matrix approach", "Separate models"),
-    rolling_unreconciled = c(202.06, 48.40),
-    rolling_reconciled = c(209.84, 48.31),
-    fixed_unreconciled = c(87.73, 16.66),
-    fixed_reconciled = c(105.69, 16.85)
-  ) %>%
+  method = c("Matrix approach", "Separate models"),
+  rolling_unreconciled = c(202.06, 48.40),
+  rolling_reconciled = c(209.84, 48.31),
+  fixed_unreconciled = c(87.73, 16.66),
+  fixed_reconciled = c(105.69, 16.85)
+) %>%
   kable(
-    align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
+    align = c("l", rep("r", 4)),
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
     caption = "Computation time (seconds) for OLS using the matrix approach and separate regression models, with and without reconciliation, on a rolling and fixed origin for 24 steps ahead.",
-    col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled")
+    col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled"),
+    digits = 1
   ) %>%
   column_spec(1:3, width = "3cm") %>%
   add_header_above(c("", "Rolling origin" = 2, "Fixed origin" = 2)) %>%
@@ -832,7 +849,7 @@ bind_cols(
 
 ## Australian domestic tourism simulation study
 
-\textcolor{blue}{In this part, we provide results from two simulation studies based on the Australian domestic tourism dataset, to evaluate the sensitivity of our results to several factors. In the first study, we simulate bottom-level series similar to the real bottom-level series of the tourism data, with the same number of series and the same length. We then generate forecasts for four forecast horizons (12, 24, 36 and 48 months) with four different noise levels (standard deviation=0.01, 0.1, 0.5 and 1)}^[\textcolor{blue}{Since the level of the series are different, we first scale the simulated series (subtracting by mean and dividing by standard deviation), add the white noise series and then we rescale the series.}].
+We provide results from two simulation studies based on the Australian domestic tourism dataset, to evaluate the sensitivity of our results to several factors. In the first study, we simulate bottom-level series similar to the real bottom-level series of the tourism data, with the same number of series and the same length. We then generate forecasts for four forecast horizons (12, 24, 36 and 48 months) with four different noise levels (standard deviation=0.01, 0.1, 0.5 and 1)^[Since the level of the series are different, we first scale the simulated series (subtracting by mean and dividing by standard deviation), add the white noise series and then we rescale the series.].
 
 ```{r Readsimtourism, results='hide'}
 error.sim.tourism.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.noise.FH.csv")[, -1]
@@ -870,13 +887,16 @@ rmse.sim.level.NS.fix <- fc.sim.fix.level.NS %>%
 com.time.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/computation.level.NS.csv")
 ```
 
-Tables \@ref(tab:TourismdatasimrollingnoiseFH) and \@ref(tab:TourismdatasimfixnoiseFH) \textcolor{blue}{display the average of the RMSEs for 12 to 48 month-ahead forecasts with different noise levels. Results are shown for the base and the reconciled forecasts for both rolling and fixed origin approaches. The results show that, as expected, by increasing the forecast horizon and/or noise level, the average RMSE increases in all the three methods. Also, the proposed OLS approach shows similar results compared with ETS and ARIMA. It should be noted that for both rolling and fixed origin forecasts in the OLS approach we use the same set of predictors as the Australian domestic tourism example.}
+Tables \@ref(tab:TourismdatasimrollingnoiseFH) and \@ref(tab:TourismdatasimfixnoiseFH) display the average of the RMSEs for 12 to 48 month-ahead forecasts with different noise levels. Results are shown for the base and the reconciled forecasts for both rolling and fixed origin approaches. The results show that, as expected, by increasing the forecast horizon and/or noise level, the average RMSE increases in all the three methods. Also, the proposed OLS approach shows similar results compared with ETS and ARIMA. It should be noted that for both rolling and fixed origin forecasts in the OLS approach we use the same set of predictors as the Australian domestic tourism example.
 
 ```{r TourismdatasimrollingnoiseFH, results='asis', dependson="Readsimtouris"}
 kable(rmse.sim.rolling.noise.FH,
-  align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
-  digits = 2,
-  caption = "Mean(RMSE) on one to four year test set with different error levels for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset",
+  align = c("l", rep("r", 4)),
+  format = "latex",
+  booktabs = TRUE,
+  linesep = "",
+  digits = c(0, 2, 0, 1, 1, 1),
+  caption = "Mean RMSE on one to four year test set with different error levels for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset",
   col.names = c("Reconceliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS")
 ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
@@ -905,8 +925,11 @@ kable(rmse.sim.rolling.noise.FH,
 
 ```{r TourismdatasimfixnoiseFH, results='asis', dependson="Readsimtouris"}
 kable(rmse.sim.noise.FH,
-  align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
-  digits = 2,
+  align = c("l", rep("r", 6)),
+  format = "latex",
+  booktabs = TRUE,
+  linesep = "",
+  digits = c(0, 2, 0, 1, 1, 1),
   caption = "Mean(RMSE) on one to four year test set with different error levels for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset",
   col.names = c("Reconceliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS")
 ) %>%
@@ -934,7 +957,7 @@ kable(rmse.sim.noise.FH,
 # kable_styling(position = "center", latex_options = "hold_position")
 ```
 
-Figures \@ref(fig:TourismsimcomputationtimerollingnoiseFH) and \@ref(fig:TourismsimcomputationtimefixednoiseFH) \textcolor{blue}{show the computation time (seconds) for ETS, ARIMA and OLS methods on rolling and fixed origin forecasts. From these figures we see that increasing the forecast horizon from one to four years increases computation time almost linearly, while the noise level does not change the computation time. Also, the computation time for ARIMA and ETS is much longer than OLS. Note that the computation time for the reconciliation step is less than a second and therefore the computation time for base and reconciled forecasts is similar.}
+Figures \@ref(fig:TourismsimcomputationtimerollingnoiseFH) and \@ref(fig:TourismsimcomputationtimefixednoiseFH) show the computation time (seconds) for ETS, ARIMA and OLS methods on rolling and fixed origin forecasts. From these figures we see that increasing the forecast horizon from one to four years increases computation time almost linearly, while the noise level does not change the computation time. Also, the computation time for ARIMA and ETS is much longer than OLS. Note that the computation time for the reconciliation step is less than a second and therefore the computation time for base and reconciled forecasts is similar.
 
 ```{r TourismsimcomputationtimerollingnoiseFH, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling  origin forecasts on one to four year test set and different error values - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset.", out.width="100%"}
 com.time.noise.FH %>%
@@ -974,7 +997,7 @@ com.time.noise.FH %>%
   )
 ```
 
-\textcolor{blue}{In the second simulation study, we fix the forecast horizon at h=24 and the noise at 0.5, and then create 4 different hierarchy levels (8, 10, 12 and 18) -- these obtained using the hierarchy structures in Table} \@ref(tab:Australiageographicalpurposedivision), \@ref(tab:simlevel1), \@ref(tab:simlevel1level2) and \@ref(tab:simlevel1level2group1) (8 = same as Australian domestic tourism data; 9= adding one hierarchy factor, resulting in 10 levels; 10= adding two hierarchy factors, resulting in 12 levels; and 11 = adding two hierarchy factors and one grouping factor, resulting in 18 levels)^[For simplicity we just include 2-way aggregation combinations.]).
+In the second simulation study, we fix the forecast horizon at $h=24$ and the noise at 0.5, and then create 4 different hierarchy levels (8, 10, 12 and 18) --- obtained using the hierarchy structures in Table \@ref(tab:Australiageographicalpurposedivision), \@ref(tab:simlevel1), \@ref(tab:simlevel1level2) and \@ref(tab:simlevel1level2group1) ($8 =$ same as Australian domestic tourism data; $9 =$ adding one hierarchy factor, resulting in 10 levels; $10=$ adding two hierarchy factors, resulting in 12 levels; and $11 =$ adding two hierarchy factors and one grouping factor, resulting in 18 levels)^[For simplicity we just include 2-way aggregation combinations.]).
 
 ```{r simlevel1, results='asis'}
 groups <- tribble(
@@ -1080,32 +1103,41 @@ groups %>%
   row_spec(row = 18, hline_after = TRUE)
 ```
 
-\textcolor{blue}{ We also simulated four  sizes of bottom-level series (304, 608, 1520 and 3040). In order to add series, we change the number of ‘Purpose’ categories (grouping factor) in the Australian domestic tourism example.} Table \@ref(tab:TourismsimlevelNS) \textcolor{blue}{displays the total number of series based on 304, 608, 1520 and 3040 bottom levels series with 8, 10, 12 and 18 hierarchy levels.}
+We also simulated four sizes of bottom-level series (304, 608, 1520 and 3040). In order to add series, we change the number of ‘Purpose’ categories (grouping factor) in the Australian domestic tourism example. Table \@ref(tab:TourismsimlevelNS) displays the total number of series based on 304, 608, 1520 and 3040 bottom levels series with 8, 10, 12 and 18 hierarchy levels.
 
 ```{r TourismsimlevelNS, results='asis'}
 tibble(
-    bottom = c(304, 608, 1520, 3040),
-    levels_8 = c(555, 999, 2331, 4551),
-    levels_10 = c(570, 1026, 2394, 4674),
-    levels_12 = c(595, 1071, 2499, 2643),
-    levels_18 = c(665, 1161, 2649, 5129)
-  ) %>%
+  bottom = c(304, 608, 1520, 3040),
+  levels_8 = c(555, 999, 2331, 4551),
+  levels_10 = c(570, 1026, 2394, 4674),
+  levels_12 = c(595, 1071, 2499, 2643),
+  levels_18 = c(665, 1161, 2649, 5129)
+) %>%
   kable(
-    align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
+    align = c("l", rep("r", 4)),
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
     caption = "Total number of the series in the hierarchy structure based on the different number of series with 8, 10, 12 and 18 levels of the hierarchy.",
     col.names = c("Bottom level series", "8", "10", "12", "18")
   ) %>%
   # column_spec(1:3, width = "3cm") %>%
   add_header_above(c("", "Total series" = 4)) %>%
-  kable_styling(position = "center", full_width = FALSE)
+  kable_styling(
+    position = "center",
+    full_width = FALSE
+  )
 ```
 
 ```{r TourismdatasimfixlevelNS, results='asis', dependson="Readsimtouris"}
 rmse.sim.level.NS.fix %>%
   kable(
-    align = c("l", rep("r", 4)), format = "latex", booktabs = TRUE, linesep = "",
-    digits = 2,
-    caption = "Mean(RMSE) on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - Fixed origin - Simulated tourism dataset",
+    align = c("l", rep("r", 6)),
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
+    digits = 0,
+    caption = "Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - Fixed origin - Simulated tourism dataset",
     col.names = c("Reconceliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
   ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
@@ -1151,12 +1183,18 @@ com.time.level.NS %>%
   )
 ```
 
-\clearpage
 \FloatBarrier
 
 ## Wikipedia pageviews: Grouped structure
 
-The second dataset comprises one year of daily data (2016-06-01 to 2017-06-29) on Wikipedia pageviews for the most popular social networks articles [@ashouri2018]. This dataset is noisier than the Australian monthly tourism data, making forecasting more challenging. The data has a grouped structure with the following attributes: "Agent": Spider, User, "Access": Desktop, Mobile app, Mobile web, "Language": en (English), de (German), es (Spanish), zh (Chinese) and "Purpose": Blogging related, Business, Gaming, General purpose, Life style, Photo sharing, Reunion, Travel, Video (see Table \@ref(tab:wikipediagroupingstructure)). In Figure \@ref(fig:wikigroupstructure) ([Appendix B](#appendixB)), \textcolor{blue}{we show one possible hierarchy for this dataset, but the order of the hierarchy can be switched.}
+The second dataset comprises one year of daily data (2016-06-01 to 2017-06-29) on Wikipedia pageviews for the most popular social networks articles [@ashouri2018]. This dataset is noisier than the Australian monthly tourism data, making forecasting more challenging. The data has a grouped structure with the following attributes (see Table \@ref(tab:wikipediagroupingstructure)):
+
+  * *Agent*: Spider, User;
+  * *Access*: Desktop, Mobile app, Mobile web;
+  * *Language*: en (English), de (German), es (Spanish), zh (Chinese); and
+  * *Purpose*: Blogging related, Business, Gaming, General purpose, Life style, Photo sharing, Reunion, Travel, Video.
+
+In Figure \@ref(fig:wikigroupstructure) ([Appendix B](#appendixB)), we show one possible hierarchy for this dataset, but the order of the hierarchy can be switched.
 
 ```{r Readwikipedia, results='hide'}
 error.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/error.wiki.csv") %>%
@@ -1190,11 +1228,11 @@ forecast.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.
 
 ```{r wikipediagroupingstructure, echo=FALSE, message = FALSE, results='asis'}
 tibble(
-    group1 = c("Total", "", "Access", "", "", "Agent", "", "", "", "Language", "", "", ""),
-    series1 = c("", "1. Social Network", "", "2. Desktop", "3. Mobile app", "", "4.  Mobile web", "5. Spider", "6. User", "", "7. en (English)", "8. de (German)", "9. es (Spanish)"),
-    group2 = c("Language", "", "Purpose", "", "", "", "", "", "", "", "", "", ""),
-    series2 = c("", "10. zh (Chinese)", "", "11. Blogging related", "12. Business", "13. Gaming", "14. General purpose", "15. Life style", "16. Photo sharing", "17. Reunion", "18. Travel", "19. Video", "")
-  ) %>%
+  group1 = c("Total", "", "Access", "", "", "Agent", "", "", "", "Language", "", "", ""),
+  series1 = c("", "1. Social Network", "", "2. Desktop", "3. Mobile app", "", "4.  Mobile web", "5. Spider", "6. User", "", "7. en (English)", "8. de (German)", "9. es (Spanish)"),
+  group2 = c("Language", "", "Purpose", "", "", "", "", "", "", "", "", "", ""),
+  series2 = c("", "10. zh (Chinese)", "", "11. Blogging related", "12. Business", "13. Gaming", "14. General purpose", "15. Life style", "16. Photo sharing", "17. Reunion", "18. Travel", "19. Video", "")
+) %>%
   kable(
     format = "latex",
     booktabs = TRUE,
@@ -1205,7 +1243,7 @@ tibble(
   kable_styling(position = "center")
 ```
 
-We consider the main aggregation factors and two-way combinations of them ^[There are four more 3-way aggregation combinations that we do not include: Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these four additional aggregations might slightly improve the results but for simplicity, we excluded them.]. The final dataset includes 913 time series, each with length 394. Table \@ref(tab:wikidivision) \textcolor{blue}{shows the group structure’s different levels and the number of series in each level.}
+We consider the main aggregation factors and two-way combinations of them.^[There are four more 3-way aggregation combinations that we do not include: Agent $\times$ Access $\times$ Language, Agent $\times$ Access $\times$ Purpose, Agent $\times$ Language $\times$ Purpose, and Access $\times$ Language $\times$ Purpose. Including these four additional aggregations might slightly improve the results but for simplicity, we excluded them.] The final dataset includes 913 time series, each with length 394. Table \@ref(tab:wikidivision) shows the group structure’s different levels and the number of series in each level.
 
 ```{r wikidivision, results='asis'}
 groups <- tribble(
@@ -1241,7 +1279,7 @@ groups %>%
 
 <!--\todo[inline]{What about all the cross-products such as the aggregates of Access*Agent, or Language*Purpose, or Agent*Access*Language, etc?}-->
 
-For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and \textcolor{blue} {lags 1 and 7 for rolling and fixed origin models}. We partitioned the data into two parts training and test sets. We used the last 28 days for our test set and the rest for the training set. In this example, the results in tables and figures are represented for single groups although we applied all the above levels in the group structure for reconciliation.
+For this daily dataset, in the OLS forecasting model we include in the predictor matrix a quadratic trend, 6 seasonal dummies and lags 1 and 7 for rolling and fixed origin models. We partitioned the data into two parts: training and test sets. We used the last 28 days for our test set and the rest for the training set. In this example, the results in tables and figures are presented for single groups although we applied all the above levels in the group structure for reconciliation.
 
 Tables \@ref(tab:wikipediadataresulrolling) and \@ref(tab:wikipediadataresultRMSE) show the RMSE results. Although these time series are noisier, we still get acceptable results for the OLS forecasting model compared with ETS and ARIMA. In this case, we get similar results with and without the reconciliation step.
 
@@ -1251,8 +1289,11 @@ bind_cols(
   filter(rmse2, ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
-    booktabs = TRUE, format = "latex", digits = 1, linesep = "",
-    caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Wikipedia dataset",
+    booktabs = TRUE,
+    format = "latex",
+    digits = 1,
+    linesep = "",
+    caption = "Mean RMSE for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Wikipedia dataset",
     col.names = c("Level", rep(c("ETS", "ARIMA", "OLS"), 2))
   ) %>%
   add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
@@ -1265,8 +1306,11 @@ bind_cols(
   filter(rmse2, ForecastInterval == "28Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
-    booktabs = TRUE, format = "latex", digits = 1, linesep = "",
-    caption = "Mean(RMSE) for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - Wikipedia dataset",
+    booktabs = TRUE,
+    format = "latex",
+    digits = 1,
+    linesep = "",
+    caption = "Mean RMSE for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - Wikipedia dataset",
     col.names = c("Level", rep(c("ETS", "ARIMA", "OLS"), 2))
   ) %>%
   add_header_above(c("", "Unreconciled" = 3, "Reconciled" = 3)) %>%
@@ -1451,25 +1495,26 @@ f2 <- forecast.wiki %>%
 f1 / f2
 ```
 
-Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin forecasts over 28 days in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels, series have higher counts and therefore their error magnitudes are larger.
+Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin forecasts over 28 days in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels series have higher counts and therefore their error magnitudes are larger.
 
-In Figures \@ref(fig:forecstrolling28wikitotal) and \@ref(fig:forecstrolling28wiki), we display results for the total and one of the bottom level series, "desktopusenPho04" (desktop-user-english-photo sharing). The plot shows rolling and fixed origin forecast results over the 28 day test set for ETS, ARIMA and OLS, \textcolor{blue}{with (dashed lines) and without (dotted lines)} applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
+In Figures \@ref(fig:forecstrolling28wikitotal) and \@ref(fig:forecstrolling28wiki), we display results for the total and one of the bottom level series, "desktopusenPho04" (desktop-user-english-photo sharing). The plot shows rolling and fixed origin forecast results over the 28 day test set for ETS, ARIMA and OLS, with (dashed lines) and without (dotted lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
 
 Table \@ref(tab:wikipediadatacomputationtime) presents the computation times for all three methods. ETS and ARIMA are clearly much more computationally heavy compared with OLS. As in the Australian tourism dataset, running reconciliation does not have much effect on computation time.
 
 ```{r wikipediadatacomputationtime, echo=FALSE, results='asis',message = FALSE}
 tibble(
-    model = c("ETS", "ARIMA", "OLS"),
-    rolling_unreconciled = c(27613.08, 49419.36, 116.27),
-    rolling_reconciled = c(27613.14, 49419.39, 116.31),
-    fixed_unreconciled = c(971.55, 1769.52, 61.33),
-    fixed_reconciled = c(971.58, 1769.56, 61.38)
-  ) %>%
+  model = c("ETS", "ARIMA", "OLS"),
+  rolling_unreconciled = c(27613.08, 49419.36, 116.27),
+  rolling_reconciled = c(27613.14, 49419.39, 116.31),
+  fixed_unreconciled = c(971.55, 1769.52, 61.33),
+  fixed_reconciled = c(971.58, 1769.56, 61.38)
+) %>%
   kable(
-    align = c("c", "c"),
+    align = c("l", rep("r",4)),
     format = "latex",
     booktabs = TRUE,
     linesep = "",
+    digits = 2,
     caption = "Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling and fixed origin forecasts - Wikipedia dataset",
     col.names = c("", "Unreconciled", "Reconciled", "Unreconciled", "Reconciled")
   ) %>%
@@ -1481,15 +1526,15 @@ tibble(
 
 # Conclusion
 
-We have proposed a linear model approach to fast forecasting of hierarchical or grouped time series, with accuracy that nearly matches that of forecast methods such as ETS and ARIMA. This is especially useful in large collections of time series, as is typical in hierarchical and grouped structures. Although ETS and ARIMA are advantageous in terms of forecasting power and accuracy, they can be computationally heavy when facing large collections of time series in the hierarchy.  An important feature of our model is its ability to easily include external information such as holiday dummies or other external series. We also note that OLS has the additional practical advantage of handling missing data while ETS requires imputation.
+We have proposed a linear model approach to fast forecasting of hierarchical or grouped time series, with accuracy that nearly matches that of forecast methods such as ETS and ARIMA. This is especially useful in large collections of time series, as is typical in hierarchical and grouped structures. Although ETS and ARIMA are advantageous in terms of forecasting power and accuracy, they can be computationally heavy when facing large collections of time series in the hierarchy. An important feature of our model is its ability to easily include external information such as holiday dummies or other external series. We also note that OLS has the additional practical advantage of handling missing data while ETS requires imputation.
 
 Another advantage of our approach is that it can be computed in a single matrix equation \@ref(eq:singlestep). This makes it extremely fast and easy to implement, and enables standard results to be derived with minimal effort (e.g., prediction intervals).
 
-@pennings2017 proposed another approach for forecasting hierarchical time series using state space models. Although their approach is flexible in handling outliers, missing data and external features, it is less flexible to different kinds of datasets and it is computationally much more complex.
+@pennings2017 proposed another approach for forecasting hierarchical time series using state space models. Although their approach is flexible in handling outliers, missing data and external features, it is less flexible to different kinds of datasets and it is computationally much more demanding.
 
 # Acknowledgements {-}
 
-The first and third authors of this research were partially funded by Ministry of Science and Technology (MOST), Taiwan [Grant 106-2420-H-007-019].
+Ashouri and Shmueli were partially funded by Ministry of Science and Technology (MOST), Taiwan [Grant 106-2420-H-007-019]. Hyndman's research is supported by the Australian Centre of Excellence in Mathematical and Statistical Frontiers.
 
 \clearpage
 
