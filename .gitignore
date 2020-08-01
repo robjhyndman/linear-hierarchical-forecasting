@@ -1,6 +1,8 @@
 *_cache
 *_files
 
+Paper-Figures/results_Tourism/Simulation
+
 *.Ruserdata
 
 *.rdb
