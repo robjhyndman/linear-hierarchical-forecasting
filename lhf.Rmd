@@ -900,27 +900,6 @@ kable(rmse.sim.rolling.noise.FH,
   col.names = c("Reconciliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS")
 ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
-# bind_cols(
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.01") %>% select( -noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.5") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.01") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.5") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "1") %>% select(-noise, -Rec, -ForecastHorizon)
-# ) %>%
-# kable(
-#   booktabs = TRUE,
-#   format = "latex",
-#   digits = 1,
-#   linesep = "",
-#   caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset",
-#   col.names = c("Forecast Horizon", rep(c("ETS", "ARIMA", "OLS"), 8))
-# ) %>%
-# add_header_above(c("", "0.01" = 3, "0.1" = 3, "0.5" = 3, "1" = 3)) %>%
-# add_header_above(c("", "Unreconciled" = 12, "Reconciled" = 12)) %>%
-# kable_styling(position = "center", latex_options = "hold_position")
 ```
 
 ```{r TourismdatasimfixnoiseFH, results='asis', dependson="Readsimtouris"}
@@ -934,27 +913,6 @@ kable(rmse.sim.noise.FH,
   col.names = c("Reconciliation", "Error", "Forecast horizon", "ETS", "ARIMA", "OLS")
 ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
-# bind_cols(
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.01") %>% select( -noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.5") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.01") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.5") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "1") %>% select(-noise, -Rec, -ForecastHorizon)
-# ) %>%
-# kable(
-#   booktabs = TRUE,
-#   format = "latex",
-#   digits = 1,
-#   linesep = "",
-#   caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset",
-#   col.names = c("Forecast Horizon", rep(c("ETS", "ARIMA", "OLS"), 8))
-# ) %>%
-# add_header_above(c("", "0.01" = 3, "0.1" = 3, "0.5" = 3, "1" = 3)) %>%
-# add_header_above(c("", "Unreconciled" = 12, "Reconciled" = 12)) %>%
-# kable_styling(position = "center", latex_options = "hold_position")
 ```
 
 Figures \@ref(fig:TourismsimcomputationtimerollingnoiseFH) and \@ref(fig:TourismsimcomputationtimefixednoiseFH) show the computation time (seconds) for ETS, ARIMA and OLS methods on rolling and fixed origin forecasts. From these figures we see that increasing the forecast horizon from one to four years increases computation time almost linearly, while the noise level does not change the computation time. Also, the computation time for ARIMA and ETS is much longer than OLS. Note that the computation time for the reconciliation step is less than a second and therefore the computation time for base and reconciled forecasts is similar.
@@ -1141,27 +1099,6 @@ rmse.sim.level.NS.fix %>%
     col.names = c("Reconciliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
   ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
-# bind_cols(
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.01") %>% select( -noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "0.5") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'rec', noise == "1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.01") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.1") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "0.5") %>% select(-noise, -Rec),
-#   filter(rmse.sim,  Rec == 'unrec', noise == "1") %>% select(-noise, -Rec, -ForecastHorizon)
-# ) %>%
-# kable(
-#   booktabs = TRUE,
-#   format = "latex",
-#   digits = 1,
-#   linesep = "",
-#   caption = "Mean(RMSE) on 2 year test set for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Tourism dataset",
-#   col.names = c("Forecast Horizon", rep(c("ETS", "ARIMA", "OLS"), 8))
-# ) %>%
-# add_header_above(c("", "0.01" = 3, "0.1" = 3, "0.5" = 3, "1" = 3)) %>%
-# add_header_above(c("", "Unreconciled" = 12, "Reconciled" = 12)) %>%
-# kable_styling(position = "center", latex_options = "hold_position")
 ```
 
 ```{r TourismsimcomputationtimefixedlevelNS, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Fixed origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.", out.width="100%"}

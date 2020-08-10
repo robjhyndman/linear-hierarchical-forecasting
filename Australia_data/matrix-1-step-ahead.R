@@ -52,10 +52,17 @@ result.fore[result.fore<0] <- 0
 
 
 ## computing reconceliation matrix
-gmat<-GmatrixG(ausgts$groups)
-smatrix<-SmatrixM(gmat)
-wvec<- InvS4g(ausgts$groups)
-lambda <- diag(wvec)
+# gmat<-GmatrixG(ausgts$groups)
+# smatrix<-SmatrixM(gmat)
+# wvec<- InvS4g(ausgts$groups)
+# totalts <- sum(Mlevel(gmat))
+# seqts <- 1:totalts
+# lambda <- sparseMatrix(i = seqts, j = seqts, x = 1/wvec)
+
+gmat <- GmatrixG(ausgts$groups)
+smatrix <- as.matrix(SmatrixM(gmat))
+lambda <- diag(rowSums(smatrix))
+
 rec.adj.lambda <- as.matrix(smatrix%*%solve(t(smatrix)%*%solve(lambda)%*%smatrix)%*%t(smatrix)%*%solve(lambda))
 
 ## computing reconciled forecasts
