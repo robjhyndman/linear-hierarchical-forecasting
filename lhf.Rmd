@@ -308,7 +308,7 @@ where $\sigma^2$ is the variance of the base model residuals. Assuming normally 
 
 # Applications
 
-In this section we illustrate our approach using two real data sets and one simulated example\todo{Check R version. Currently 4.02}^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 1.2.5019.]. The real data study includes forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. We compare the forecasting accuracy of ETS, ARIMA^[For running ETS and ARIMA, we applied 'ets' and 'auto.arima' functions from the 'forecast' package} [@Rforecast]. The two sets of functions were run independently and not immediately one after the other.] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
+In this section we illustrate our approach using two real data sets and one simulated example^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 3.6.1.]. The real data study includes forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. We compare the forecasting accuracy of ETS, ARIMA^[For running ETS and ARIMA, we applied 'ets' and 'auto.arima' functions from the 'forecast' package} [@Rforecast]. The two sets of functions were run independently and not immediately one after the other.] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
 
 The two real datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.
 
@@ -854,6 +854,7 @@ We provide results from two simulation studies based on the Australian domestic 
 ```{r Readsimtourism, results='hide'}
 error.sim.tourism.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.noise.FH.csv")[, -1]
 fc.sim.fix.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.level.NS.csv")[, -1]
+fc.sim.rolling.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.rolling.level.NS.csv")[, -1]
 rmse.sim.noise.FH <- error.sim.tourism.noise.FH %>%
   group_by(Rec, Method, noise, ForecastHorizon) %>%
   summarise(
@@ -876,6 +877,15 @@ com.time.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/c
 
 ## changing number of levels and series
 rmse.sim.level.NS.fix <- fc.sim.fix.level.NS %>%
+  group_by(Rec, Method, Series, Levels) %>%
+  summarise(
+    rmse = sqrt(mean(Error^2))
+  ) %>%
+  spread(value = rmse, key = Method) %>%
+  ungroup() %>%
+  select(Rec, Series, Levels, ETS, ARIMA, OLS)
+
+rmse.sim.level.NS.rolling <- fc.sim.rolling.level.NS %>%
   group_by(Rec, Method, Series, Levels) %>%
   summarise(
     rmse = sqrt(mean(Error^2))
@@ -1087,6 +1097,20 @@ tibble(
   )
 ```
 
+```{r TourismdatasimrollinglevelNS, results='asis', dependson="Readsimtouris"}
+rmse.sim.level.NS.rolling %>%
+  kable(
+    align = c("l", rep("r", 6)),
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
+    digits = 0,
+    caption = "Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - rolling origin - Simulated tourism dataset",
+    col.names = c("Reconciliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
+  ) %>%
+  kable_styling(position = "center", latex_options = "hold_position")
+```
+
 ```{r TourismdatasimfixlevelNS, results='asis', dependson="Readsimtouris"}
 rmse.sim.level.NS.fix %>%
   kable(
@@ -1100,6 +1124,7 @@ rmse.sim.level.NS.fix %>%
   ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
 ```
+
 
 ```{r TourismsimcomputationtimefixedlevelNS, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Fixed origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.", out.width="100%"}
 com.time.level.NS %>%

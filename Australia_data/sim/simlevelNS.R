@@ -91,12 +91,13 @@ sim.05gts <- gts(actual.05,  groups = grouping_gts)
 
 
 
-ally <- aggts(sim.05gts)
+
 
 k<-24
 n<-nrow(actual.05)
 train.05 <-window(sim.05gts,start = c(1, 1),end = c(1, (n-48)))
 test.05 <-window(sim.05gts,start = c(1, ((n-48)+1)),end = c(1, n-(48-k)))
+ally <- aggts(train.05)
 ally.test<-aggts(test.05)
 ally.test.05 <- as.data.frame(reshape2::melt(ally.test)$value)
 
@@ -129,11 +130,10 @@ fc.ETS.base.3040.8 <- as.data.frame(fc[,,"ETS"])
 #colnames(fc.OLS.base.3040.8) <- colnames(ally)
 #colnames(fc.OLS.se.3040.8) <- colnames(ally)
 
-library(Matrix)
-gmat<-GmatrixG(sim.05gts$groups)
-smatrix<-SmatrixM(gmat)
-wvec<- InvS4g(sim.05gts$groups)
-lambda <- diag(wvec)
+gmat <- GmatrixG(sim.05gts$groups)
+smatrix <- as.matrix(SmatrixM(gmat))
+lambda <- diag(rowSums(smatrix))
+
 rec.adj.lambda <- as.matrix(smatrix%*%solve(t(smatrix)%*%solve(lambda)%*%smatrix)%*%t(smatrix)%*%solve(lambda))
 
 

@@ -549,7 +549,7 @@ where \(\sigma^2\) is the variance of the base model residuals. Assuming normall
 \hypertarget{applications}{%
 \section{Applications}\label{applications}}
 
-In this section we illustrate our approach using two real data sets and one simulated example\todo{Check R version. Currently 4.02}\footnote{All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 1.2.5019.}. The real data study includes forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. We compare the forecasting accuracy of ETS, ARIMA\footnote{For running ETS and ARIMA, we applied `ets' and `auto.arima' functions from the `forecast' package\} \autocite{Rforecast}. The two sets of functions were run independently and not immediately one after the other.} and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \eqref{eq:mint2}. For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
+In this section we illustrate our approach using two real data sets and one simulated example\footnote{All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 3.6.1.}. The real data study includes forecasting monthly Australian domestic tourism and forecasting daily Wikipedia pageviews. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. We compare the forecasting accuracy of ETS, ARIMA\footnote{For running ETS and ARIMA, we applied `ets' and `auto.arima' functions from the `forecast' package\} \autocite{Rforecast}. The two sets of functions were run independently and not immediately one after the other.} and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \eqref{eq:mint2}. For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
 
 The two real datasets differ in terms of structure, size and behavior. The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.
 
@@ -836,37 +836,37 @@ Tables \ref{tab:TourismdatasimrollingnoiseFH} and \ref{tab:Tourismdatasimfixnois
 \toprule
 Reconciliation & Error & Forecast horizon & ETS & ARIMA & OLS\\
 \midrule
-rec & 0.01 & 12 & 133.5 & 135.2 & 137.2\\
-rec & 0.01 & 24 & 137.2 & 138.2 & 142.9\\
-rec & 0.01 & 36 & 129.8 & 129.1 & 134.9\\
+rec & 0.01 & 12 & 123.8 & 119.9 & 128.4\\
+rec & 0.01 & 24 & 122.6 & 119.4 & 128.7\\
+rec & 0.01 & 36 & 124.6 & 121.9 & 131.4\\
 rec & 0.01 & 48 & 122.1 & 120.2 & 127.8\\
-rec & 0.10 & 12 & 134.7 & 137.1 & 139.1\\
-rec & 0.10 & 24 & 139.0 & 140.2 & 144.9\\
-rec & 0.10 & 36 & 131.9 & 131.8 & 137.1\\
+rec & 0.10 & 12 & 123.7 & 120.5 & 127.9\\
+rec & 0.10 & 24 & 122.9 & 120.7 & 129.3\\
+rec & 0.10 & 36 & 125.8 & 124.0 & 132.7\\
 rec & 0.10 & 48 & 123.5 & 122.3 & 129.3\\
-rec & 0.50 & 12 & 167.1 & 163.9 & 168.7\\
-rec & 0.50 & 24 & 170.9 & 166.1 & 174.2\\
-rec & 0.50 & 36 & 165.0 & 159.8 & 168.0\\
+rec & 0.50 & 12 & 143.9 & 142.5 & 145.4\\
+rec & 0.50 & 24 & 149.9 & 146.5 & 153.7\\
+rec & 0.50 & 36 & 155.8 & 151.8 & 159.6\\
 rec & 0.50 & 48 & 154.5 & 151.0 & 158.5\\
-rec & 1.00 & 12 & 235.0 & 229.8 & 232.5\\
-rec & 1.00 & 24 & 234.9 & 230.3 & 235.4\\
-rec & 1.00 & 36 & 230.4 & 227.1 & 231.2\\
+rec & 1.00 & 12 & 192.9 & 197.6 & 192.4\\
+rec & 1.00 & 24 & 207.1 & 208.4 & 209.5\\
+rec & 1.00 & 36 & 215.7 & 214.6 & 217.1\\
 rec & 1.00 & 48 & 218.4 & 217.5 & 219.3\\
-unrec & 0.01 & 12 & 140.9 & 139.7 & 139.4\\
-unrec & 0.01 & 24 & 144.1 & 144.0 & 144.4\\
-unrec & 0.01 & 36 & 135.8 & 135.8 & 136.8\\
+unrec & 0.01 & 12 & 132.2 & 127.1 & 130.9\\
+unrec & 0.01 & 24 & 128.5 & 126.2 & 131.1\\
+unrec & 0.01 & 36 & 130.2 & 129.0 & 133.6\\
 unrec & 0.01 & 48 & 127.8 & 127.1 & 130.5\\
-unrec & 0.10 & 12 & 141.9 & 142.5 & 141.4\\
-unrec & 0.10 & 24 & 145.8 & 147.9 & 146.4\\
-unrec & 0.10 & 36 & 138.2 & 138.7 & 138.9\\
+unrec & 0.10 & 12 & 132.0 & 128.0 & 130.4\\
+unrec & 0.10 & 24 & 129.5 & 128.5 & 131.8\\
+unrec & 0.10 & 36 & 131.9 & 131.4 & 134.8\\
 unrec & 0.10 & 48 & 129.5 & 129.7 & 131.9\\
-unrec & 0.50 & 12 & 172.5 & 170.8 & 171.1\\
-unrec & 0.50 & 24 & 178.0 & 173.3 & 175.8\\
-unrec & 0.50 & 36 & 172.2 & 167.2 & 169.4\\
+unrec & 0.50 & 12 & 149.5 & 148.5 & 147.2\\
+unrec & 0.50 & 24 & 156.5 & 154.2 & 155.6\\
+unrec & 0.50 & 36 & 163.3 & 159.8 & 160.6\\
 unrec & 0.50 & 48 & 161.9 & 158.8 & 159.7\\
-unrec & 1.00 & 12 & 239.7 & 235.8 & 235.1\\
-unrec & 1.00 & 24 & 240.0 & 237.4 & 237.0\\
-unrec & 1.00 & 36 & 235.6 & 232.8 & 232.4\\
+unrec & 1.00 & 12 & 200.9 & 204.9 & 193.3\\
+unrec & 1.00 & 24 & 214.9 & 215.2 & 210.9\\
+unrec & 1.00 & 36 & 222.0 & 221.6 & 217.6\\
 unrec & 1.00 & 48 & 223.6 & 224.0 & 219.8\\
 \bottomrule
 \end{tabular}
@@ -880,38 +880,38 @@ unrec & 1.00 & 48 & 223.6 & 224.0 & 219.8\\
 \toprule
 Reconciliation & Error & Forecast horizon & ETS & ARIMA & OLS\\
 \midrule
-rec & 0.01 & 12 & 118.6 & 126.1 & 122.1\\
-rec & 0.01 & 24 & 112.0 & 121.9 & 119.9\\
-rec & 0.01 & 36 & 111.9 & 120.7 & 124.4\\
-rec & 0.01 & 48 & 109.3 & 117.5 & 124.0\\
-rec & 0.10 & 12 & 119.4 & 127.2 & 122.3\\
-rec & 0.10 & 24 & 112.8 & 122.8 & 120.4\\
-rec & 0.10 & 36 & 112.9 & 122.1 & 125.6\\
-rec & 0.10 & 48 & 110.4 & 118.9 & 125.5\\
-rec & 0.50 & 12 & 134.8 & 151.6 & 138.4\\
-rec & 0.50 & 24 & 133.8 & 149.6 & 141.5\\
-rec & 0.50 & 36 & 137.1 & 150.3 & 148.6\\
-rec & 0.50 & 48 & 136.5 & 147.9 & 150.2\\
-rec & 1.00 & 12 & 182.1 & 203.7 & 182.1\\
-rec & 1.00 & 24 & 193.3 & 210.5 & 192.7\\
-rec & 1.00 & 36 & 201.0 & 214.1 & 200.0\\
-rec & 1.00 & 48 & 205.1 & 216.3 & 203.7\\
-unrec & 0.01 & 12 & 119.8 & 128.4 & 122.5\\
-unrec & 0.01 & 24 & 113.6 & 125.9 & 121.0\\
-unrec & 0.01 & 36 & 114.0 & 126.4 & 125.6\\
-unrec & 0.01 & 48 & 112.6 & 124.2 & 125.3\\
-unrec & 0.10 & 12 & 120.6 & 129.6 & 122.6\\
-unrec & 0.10 & 24 & 114.4 & 127.0 & 121.5\\
-unrec & 0.10 & 36 & 114.9 & 128.3 & 126.7\\
-unrec & 0.10 & 48 & 113.6 & 126.2 & 126.6\\
-unrec & 0.50 & 12 & 138.2 & 158.1 & 138.6\\
-unrec & 0.50 & 24 & 136.8 & 161.1 & 141.9\\
-unrec & 0.50 & 36 & 139.9 & 166.1 & 148.9\\
-unrec & 0.50 & 48 & 140.2 & 166.0 & 150.5\\
-unrec & 1.00 & 12 & 185.1 & 205.5 & 182.8\\
-unrec & 1.00 & 24 & 196.4 & 214.9 & 193.0\\
-unrec & 1.00 & 36 & 204.0 & 220.0 & 200.2\\
-unrec & 1.00 & 48 & 207.5 & 222.3 & 203.8\\
+rec & 0.01 & 12 & 123.6 & 119.1 & 128.8\\
+rec & 0.01 & 24 & 126.5 & 123.1 & 135.6\\
+rec & 0.01 & 36 & 133.4 & 130.9 & 144.0\\
+rec & 0.01 & 48 & 133.5 & 132.8 & 144.4\\
+rec & 0.10 & 12 & 124.8 & 119.9 & 128.3\\
+rec & 0.10 & 24 & 128.0 & 123.9 & 135.8\\
+rec & 0.10 & 36 & 135.3 & 131.6 & 144.8\\
+rec & 0.10 & 48 & 135.5 & 133.5 & 145.3\\
+rec & 0.50 & 12 & 144.6 & 143.5 & 146.2\\
+rec & 0.50 & 24 & 154.5 & 151.6 & 157.7\\
+rec & 0.50 & 36 & 162.8 & 160.9 & 167.4\\
+rec & 0.50 & 48 & 164.1 & 163.8 & 169.2\\
+rec & 1.00 & 12 & 194.1 & 197.6 & 193.7\\
+rec & 1.00 & 24 & 212.4 & 214.1 & 211.9\\
+rec & 1.00 & 36 & 221.9 & 222.6 & 221.2\\
+rec & 1.00 & 48 & 225.8 & 228.0 & 225.0\\
+unrec & 0.01 & 12 & 133.1 & 126.9 & 130.8\\
+unrec & 0.01 & 24 & 136.3 & 131.9 & 137.3\\
+unrec & 0.01 & 36 & 143.4 & 141.7 & 145.5\\
+unrec & 0.01 & 48 & 143.8 & 144.0 & 145.7\\
+unrec & 0.10 & 12 & 133.4 & 127.2 & 130.2\\
+unrec & 0.10 & 24 & 136.9 & 132.3 & 137.5\\
+unrec & 0.10 & 36 & 144.4 & 142.5 & 146.3\\
+unrec & 0.10 & 48 & 145.0 & 144.9 & 146.7\\
+unrec & 0.50 & 12 & 150.3 & 148.1 & 147.2\\
+unrec & 0.50 & 24 & 161.0 & 157.4 & 158.8\\
+unrec & 0.50 & 36 & 170.4 & 169.1 & 168.3\\
+unrec & 0.50 & 48 & 172.2 & 172.4 & 170.0\\
+unrec & 1.00 & 12 & 202.2 & 204.6 & 193.9\\
+unrec & 1.00 & 24 & 220.9 & 221.8 & 212.2\\
+unrec & 1.00 & 36 & 230.1 & 230.2 & 221.5\\
+unrec & 1.00 & 48 & 233.8 & 234.9 & 225.3\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1042,44 +1042,88 @@ Bottom level series & 8 & 10 & 12 & 18\\
 
 \begin{table}[!h]
 
+\caption{\label{tab:TourismdatasimrollinglevelNS}Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - rolling origin - Simulated tourism dataset}
+\centering
+\begin{tabular}[t]{lrrrrr}
+\toprule
+Reconciliation & Series & Levels & ETS & ARIMA & OLS\\
+\midrule
+rec & 304 & 8 & 150 & 146 & 136\\
+rec & 304 & 10 & 165 & 161 & 150\\
+rec & 304 & 12 & 177 & 172 & 161\\
+rec & 304 & 18 & 205 & 199 & 185\\
+rec & 608 & 8 & 985 & 999 & 1006\\
+rec & 608 & 10 & 1106 & 1118 & 1126\\
+rec & 608 & 12 & 1181 & 1193 & 1201\\
+rec & 608 & 18 & 1351 & 1370 & 1380\\
+rec & 1520 & 8 & 1229 & 1231 & 1221\\
+rec & 1520 & 10 & 1377 & 1383 & 1369\\
+rec & 1520 & 12 & 1470 & 1481 & 1462\\
+rec & 1520 & 18 & 1701 & 1720 & 1705\\
+rec & 3040 & 8 & 1137 & 1129 & 1046\\
+rec & 3040 & 10 & 1276 & 1267 & 1174\\
+rec & 3040 & 12 & 1365 & 1356 & 1254\\
+rec & 3040 & 18 & 1584 & 1570 & 1451\\
+unrec & 304 & 8 & 156 & 154 & 137\\
+unrec & 304 & 10 & 172 & 169 & 151\\
+unrec & 304 & 12 & 185 & 181 & 162\\
+unrec & 304 & 18 & 213 & 208 & 187\\
+unrec & 608 & 8 & 992 & 993 & 1004\\
+unrec & 608 & 10 & 1113 & 1114 & 1125\\
+unrec & 608 & 12 & 1187 & 1189 & 1199\\
+unrec & 608 & 18 & 1359 & 1368 & 1379\\
+unrec & 1520 & 8 & 1238 & 1269 & 1256\\
+unrec & 1520 & 10 & 1384 & 1428 & 1408\\
+unrec & 1520 & 12 & 1476 & 1529 & 1504\\
+unrec & 1520 & 18 & 1709 & 1770 & 1744\\
+unrec & 3040 & 8 & 1164 & 1147 & 1051\\
+unrec & 3040 & 10 & 1304 & 1288 & 1179\\
+unrec & 3040 & 12 & 1394 & 1378 & 1259\\
+unrec & 3040 & 18 & 1614 & 1592 & 1455\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!h]
+
 \caption{\label{tab:TourismdatasimfixlevelNS}Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - Fixed origin - Simulated tourism dataset}
 \centering
 \begin{tabular}[t]{lrrrrr}
 \toprule
 Reconciliation & Series & Levels & ETS & ARIMA & OLS\\
 \midrule
-rec & 304 & 8 & 136 & 163 & 142\\
-rec & 304 & 10 & 150 & 179 & 158\\
-rec & 304 & 12 & 163 & 192 & 170\\
-rec & 304 & 18 & 188 & 221 & 197\\
-rec & 608 & 8 & 996 & 997 & 1026\\
-rec & 608 & 10 & 1114 & 1116 & 1149\\
-rec & 608 & 12 & 1188 & 1189 & 1226\\
-rec & 608 & 18 & 1365 & 1365 & 1410\\
-rec & 1520 & 8 & 1221 & 1221 & 1205\\
-rec & 1520 & 10 & 1370 & 1370 & 1351\\
-rec & 1520 & 12 & 1464 & 1465 & 1442\\
-rec & 1520 & 18 & 1696 & 1699 & 1671\\
-rec & 3040 & 8 & 1095 & 1130 & 1057\\
-rec & 3040 & 10 & 1230 & 1287 & 1185\\
-rec & 3040 & 12 & 1314 & 1369 & 1265\\
-rec & 3040 & 18 & 1525 & 1559 & 1464\\
-unrec & 304 & 8 & 137 & 161 & 142\\
-unrec & 304 & 10 & 151 & 178 & 158\\
-unrec & 304 & 12 & 164 & 190 & 170\\
-unrec & 304 & 18 & 191 & 220 & 196\\
-unrec & 608 & 8 & 993 & 992 & 1025\\
-unrec & 608 & 10 & 1111 & 1109 & 1148\\
-unrec & 608 & 12 & 1184 & 1182 & 1225\\
-unrec & 608 & 18 & 1359 & 1357 & 1409\\
-unrec & 1520 & 8 & 1219 & 1220 & 1205\\
-unrec & 1520 & 10 & 1368 & 1369 & 1351\\
-unrec & 1520 & 12 & 1463 & 1464 & 1442\\
-unrec & 1520 & 18 & 1695 & 1698 & 1671\\
-unrec & 3040 & 8 & 1097 & 1127 & 1057\\
-unrec & 3040 & 10 & 1231 & 1277 & 1185\\
-unrec & 3040 & 12 & 1316 & 1355 & 1265\\
-unrec & 3040 & 18 & 1528 & 1551 & 1464\\
+rec & 304 & 8 & 155 & 152 & 158\\
+rec & 304 & 10 & 170 & 167 & 174\\
+rec & 304 & 12 & 182 & 178 & 186\\
+rec & 304 & 18 & 210 & 205 & 215\\
+rec & 608 & 8 & 981 & 989 & 1066\\
+rec & 608 & 10 & 1097 & 1109 & 1194\\
+rec & 608 & 12 & 1169 & 1183 & 1273\\
+rec & 608 & 18 & 1345 & 1358 & 1462\\
+rec & 1520 & 8 & 1221 & 1227 & 1293\\
+rec & 1520 & 10 & 1368 & 1377 & 1450\\
+rec & 1520 & 12 & 1460 & 1472 & 1548\\
+rec & 1520 & 18 & 1692 & 1715 & 1799\\
+rec & 3040 & 8 & 1139 & 1127 & 1146\\
+rec & 3040 & 10 & 1279 & 1266 & 1286\\
+rec & 3040 & 12 & 1368 & 1355 & 1374\\
+rec & 3040 & 18 & 1589 & 1572 & 1589\\
+unrec & 304 & 8 & 161 & 157 & 159\\
+unrec & 304 & 10 & 177 & 174 & 175\\
+unrec & 304 & 12 & 190 & 186 & 188\\
+unrec & 304 & 18 & 218 & 212 & 216\\
+unrec & 608 & 8 & 998 & 983 & 1061\\
+unrec & 608 & 10 & 1112 & 1103 & 1189\\
+unrec & 608 & 12 & 1182 & 1178 & 1268\\
+unrec & 608 & 18 & 1357 & 1355 & 1458\\
+unrec & 1520 & 8 & 1233 & 1268 & 1318\\
+unrec & 1520 & 10 & 1379 & 1422 & 1478\\
+unrec & 1520 & 12 & 1470 & 1519 & 1578\\
+unrec & 1520 & 18 & 1704 & 1763 & 1827\\
+unrec & 3040 & 8 & 1171 & 1157 & 1154\\
+unrec & 3040 & 10 & 1313 & 1299 & 1294\\
+unrec & 3040 & 12 & 1403 & 1389 & 1383\\
+unrec & 3040 & 18 & 1624 & 1606 & 1598\\
 \bottomrule
 \end{tabular}
 \end{table}

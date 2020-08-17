@@ -18,7 +18,7 @@ k<-24
 n<-nrow(actual.001)
 train.001 <-window(actual.001gts,start = c(1, 1),end = c(1, (n-48)))
 test.001 <-window(actual.001gts,start = c(1, ((n-48)+1)),end = c(1, n-(48-k)))
-ally <- aggts(actual.001gts)
+ally <- aggts(train.001 )
 ally.test<-aggts(test.001)
 ally.test.001 <- as.data.frame(reshape2::melt(ally.test)$value)
 write.csv(ally.test.001 , "ally.test.001.csv")
@@ -55,12 +55,10 @@ colnames(fc.OLS.se.24.001) <- colnames(ally)
 ############################################
 
 
-## computing reconceliation matrix
-library(Matrix)
-gmat<-GmatrixG(actual.001gts$groups)
-smatrix<-SmatrixM(gmat)
-wvec<- InvS4g(actual.001gts$groups)
-lambda <- diag(wvec)
+gmat <- GmatrixG(actual.001gts$groups)
+smatrix <- as.matrix(SmatrixM(gmat))
+lambda <- diag(rowSums(smatrix))
+
 rec.adj.lambda <- as.matrix(smatrix%*%solve(t(smatrix)%*%solve(lambda)%*%smatrix)%*%t(smatrix)%*%solve(lambda))
 
 
