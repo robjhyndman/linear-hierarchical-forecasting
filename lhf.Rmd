@@ -675,9 +675,33 @@ p1 / p2
 
 Figures \@ref(fig:predinttotal) and \@ref(fig:predintBACBus) display the prediction interval for the OLS approach, with and without reconciliation forecasts for the total series and one of the bottom level series, BACBus (Geelong - Business).\todo{Why don't the intervals increase with the horizon?}
 
-```{r predinttotal, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for fixed origin tourism demand.", out.width="100%", fig.height=3}
+```{r predinttotal, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin tourism demand.", out.width="100%"}
 ### total series
-forecast.tourism.data %>%
+
+p1 <- forecast.tourism.data %>%
+  filter(Series == "Total", ForecastInterval == "1Step") %>%
+  mutate(
+    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
+    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
+    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
+    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+  ) %>%
+  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
+  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  xlab("Horizon") +
+  ylab("Count") +
+  ggtitle("Rolling origin 1-step forecasts") +
+  scale_colour_manual("Method",
+    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
+    values = c("black", "red", "blue")
+  ) +
+  theme_bw()
+
+p2 <- forecast.tourism.data %>%
   filter(Series == "Total", ForecastInterval == "24Step") %>%
   mutate(
     int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
@@ -699,11 +723,35 @@ forecast.tourism.data %>%
     values = c("black", "red", "blue")
   ) +
   theme_bw()
+p1 / p2
 ```
 
-```{r predintBACBus, fig.align="center", fig.cap="The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for fixed origin tourism demand.", out.width="100%", fig.height=3}
+```{r predintBACBus, fig.align="center", fig.cap="The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin tourism demand.", out.width="100%"}
 ### one series example series
-forecast.tourism.data %>%
+p1 <- forecast.tourism.data %>%
+  filter(Series == "BACBus", ForecastInterval == "1Step") %>%
+  mutate(
+    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
+    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
+    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
+    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+  ) %>%
+  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
+  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  xlab("Horizon") +
+  ylab("Count") +
+  ggtitle("Rolling origin 1-step forecasts") +
+  scale_colour_manual("Method",
+    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
+    values = c("black", "red", "blue")
+  ) +
+  theme_bw()
+
+p2 <- forecast.tourism.data %>%
   filter(Series == "BACBus", ForecastInterval == "24Step") %>%
   mutate(
     int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
@@ -725,6 +773,7 @@ forecast.tourism.data %>%
     values = c("black", "red", "blue")
   ) +
   theme_bw()
+p1 / p2
 ```
 
 Table \@ref(tab:Tourismdatacomputationtime) compares the computation time of the three methods for rolling and fixed origin forecasting. We see that the OLS forecasting model is much faster compared to the other methods. Also, since reconciliation is a linear process, in all methods it is very fast and does not affect computation time significantly.
@@ -1177,8 +1226,10 @@ rmse2 <- error.wiki %>%
     facet = str_replace(facet, "level([0-9])", "facet \\1")
   )
 
-forecast.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv") %>%
-  select(-X1) %>%
+forecast.wiki.data <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv")
+
+forecast.wiki <-forecast.wiki.data %>%
+  select(-X1, -OLS.var.rec, -OLS.var.unrec) %>%
   gather(-Series, -ForecastInterval, -date, key = "Method", value = "Count") %>%
   mutate(
     Rec = str_extract(Method, "[a-z]*$"),
@@ -1456,6 +1507,108 @@ f2 <- forecast.wiki %>%
   guides(color = FALSE)
 f1 / f2
 ```
+
+
+```{r predinttotalwiki, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin Wikipedia pageviews.", out.width="100%"}
+### total series
+p1 <- forecast.wiki.data %>%
+  filter(Series == "Total", ForecastInterval == "1Step") %>%
+  mutate(
+    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
+    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
+    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
+    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+  ) %>%
+  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
+  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  xlab("Horizon") +
+  ylab("Count") +
+  ggtitle("Rolling origin 1-step forecasts") +
+  scale_colour_manual("Method",
+    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
+    values = c("black", "red", "blue")
+  ) +
+  theme_bw()
+
+p2 <- forecast.wiki.data %>%
+  filter(Series == "Total", ForecastInterval == "28Step") %>%
+  mutate(
+    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
+    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
+    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
+    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+  ) %>%
+  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
+  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  xlab("Horizon") +
+  ylab("Count") +
+  ggtitle("Fixed origin multi-step forecasts") +
+  scale_colour_manual("Method",
+    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
+    values = c("black", "red", "blue")
+  ) +
+  theme_bw()
+p1 / p2
+```
+
+```{r predintdesktopus, fig.align="center", fig.cap="The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.", out.width="100%"}
+### one series example series
+p1 <- forecast.wiki.data %>%
+  filter(Series == "desktopusenPho04", ForecastInterval == "1Step") %>%
+  mutate(
+    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
+    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
+    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
+    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+  ) %>%
+  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
+  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  xlab("Horizon") +
+  ylab("Count") +
+  ggtitle("Rolling origin 1-step forecasts") +
+  scale_colour_manual("Method",
+    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
+    values = c("black", "red", "blue")
+  ) +
+  theme_bw()
+
+p2 <- forecast.wiki.data %>%
+  filter(Series == "desktopusenPho04", ForecastInterval == "28Step") %>%
+  mutate(
+    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
+    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
+    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
+    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+  ) %>%
+  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
+  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  xlab("Horizon") +
+  ylab("Count") +
+  ggtitle("Fixed origin multi-step forecasts") +
+  scale_colour_manual("Method",
+    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
+    values = c("black", "red", "blue")
+  ) +
+  theme_bw()
+p1 / p2
+```
+
 
 Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin forecasts over 28 days in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels series have higher counts and therefore their error magnitudes are larger.
 
