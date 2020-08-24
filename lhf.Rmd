@@ -301,9 +301,9 @@ For obtaining  prediction intervals, we need to compute the variance of reconcil
         = \bm{S}\bm{P}{\bm{\Sigma}_{t+h}} \bm{P}'\bm{S}',
 \end{equation}
 where $\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}$ and ${\bm{\Sigma}_{t+h}}$ denotes the variance of the base forecasts given by the usual linear model formula [@fpp2]
-$$
+\begin{equation}
   \bm{\Sigma}_{t+h} = \sigma^2\left[1 + \bm{X}_{t+h}^*(\bm{X}'\bm{X})^{-1}(\bm{X}_{t+h}^*)'\right],
-$$
+\end{equation}
 where $\sigma^2$ is the variance of the base model residuals. Assuming normally distributed errors, we can easily obtain any required prediction intervals corresponding to elements of $\tilde{\bm{y}}_{t+h}$ using the diagonals of \eqref{eq:variance}.
 
 # Applications
@@ -357,7 +357,7 @@ easter.rmse <- easter.error.tourism %>%
   select(-ETS)
 forecast.tourism.data <- readr::read_csv("Paper-Figures/results_Tourism/forecast.tourism.csv")
 forecast.tourism <- forecast.tourism.data %>%
-  select(-X1, -OLS.var.rec, -OLS.var.unrec) %>%
+  select(-X1, -OLS.lower.rec, -OLS.upper.rec, -OLS.lower.unrec, -OLS.upper.unrec) %>%
   gather(-Series, -ForecastInterval, -date, key = "Method", value = "Count") %>%
   mutate(
     Rec = str_extract(Method, "[a-z]*$"),
@@ -681,10 +681,10 @@ Figures \@ref(fig:predinttotal) and \@ref(fig:predintBACBus) display the predict
 p1 <- forecast.tourism.data %>%
   filter(Series == "Total", ForecastInterval == "1Step") %>%
   mutate(
-    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
-    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
-    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
-    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+    int.low.unrec = OLS.lower.unrec,
+    int.high.unrec = OLS.upper.unrec,
+    int.low.rec = OLS.lower.rec,
+    int.high.rec = OLS.upper.rec
   ) %>%
   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
   geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
@@ -704,10 +704,10 @@ p1 <- forecast.tourism.data %>%
 p2 <- forecast.tourism.data %>%
   filter(Series == "Total", ForecastInterval == "24Step") %>%
   mutate(
-    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
-    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
-    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
-    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+    int.low.unrec = OLS.lower.unrec,
+    int.high.unrec = OLS.upper.unrec,
+    int.low.rec = OLS.lower.rec,
+    int.high.rec = OLS.upper.rec
   ) %>%
   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
   geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
@@ -731,10 +731,10 @@ p1 / p2
 p1 <- forecast.tourism.data %>%
   filter(Series == "BACBus", ForecastInterval == "1Step") %>%
   mutate(
-    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
-    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
-    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
-    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+    int.low.unrec = OLS.lower.unrec,
+    int.high.unrec = OLS.upper.unrec,
+    int.low.rec = OLS.lower.rec,
+    int.high.rec = OLS.upper.rec
   ) %>%
   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
   geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
@@ -754,10 +754,10 @@ p1 <- forecast.tourism.data %>%
 p2 <- forecast.tourism.data %>%
   filter(Series == "BACBus", ForecastInterval == "24Step") %>%
   mutate(
-    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
-    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
-    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
-    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+    int.low.unrec = OLS.lower.unrec,
+    int.high.unrec = OLS.upper.unrec,
+    int.low.rec = OLS.lower.rec,
+    int.high.rec = OLS.upper.rec
   ) %>%
   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
   geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
@@ -902,6 +902,7 @@ We provide results from two simulation studies based on the Australian domestic 
 
 ```{r Readsimtourism, results='hide'}
 error.sim.tourism.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.noise.FH.csv")[, -1]
+BACBus.fix.PI.noise.FH <-  readr::read_csv("Paper-Figures/results_Tourism/Simulation/BACBus.fix.PI.noise.FH.csv")
 fc.sim.fix.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.level.NS.csv")[, -1]
 fc.sim.rolling.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.rolling.level.NS.csv")[, -1]
 rmse.sim.noise.FH <- error.sim.tourism.noise.FH %>%
@@ -974,6 +975,49 @@ kable(rmse.sim.noise.FH,
   kable_styling(position = "center", latex_options = "hold_position")
 ```
 
+```{r TourismdatasimPIfixnoiseFH, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="The actual test set for one of the bottom level series with different error levels forecasted with ETS, ARIMA and OLS with reconciliation with prediction intervals in one to four years- Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset", out.width="100%"}
+BACBus.fix.PI.noise.FH %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .5) +
+  #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .5) +
+  #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
+ geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .5)  +
+  #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+  #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
+  #geom_line(aes(y = ETS.unrec, colour = "ETS.unrec")) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  #geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  geom_vline(xintercept = 12, linetype="dotted", 
+             color = "gray", size=1) +
+  # geom_text(mapping = aes(x = 13, label = 'h = 12', y = -110), 
+  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
+  geom_vline(xintercept = 24, linetype="dotted", 
+             color = "gray", size=1) +
+  # geom_text(mapping = aes(x = 25, label = 'h = 24', y = -110), 
+  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
+  geom_vline(xintercept = 36, linetype="dotted", 
+             color = "gray", size=1) +
+  # geom_text(mapping = aes(x = 37, label = 'h = 36', y = -110), 
+  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
+  geom_vline(xintercept = 48, linetype="dotted", 
+             color = "gray", size=1) +
+  geom_text(mapping = aes(x = 49, label = '', y = -110),
+            angle = 90, hjust = 0, color = 'darkgray', size = 5) +
+  xlab("Horizon") +
+  ylab("Count") +
+  facet_wrap(. ~ Error, scales = "free_y", ncol = 2) +
+  ggtitle("Fixed origin multi-step forecasts") +
+  scale_colour_manual("Method",
+                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+                      values = c("black", "blue", "green",  "red")) +
+  scale_x_discrete(limits = c(12,24,36,48), labels = c("12" = "h = 12", "24" = "h = 24"                                                     ,"36" = "h = 36","48" = "h = 48"))+
+  theme_bw()
+```
+
 Figures \@ref(fig:TourismsimcomputationtimerollingnoiseFH) and \@ref(fig:TourismsimcomputationtimefixednoiseFH) show the computation time (seconds) for ETS, ARIMA and OLS methods on rolling and fixed origin forecasts. From these figures we see that increasing the forecast horizon from one to four years increases computation time almost linearly, while the noise level does not change the computation time. Also, the computation time for ARIMA and ETS is much longer than OLS. Note that the computation time for the reconciliation step is less than a second and therefore the computation time for base and reconciled forecasts is similar.
 
 ```{r TourismsimcomputationtimerollingnoiseFH, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling  origin forecasts on one to four year test set and different error values - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset.", out.width="100%"}
@@ -985,7 +1029,7 @@ com.time.noise.FH %>%
   scale_linetype_manual(name = "Reconciled", values = c(rec = "dashed", unrec = "dotted")) +
   facet_wrap(. ~ Error, nrow = 2) +
   scale_x_continuous(breaks = c(12, 24, 36, 48)) +
-  xlab("Forecast horizon") +
+  xlab("Horizon") +
   ylab("Computation time") +
   theme_light() +
   theme(
@@ -1004,7 +1048,7 @@ com.time.noise.FH %>%
   scale_linetype_manual(name = "Reconciled", values = c(rec = "dashed", unrec = "dotted")) +
   facet_wrap(. ~ Error, nrow = 2) +
   scale_x_continuous(breaks = c(12, 24, 36, 48)) +
-  xlab("Forecast horizon") +
+  xlab("Horizon") +
   ylab("Computation time") +
   theme_light() +
   theme(
@@ -1160,6 +1204,28 @@ rmse.sim.level.NS.rolling %>%
   kable_styling(position = "center", latex_options = "hold_position")
 ```
 
+```{r TourismsimcomputationtimerollinglevelNS, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.", out.width="100%"}
+com.time.level.NS %>%
+  filter(ForecastInterval == "rolling") %>%
+  ggplot() +
+  geom_line(aes(x = NS, y = ComputationTime, color = Method, linetype = Rec)) +
+  scale_color_manual(name = "Series", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
+  scale_linetype_manual(name = "Reconciled", values = c(rec = "dashed", unrec = "dotted")) +
+  facet_wrap(. ~ Level, nrow = 2) +
+  scale_x_continuous(breaks = c(304, 608, 1520, 3040)) +
+  xlab("Levels of the hierarchy") +
+  ylab("Computation time") +
+  theme_light() +
+  theme(
+    axis.text = element_text(size = 10),
+    strip.text = element_text(size = 12),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+```
+
+
+
+
 ```{r TourismdatasimfixlevelNS, results='asis', dependson="Readsimtouris"}
 rmse.sim.level.NS.fix %>%
   kable(
@@ -1229,7 +1295,7 @@ rmse2 <- error.wiki %>%
 forecast.wiki.data <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv")
 
 forecast.wiki <-forecast.wiki.data %>%
-  select(-X1, -OLS.var.rec, -OLS.var.unrec) %>%
+  select(-X1, -OLS.lower.rec, -OLS.upper.rec, -OLS.lower.unrec, -OLS.upper.unrec) %>%
   gather(-Series, -ForecastInterval, -date, key = "Method", value = "Count") %>%
   mutate(
     Rec = str_extract(Method, "[a-z]*$"),
@@ -1514,10 +1580,10 @@ f1 / f2
 p1 <- forecast.wiki.data %>%
   filter(Series == "Total", ForecastInterval == "1Step") %>%
   mutate(
-    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
-    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
-    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
-    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+    int.low.unrec = OLS.lower.unrec,
+    int.high.unrec = OLS.upper.unrec,
+    int.low.rec = OLS.lower.rec,
+    int.high.rec = OLS.upper.rec
   ) %>%
   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
   geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
@@ -1537,10 +1603,10 @@ p1 <- forecast.wiki.data %>%
 p2 <- forecast.wiki.data %>%
   filter(Series == "Total", ForecastInterval == "28Step") %>%
   mutate(
-    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
-    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
-    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
-    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+    int.low.unrec = OLS.lower.unrec,
+    int.high.unrec = OLS.upper.unrec,
+    int.low.rec = OLS.lower.rec,
+    int.high.rec = OLS.upper.rec
   ) %>%
   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
   geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
@@ -1559,15 +1625,15 @@ p2 <- forecast.wiki.data %>%
 p1 / p2
 ```
 
-```{r predintdesktopus, fig.align="center", fig.cap="The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.", out.width="100%"}
+```{r predintdesktopus, fig.align="center", fig.cap="The actual test set for the 'desktopusenPho04' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.", out.width="100%"}
 ### one series example series
 p1 <- forecast.wiki.data %>%
   filter(Series == "desktopusenPho04", ForecastInterval == "1Step") %>%
   mutate(
-    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
-    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
-    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
-    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+    int.low.unrec = OLS.lower.unrec,
+    int.high.unrec = OLS.upper.unrec,
+    int.low.rec = OLS.lower.rec,
+    int.high.rec = OLS.upper.rec
   ) %>%
   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
   geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
@@ -1587,10 +1653,10 @@ p1 <- forecast.wiki.data %>%
 p2 <- forecast.wiki.data %>%
   filter(Series == "desktopusenPho04", ForecastInterval == "28Step") %>%
   mutate(
-    int.low.unrec = OLS.unrec - (1.96 * sqrt(OLS.var.unrec)),
-    int.high.unrec = OLS.unrec + (1.96 * sqrt(OLS.var.unrec)),
-    int.low.rec = OLS.rec - (1.96 * sqrt(OLS.var.rec)),
-    int.high.rec = OLS.rec + (1.96 * sqrt(OLS.var.rec))
+    int.low.unrec = OLS.lower.unrec,
+    int.high.unrec = OLS.upper.unrec,
+    int.low.rec = OLS.lower.rec,
+    int.high.rec = OLS.upper.rec
   ) %>%
   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
   geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +

@@ -541,9 +541,9 @@ For obtaining prediction intervals, we need to compute the variance of reconcile
         = \bm{S}\bm{P}{\bm{\Sigma}_{t+h}} \bm{P}'\bm{S}',
 \end{equation}
 where \(\bm{P} = (\bm{S}'\bm{\Lambda}\bm{S})^{-1}\bm{S}'\bm{\Lambda}\) and \({\bm{\Sigma}_{t+h}}\) denotes the variance of the base forecasts given by the usual linear model formula \autocite{fpp2}
-\[
+\begin{equation}
   \bm{\Sigma}_{t+h} = \sigma^2\left[1 + \bm{X}_{t+h}^*(\bm{X}'\bm{X})^{-1}(\bm{X}_{t+h}^*)'\right],
-\]
+\end{equation}
 where \(\sigma^2\) is the variance of the base model residuals. Assuming normally distributed errors, we can easily obtain any required prediction intervals corresponding to elements of \(\tilde{\bm{y}}_{t+h}\) using the diagonals of \eqref{eq:variance}.
 
 \hypertarget{applications}{%
@@ -916,6 +916,15 @@ unrec & 1.00 & 48 & 233.8 & 234.9 & 225.3\\
 \end{tabular}
 \end{table}
 
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/TourismdatasimPIfixnoiseFH-1} 
+
+}
+
+\caption{The actual test set for one of the bottom level series with different error levels forecasted with ETS, ARIMA and OLS with reconciliation with prediction intervals in one to four years- Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset}\label{fig:TourismdatasimPIfixnoiseFH}
+\end{figure}
+
 Figures \ref{fig:TourismsimcomputationtimerollingnoiseFH} and \ref{fig:TourismsimcomputationtimefixednoiseFH} show the computation time (seconds) for ETS, ARIMA and OLS methods on rolling and fixed origin forecasts. From these figures we see that increasing the forecast horizon from one to four years increases computation time almost linearly, while the noise level does not change the computation time. Also, the computation time for ARIMA and ETS is much longer than OLS. Note that the computation time for the reconciliation step is less than a second and therefore the computation time for base and reconciled forecasts is similar.
 
 \begin{figure}
@@ -1083,6 +1092,15 @@ unrec & 3040 & 18 & 1614 & 1592 & 1455\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/TourismsimcomputationtimerollinglevelNS-1} 
+
+}
+
+\caption{Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.}\label{fig:TourismsimcomputationtimerollinglevelNS}
+\end{figure}
 
 \begin{table}[!h]
 
