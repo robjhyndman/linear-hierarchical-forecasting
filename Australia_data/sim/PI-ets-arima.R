@@ -1,13 +1,13 @@
 
 library(fable)
 library(fabletools)
-
-actual.sim <- read.csv('sim.actual.10.melt.csv', header = TRUE)
+### 
+actual.sim <- read.csv('actual.sim.05.csv.csv', header = TRUE)
 actual.sim$cat <- paste0( actual.sim$level1, actual.sim$level2
-                          , actual.sim$State, actual.sim$Zone, actual.sim$Region, actual.sim$Purpose)
+                          , actual.sim$State, actual.sim$Zone, actual.sim$Region, actual.sim$Purpose, actual.sim$level3)
 
 actual.05 <- actual.sim$value %>%
-  matrix(nrow = 228, ncol = 3040) %>%
+  matrix(nrow = 228, ncol = 304) %>%
   as.data.frame()
 names <- as.vector(unique(actual.sim$cat))
 colnames(actual.05) <- names
@@ -24,14 +24,17 @@ actual.05 <- actual.05 %>%
     State = stringr::str_sub(group, 1, 3),
     Zone = stringr::str_sub(group, 1, 4),
     Region = stringr::str_sub(group, 1, 5),
-    Purpose = stringr::str_sub(group, 6, 9),
+    Purpose = stringr::str_sub(group, 6, 8),
+    level3 = stringr::str_sub(group, 9, 10)
   ) %>%
   select(-group) %>%
-  as_tsibble(index = Date, key=c(level1, level2, State, Zone, Region, Purpose))
+  as_tsibble(index = Date, key=c(level1, level2, State, Zone, Region, Purpose, level3))
 
-
+## 18 levels
 actual.05gts <- actual.05 %>%
-  aggregate_key(Purpose * (level1/level2/State/ Zone/ Region), value = sum(value)) 
+  aggregate_key(Purpose * (level1/ level2/ State/ Zone/ Region) +
+                  level3 * (level1/ level2/ State/ Zone) +
+                  Purpose*level3 , value = sum(value)) 
 
 
 fc.ets <- actual.05gts %>%

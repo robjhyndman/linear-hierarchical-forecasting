@@ -903,6 +903,7 @@ We provide results from two simulation studies based on the Australian domestic 
 ```{r Readsimtourism, results='hide'}
 error.sim.tourism.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.noise.FH.csv")[, -1]
 BACBus.fix.PI.noise.FH <-  readr::read_csv("Paper-Figures/results_Tourism/Simulation/BACBus.fix.PI.noise.FH.csv")
+BACBus.fix.PI.levels.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/BACBus.fix.PI.levels.NS.csv")
 fc.sim.fix.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.level.NS.csv")[, -1]
 fc.sim.rolling.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.rolling.level.NS.csv")[, -1]
 rmse.sim.noise.FH <- error.sim.tourism.noise.FH %>%
@@ -975,14 +976,14 @@ kable(rmse.sim.noise.FH,
   kable_styling(position = "center", latex_options = "hold_position")
 ```
 
-```{r TourismdatasimPIfixnoiseFH, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="The actual test set for one of the bottom level series with different error levels forecasted with ETS, ARIMA and OLS with reconciliation with prediction intervals in one to four years- Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset", out.width="100%"}
+```{r TourismdatasimPIfixnoiseFH, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="The actual test set for one of the bottom level series with different error levels forecasted with ETS, ARIMA and OLS with reconciliation and prediction intervals in one to four years- Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset", out.width="100%"}
 BACBus.fix.PI.noise.FH %>%
    ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .5) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
   #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .5) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
   #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .5)  +
+ geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
   #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
   geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
   #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
@@ -1204,6 +1205,53 @@ rmse.sim.level.NS.rolling %>%
   kable_styling(position = "center", latex_options = "hold_position")
 ```
 
+
+
+```{r TourismdatasimPIfixlevelNS, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="The actual test set for one of the bottom level series with different number of series and hierarchy levels forecasted with ETS, ARIMA and OLS with reconciliation and prediction intervals - Fixed origin - two years forecast points with 0.5 error value - Simulated tourism dataset", out.width="100%"}
+
+BACBus.fix.PI.levels.NS$SL_f = factor(BACBus.fix.PI.levels.NS$SL, levels=c('304-8','608-10','1520-12', '3040-18'))
+
+BACBus.fix.PI.levels.NS %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
+  #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+  #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
+ geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
+  #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+  #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
+  #geom_line(aes(y = ETS.unrec, colour = "ETS.unrec")) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  #geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  xlab("Horizon") +
+  ylab("Count") +
+  facet_wrap(. ~ SL_f, scales = "free_y", ncol = 2) +
+  ggtitle("Fixed origin multi-step forecasts") +
+  scale_colour_manual("Method",
+                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+                      values = c("black", "blue", "green",  "red")) +
+  theme_bw()
+```
+
+```{r TourismdatasimfixlevelNS, results='asis', dependson="Readsimtouris"}
+rmse.sim.level.NS.fix %>%
+  kable(
+    align = c("l", rep("r", 6)),
+    format = "latex",
+    booktabs = TRUE,
+    linesep = "",
+    digits = 0,
+    caption = "Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - Fixed origin - Simulated tourism dataset",
+    col.names = c("Reconciliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
+  ) %>%
+  kable_styling(position = "center", latex_options = "hold_position")
+```
+
+
+
 ```{r TourismsimcomputationtimerollinglevelNS, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.", out.width="100%"}
 com.time.level.NS %>%
   filter(ForecastInterval == "rolling") %>%
@@ -1223,22 +1271,6 @@ com.time.level.NS %>%
   )
 ```
 
-
-
-
-```{r TourismdatasimfixlevelNS, results='asis', dependson="Readsimtouris"}
-rmse.sim.level.NS.fix %>%
-  kable(
-    align = c("l", rep("r", 6)),
-    format = "latex",
-    booktabs = TRUE,
-    linesep = "",
-    digits = 0,
-    caption = "Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - Fixed origin - Simulated tourism dataset",
-    col.names = c("Reconciliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
-  ) %>%
-  kable_styling(position = "center", latex_options = "hold_position")
-```
 
 
 ```{r TourismsimcomputationtimefixedlevelNS, fig.align="center", fig.cap="Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Fixed origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.", out.width="100%"}

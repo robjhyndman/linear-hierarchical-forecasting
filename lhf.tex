@@ -922,7 +922,7 @@ unrec & 1.00 & 48 & 233.8 & 234.9 & 225.3\\
 
 }
 
-\caption{The actual test set for one of the bottom level series with different error levels forecasted with ETS, ARIMA and OLS with reconciliation with prediction intervals in one to four years- Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset}\label{fig:TourismdatasimPIfixnoiseFH}
+\caption{The actual test set for one of the bottom level series with different error levels forecasted with ETS, ARIMA and OLS with reconciliation and prediction intervals in one to four years- Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset}\label{fig:TourismdatasimPIfixnoiseFH}
 \end{figure}
 
 Figures \ref{fig:TourismsimcomputationtimerollingnoiseFH} and \ref{fig:TourismsimcomputationtimefixednoiseFH} show the computation time (seconds) for ETS, ARIMA and OLS methods on rolling and fixed origin forecasts. From these figures we see that increasing the forecast horizon from one to four years increases computation time almost linearly, while the noise level does not change the computation time. Also, the computation time for ARIMA and ETS is much longer than OLS. Note that the computation time for the reconciliation step is less than a second and therefore the computation time for base and reconciled forecasts is similar.
@@ -1095,11 +1095,11 @@ unrec & 3040 & 18 & 1614 & 1592 & 1455\\
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/TourismsimcomputationtimerollinglevelNS-1} 
+{\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/TourismdatasimPIfixlevelNS-1} 
 
 }
 
-\caption{Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.}\label{fig:TourismsimcomputationtimerollinglevelNS}
+\caption{The actual test set for one of the bottom level series with different number of series and hierarchy levels forecasted with ETS, ARIMA and OLS with reconciliation and prediction intervals - Fixed origin - two years forecast points with 0.5 error value - Simulated tourism dataset}\label{fig:TourismdatasimPIfixlevelNS}
 \end{figure}
 
 \begin{table}[!h]
@@ -1145,6 +1145,15 @@ unrec & 3040 & 18 & 1624 & 1606 & 1598\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{figure}
+
+{\centering \includegraphics[width=1\linewidth]{lhf_files/figure-latex/TourismsimcomputationtimerollinglevelNS-1} 
+
+}
+
+\caption{Computation time (seconds) for ETS, ARIMA and OLS with and without reconciliation - Rolling origin forecasts with 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series - two years forecast points with 0.5 error value - Simulated tourism dataset.}\label{fig:TourismsimcomputationtimerollinglevelNS}
+\end{figure}
 
 \begin{figure}
 
@@ -1324,7 +1333,7 @@ Bottom level & 435.6 & 389.4 & 363.7 & 445.9 & 394.0 & 363.5\\
 
 }
 
-\caption{The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.}\label{fig:predintdesktopus}
+\caption{The actual test set for the 'desktopusenPho04' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.}\label{fig:predintdesktopus}
 \end{figure}
 
 Figures \ref{fig:boxplotrollingwiki} and \ref{fig:boxplotwiki} display the forecast error box plot. These plots are for rolling and fixed origin forecasts over 28 days in each level of grouping. Further, we can see that the error distribution is almost similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels series have higher counts and therefore their error magnitudes are larger.

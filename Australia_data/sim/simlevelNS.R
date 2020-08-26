@@ -45,9 +45,6 @@ grouping_gts <- rbind(
   #Zone x Purpose
   paste(str_sub(names, start = name_length - 10, end = name_length - 7),
         str_sub(names, start = name_length - 5, end = name_length - 2), sep = ""),
-  # #Region x Purpose
-  # paste(str_sub(names, start = name_length - 9, end = name_length - 5),
-  #       str_sub(names, start = name_length - 4, end = name_length - 2), sep = ""),
   #level3 x Purpose
   paste(str_sub(names, start = name_length - 5, end = name_length - 2),
         str_sub(names, start = name_length - 1, end = name_length), sep = ""),
@@ -62,27 +59,8 @@ grouping_gts <- rbind(
         str_sub(names, start = name_length - 1, end = name_length), sep = ""),
   #Zone x level3
   paste(str_sub(names, start = name_length - 10, end = name_length - 7),
-        str_sub(names, start = name_length - 1, end = name_length), sep = "")#,
-  # #Region x level3
-  # paste(str_sub(names, start = name_length - 9, end = name_length - 5),
-  #       str_sub(names, start = name_length - 1, end = name_length), sep = "")#,
-  # #level1 x Purpose x level3
-  # paste(str_sub(names, start = name_length - 9, end = name_length - 9),
-  #       str_sub(names, start = name_length - 4, end = name_length - 2),
-  #       str_sub(names, start = name_length - 1, end = name_length), sep = ""),
-  # #level2 x Purpose x level3
-  # paste(str_sub(names, start = name_length - 8, end = name_length - 9),
-  #       str_sub(names, start = name_length - 4, end = name_length - 2),
-  #       str_sub(names, start = name_length - 1, end = name_length), sep = ""),
-  # #State x Purpose x level3
-  # paste(str_sub(names, start = name_length - 7, end = name_length - 9),
-  #       str_sub(names, start = name_length - 4, end = name_length - 2),
-  #       str_sub(names, start = name_length - 1, end = name_length), sep = ""),
-  # #Zone x Purpose x level3
-  # paste(str_sub(names, start = name_length - 6, end = name_length - 9),
-  #       str_sub(names, start = name_length - 4, end = name_length - 2),
-  #       str_sub(names, start = name_length - 1, end = name_length), sep = "")
-)
+        str_sub(names, start = name_length - 1, end = name_length), sep = "")
+ )
 
 
 sim.05gts <- gts(actual.05,  groups = grouping_gts)
