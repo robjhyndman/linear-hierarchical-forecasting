@@ -365,6 +365,7 @@ forecast.tourism <- forecast.tourism.data %>%
     Model = str_extract(Method, "^[A-Z]*"),
     Model = if_else(Model == "A", "Actual", Model)
   )
+BACBus.Total.PI <- readr::read_csv("Paper-Figures/results_Tourism/BACBus.Total.PI.csv")
 ```
 
 This dataset has 19 years of monthly visitor nights in Australia by Australian tourists, a measure used as an indicator of tourism activity [@mint2018]. The data were collected by computer-assisted telephone interviews with 120,000 Australians aged 15 and over [@researchAustralia2005]. The dataset includes 304 time series each of length 228 observations. The hierarchy and grouping structure for this dataset is made using geographic and purpose of travel information.
@@ -673,106 +674,86 @@ p2 <- forecast.tourism %>%
 p1 / p2
 ```
 
-Figures \@ref(fig:predinttotal) and \@ref(fig:predintBACBus) display the prediction interval for the OLS approach, with and without reconciliation forecasts for the total series and one of the bottom level series, BACBus (Geelong - Business).\todo{Why don't the intervals increase with the horizon?}
+Figures \@ref(fig:predinttotal) and \@ref(fig:predintBACBus) display the prediction interval for the OLS approach, with and without reconciliation forecasts for the total series and one of the bottom level series, BACBus (Geelong - Business).<!--\todo{Why don't the intervals increase with the horizon?}-->
 
 ```{r predinttotal, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin tourism demand.", out.width="100%"}
 ### total series
-
-p1 <- forecast.tourism.data %>%
-  filter(Series == "Total", ForecastInterval == "1Step") %>%
-  mutate(
-    int.low.unrec = OLS.lower.unrec,
-    int.high.unrec = OLS.upper.unrec,
-    int.low.rec = OLS.lower.rec,
-    int.high.rec = OLS.upper.rec
-  ) %>%
-  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
-  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+p1 <- BACBus.Total.PI %>%
+   filter(Series == "Total", ForecastInterval == "1Step") %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+ geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
   geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
-  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Rolling origin 1-step forecasts") +
   scale_colour_manual("Method",
-    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
-    values = c("black", "red", "blue")
-  ) +
+                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+                      values = c("black", "blue", "green",  "red"))+
   theme_bw()
 
-p2 <- forecast.tourism.data %>%
-  filter(Series == "Total", ForecastInterval == "24Step") %>%
-  mutate(
-    int.low.unrec = OLS.lower.unrec,
-    int.high.unrec = OLS.upper.unrec,
-    int.low.rec = OLS.lower.rec,
-    int.high.rec = OLS.upper.rec
-  ) %>%
-  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
-  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+p2 <- BACBus.Total.PI %>%
+   filter(Series == "Total", ForecastInterval == "24Step") %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+ geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
   geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
-  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_colour_manual("Method",
-    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
-    values = c("black", "red", "blue")
-  ) +
+                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+                      values = c("black", "blue", "green",  "red"))+
   theme_bw()
 p1 / p2
 ```
 
 ```{r predintBACBus, fig.align="center", fig.cap="The actual test set for the 'BACBus' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin tourism demand.", out.width="100%"}
 ### one series example series
-p1 <- forecast.tourism.data %>%
-  filter(Series == "BACBus", ForecastInterval == "1Step") %>%
-  mutate(
-    int.low.unrec = OLS.lower.unrec,
-    int.high.unrec = OLS.upper.unrec,
-    int.low.rec = OLS.lower.rec,
-    int.high.rec = OLS.upper.rec
-  ) %>%
-  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
-  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+p1 <- BACBus.Total.PI %>%
+   filter(Series == "BACBus", ForecastInterval == "1Step") %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+ geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
   geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
-  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Rolling origin 1-step forecasts") +
   scale_colour_manual("Method",
-    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
-    values = c("black", "red", "blue")
-  ) +
+                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+                      values = c("black", "blue", "green",  "red"))+
   theme_bw()
 
-p2 <- forecast.tourism.data %>%
-  filter(Series == "BACBus", ForecastInterval == "24Step") %>%
-  mutate(
-    int.low.unrec = OLS.lower.unrec,
-    int.high.unrec = OLS.upper.unrec,
-    int.low.rec = OLS.lower.rec,
-    int.high.rec = OLS.upper.rec
-  ) %>%
-  ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = int.high.rec, ymin = int.low.rec), fill = "pink", colour = "pink", alpha = .5) +
-  geom_ribbon(aes(x = date, ymax = int.high.unrec, ymin = int.low.unrec), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+p2 <- BACBus.Total.PI %>%
+   filter(Series == "BACBus", ForecastInterval == "24Step") %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+  geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
   geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
-  geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_colour_manual("Method",
-    breaks = c("Actual", "OLS.rec", "OLS.unrec"),
-    values = c("black", "red", "blue")
-  ) +
+                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+                      values = c("black", "blue", "green",  "red"))+
   theme_bw()
+
 p1 / p2
 ```
 
@@ -902,8 +883,10 @@ We provide results from two simulation studies based on the Australian domestic 
 
 ```{r Readsimtourism, results='hide'}
 error.sim.tourism.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.noise.FH.csv")[, -1]
+BACBus.rolling.PI.noise.FH <-  readr::read_csv("Paper-Figures/results_Tourism/Simulation/BACBus.rolling.PI.noise.FH.csv")
 BACBus.fix.PI.noise.FH <-  readr::read_csv("Paper-Figures/results_Tourism/Simulation/BACBus.fix.PI.noise.FH.csv")
 BACBus.fix.PI.levels.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/BACBus.fix.PI.levels.NS.csv")
+BACBus.rolling.PI.levels.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/BACBus.rolling.PI.levels.NS.csv")
 fc.sim.fix.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.level.NS.csv")[, -1]
 fc.sim.rolling.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.rolling.level.NS.csv")[, -1]
 rmse.sim.noise.FH <- error.sim.tourism.noise.FH %>%
@@ -913,7 +896,7 @@ rmse.sim.noise.FH <- error.sim.tourism.noise.FH %>%
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, noise, ForecastHorizon, ETS, ARIMA, OLS)
+  select(Rec, noise, ForecastHorizon, ARIMA, ETS, OLS)
 
 error.sim.tourism.rolling.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.rolling.noise.FH.csv")[, -1] # %>%
 rmse.sim.rolling.noise.FH <- error.sim.tourism.rolling.noise.FH %>%
@@ -923,7 +906,7 @@ rmse.sim.rolling.noise.FH <- error.sim.tourism.rolling.noise.FH %>%
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, noise, ForecastHorizon, ETS, ARIMA, OLS)
+  select(Rec, noise, ForecastHorizon, ARIMA, ETS, OLS)
 com.time.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/computation.noise.FH.csv")
 
 ## changing number of levels and series
@@ -934,7 +917,7 @@ rmse.sim.level.NS.fix <- fc.sim.fix.level.NS %>%
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, Series, Levels, ETS, ARIMA, OLS)
+  select(Rec, Series, Levels, ARIMA, ETS, OLS)
 
 rmse.sim.level.NS.rolling <- fc.sim.rolling.level.NS %>%
   group_by(Rec, Method, Series, Levels) %>%
@@ -943,7 +926,7 @@ rmse.sim.level.NS.rolling <- fc.sim.rolling.level.NS %>%
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, Series, Levels, ETS, ARIMA, OLS)
+  select(Rec, Series, Levels, ARIMA, ETS, OLS)
 
 com.time.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/computation.level.NS.csv")
 ```
@@ -975,6 +958,53 @@ kable(rmse.sim.noise.FH,
 ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
 ```
+
+```{r TourismdatasimPIrollingnoiseFH, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="The actual test set for one of the bottom level series with different error levels forecasted with ETS, ARIMA and OLS with reconciliation and prediction intervals in one to four years- Rolling origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset", out.width="100%"}
+BACBus.rolling.PI.noise.FH %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
+  #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+  #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
+ geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
+  #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+  #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
+  #geom_line(aes(y = ETS.unrec, colour = "ETS.unrec")) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  #geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  geom_vline(xintercept = 12, linetype="dotted", 
+             color = "gray", size=1) +
+  # geom_text(mapping = aes(x = 13, label = 'h = 12', y = -110), 
+  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
+  geom_vline(xintercept = 24, linetype="dotted", 
+             color = "gray", size=1) +
+  # geom_text(mapping = aes(x = 25, label = 'h = 24', y = -110), 
+  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
+  geom_vline(xintercept = 36, linetype="dotted", 
+             color = "gray", size=1) +
+  # geom_text(mapping = aes(x = 37, label = 'h = 36', y = -110), 
+  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
+  geom_vline(xintercept = 48, linetype="dotted", 
+             color = "gray", size=1) +
+  geom_text(mapping = aes(x = 49, label = '', y = -110),
+            angle = 90, hjust = 0, color = 'darkgray', size = 5) +
+  xlab("Horizon") +
+  ylab("Count") +
+  facet_wrap(. ~ Error, scales = "free_y", ncol = 2) +
+  ggtitle("Rolling origin 1-step forecasts") +
+  scale_colour_manual("Method",
+                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+                      values = c("black", "blue", "green",  "red")) +
+  scale_x_discrete(limits = c(12,24,36,48), labels = c("12" = "h = 12", "24" = "h = 24"                                                     ,"36" = "h = 36","48" = "h = 48"))+
+  theme_bw()
+```
+
+
+
+
 
 ```{r TourismdatasimPIfixnoiseFH, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="The actual test set for one of the bottom level series with different error levels forecasted with ETS, ARIMA and OLS with reconciliation and prediction intervals in one to four years- Fixed origin - 304 bottom level series and 8 levels of hierarchy - Simulated tourism dataset", out.width="100%"}
 BACBus.fix.PI.noise.FH %>%
@@ -1198,11 +1228,41 @@ rmse.sim.level.NS.rolling %>%
     format = "latex",
     booktabs = TRUE,
     linesep = "",
-    digits = 0,
+    digits = c(0, 0, 0, 1, 1, 1),
     caption = "Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - rolling origin - Simulated tourism dataset",
     col.names = c("Reconciliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
   ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
+```
+
+
+```{r TourismdatasimPIrollinglevelNS, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="The actual test set for one of the bottom level series with different number of series and hierarchy levels forecasted with ETS, ARIMA and OLS with reconciliation and prediction intervals - Rolling origin - two years forecast points with 0.5 error value - Simulated tourism dataset", out.width="100%"}
+
+BACBus.rolling.PI.levels.NS$SL_f = factor(BACBus.rolling.PI.levels.NS$SL, levels=c('304-8','608-10','1520-12', '3040-18'))
+
+BACBus.rolling.PI.levels.NS %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
+  #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
+  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+  #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
+ geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
+  #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+  #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
+  #geom_line(aes(y = ETS.unrec, colour = "ETS.unrec")) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+  #geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+  geom_line() +
+  xlab("Horizon") +
+  ylab("Count") +
+  facet_wrap(. ~ SL_f, scales = "free_y", ncol = 2) +
+  ggtitle("Rolling origin 1-step forecasts") +
+  scale_colour_manual("Method",
+                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+                      values = c("black", "blue", "green",  "red")) +
+  theme_bw()
 ```
 
 
@@ -1243,7 +1303,7 @@ rmse.sim.level.NS.fix %>%
     format = "latex",
     booktabs = TRUE,
     linesep = "",
-    digits = 0,
+    digits = c(0, 0, 0, 1, 1, 1),
     caption = "Mean RMSE on 8, 10, 12 and 18 levels of hierarchy with 304, 608, 1520 and 3040 number of bottom level series for ETS, ARIMA and OLS with and without reconciliation - two years forecast points with 0.5 error value - Fixed origin - Simulated tourism dataset",
     col.names = c("Reconciliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
   ) %>%
