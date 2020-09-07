@@ -1,17 +1,12 @@
-
-library(hts)
-library(Matrix)
-library(reshape)
-library(tsibble)
-library(fabletools)
-library(fable)
 library(tidyverse)
+library(tsibble)
+library(fable)
 library(lubridate)
 
 wikidata <- read.csv('wikipedia_data.csv', header = TRUE)
 wiki <- wikidata$views %>%
   matrix(nrow = 394, ncol = 913) %>%
-  as.data.frame() 
+  as.data.frame()
 colnames(wiki) <- unique(wikidata$cat_column) %>% substr(1,14)
 wiki <- repair_names(wiki)
 wiki <-  tibble(wiki)
@@ -26,12 +21,19 @@ wiki <- wiki %>%
     Purpose = stringr::str_sub(group, 12, 14),
   ) %>%
   select(-group) %>%
-  as_tsibble(index = Date, key=c(Access, Agent, Language, Purpose))
+  duplicates(index = Date, key=c(Access, Agent, Language, Purpose))
 
 
 wikigts <- wiki %>%
-  aggregate_key(Access * Agent + Access * Language + Access * Purpose + 
-                  Agent * Language + Agent * Purpose + Language * Purpose , value = sum(value)) 
+  aggregate_key(
+    Access * Agent +
+    Access * Language +
+    Access * Purpose +
+    Agent * Language +
+    Agent * Purpose +
+    Language * Purpose +
+    Access:Agent:Purpose:Language,
+    value = sum(value))
 
 dim(wikigts)/394
 write.csv(wikigts, 'test.csv')
@@ -42,6 +44,6 @@ fc.ets<- wikigts %>%
   reconcile(ets_adjusted = min_trace(ets, method="wls_struct"))%>%
   forecast(h = "28 day") %>%
   mutate(value = distributional::dist_truncated(value, 0)) %>%
-  hilo(level=95) %>% 
+  hilo(level=95) %>%
   unpack_hilo("95%")
 

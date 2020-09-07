@@ -1,8 +1,9 @@
-
+library(tidyverse)
+library(tsibble)
 library(fable)
-library(fabletools)
+
 ### 
-actual.sim <- read.csv('actual.sim.05.csv.csv', header = TRUE)
+actual.sim <- read.csv('actual.sim.05.csv', header = TRUE)
 actual.sim$cat <- paste0( actual.sim$level1, actual.sim$level2
                           , actual.sim$State, actual.sim$Zone, actual.sim$Region, actual.sim$Purpose, actual.sim$level3)
 
