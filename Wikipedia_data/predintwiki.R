@@ -193,27 +193,55 @@ wikitest <- window(wikigts, start = c(1, 367))
 ally <- aggts(wikigts)
 ally.test <- aggts(wikitest)
 
-
+n <- nrow(ally)
 h <- 28
-fc <- array(NA, c(Horizon=h, Series=NCOL(ally), Method=2))
+fc <- array(NA, c(Horizon=h, Series=NCOL(ally), Method=5))
 dimnames(fc) <- list(
   Horizon = paste0("h=",seq(h)),
   Series = colnames(ally),
-  Method = c("OLS", "OLS.var")
+  Method = c("OLS", "OLS.lwr", "OLS.upr", "OLS.se", "OLS.residual.scale")
 )
 for(i in seq(NCOL(ally)))
 {
   # OLS forecasts
   fit.OLS <- OLSmodel(ally[,i],7,7,h, nolag = c(1,7))
-  fc[,i,"OLS"] <- fit.OLS[[1]]
-  fc[,i,"OLS.var"] <- (fit.OLS[[2]])^2
+  fc[, i,"OLS"] <- fit.OLS[[1]]
+  fc[, i,"OLS.lwr"] <- fit.OLS[[2]]
+  fc[, i,"OLS.upr"] <- fit.OLS[[3]]
+  fc[, i,"OLS.se"] <- fit.OLS[[4]]
+  fc[, i,"OLS.residual.scale"] <- fit.OLS[[5]]
 }
 
-fc.OLS.base <- as.data.frame(fc[,,"OLS"])
-fc.OLS.var <- as.data.frame(fc[,,"OLS.var"])
-colnames(fc.OLS.base) <- colnames(ally)
-colnames(fc.OLS.var) <- colnames(ally)
+fc.OLS <- as.data.frame(fc[,,"OLS"])
+fc.OLS.lwr <- as.data.frame(fc[,,"OLS.lwr"])
+fc.OLS.upr <- as.data.frame(fc[,,"OLS.upr"])
+fc.OLS.se <- as.data.frame(fc[,,"OLS.se"])
+fc.OLS.residual.scale <- as.data.frame(fc[,,"OLS.residual.scale"])
 
+colnames(fc.OLS) <- c(1:ncol(ally))
+colnames(fc.OLS.lwr) <- c(1:ncol(ally))
+colnames(fc.OLS.upr) <- c(1:ncol(ally))
+colnames(fc.OLS.se) <- c(1:ncol(ally))
+colnames(fc.OLS.residual.scale) <- c(1:ncol(ally))
+
+## computing reconceliation matrix
+gmat <- GmatrixG(wikigts$groups)
+smatrix <- as.matrix(SmatrixM(gmat))
+lambda <- diag(rowSums(smatrix))
+
+rec.adj.lambda <- as.matrix(smatrix%*%solve(t(smatrix)%*%solve(lambda)%*%smatrix)%*%t(smatrix)%*%solve(lambda))
+
+fc.rec <- matrix(NA, nrow = 28, ncol = ncol(ally))
+for(i in 1:nrow(fc.OLS)){
+  f.1 <- matrix(as.numeric(fc.OLS[i,]), ncol = 1, nrow = ncol(fc.OLS))
+  fc.rec [i,] <- rec.adj.lambda %*% f.1
+}
+colnames(fc.rec ) <- c(1:ncol(ally))
+
+
+
+## PI variance
+fc.OLS.PI <- (fc.OLS.se)^2 + (fc.OLS.residual.scale)^2
 
 ## computing predictors (trend, dummy seasonality, lags) for each series
 Xmat<-list()
@@ -241,15 +269,30 @@ for(i in 1:k){
   mat.inverse <- solve(t(mat)%*%mat)
   mat.test <- bdiag(lapply(Xmat.final.test, function(x){as.matrix(na.omit(x))}))
   H.matrix <- mat.test %*% mat.inverse %*% t(mat.test)
-  Sigma.mat <- diag(fc.OLS.var[i,]) + (diag(fc.OLS.var[i,]) %*% H.matrix)
+  Sigma.mat <- diag(fc.OLS.PI[i,]) + (diag(fc.OLS.PI[i,]) %*% H.matrix)
   rec.p <- as.matrix(solve(t(smatrix)%*%solve(lambda)%*%smatrix)%*%t(smatrix)%*%solve(lambda))
   var.for <- as.matrix((smatrix %*% rec.p) %*% Sigma.mat %*% (t(rec.p) %*% t(smatrix)))
   result.var[i,] <- as.vector(diag(var.for))
 }
 
-rec.var <- reshape2::melt(result.var)
-write.csv(rec.var, "rec.var.wiki.rolling.csv")
-write.csv(reshape2::melt(fc.OLS.var), "unrec.var.wiki.rolling.csv")
+OLS.unrec = reshape2::melt(fc.OLS)
+OLS.rec = reshape2::melt(fc.rec) 
+OLS.var.rec = reshape2::melt(result.var) 
+OLS.lower.unrec = reshape2::melt(fc.OLS.lwr) 
+OLS.upr.unrec = reshape2::melt(fc.OLS.upr) 
+date = rep(1:k, 1035)
+Actual = reshape2::melt(ally.test)
+fc.OLS <- cbind(OLS.unrec$value,
+                  OLS.rec$value, 
+                  OLS.var.rec$value, 
+                  OLS.lower.unrec$value,
+                  OLS.upr.unrec$value, 
+                  date, Actual
+                )
+colnames(fc.OLS) <- c('OLS.unrec', 'OLS.rec',  'OLS.var.rec', 'OLS.lower.unrec', 'OLS.upper.unrec', 'date', 'Series', 'Actula')
+write.csv(fc.OLS, "rolling.OLS.PI.csv")
+
+
 
 
 

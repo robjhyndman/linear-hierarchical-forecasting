@@ -32,9 +32,10 @@ actual.05 <- actual.05 %>%
 
 ## 18 levels
 actual.05gts <- actual.05 %>%
-  aggregate_key(Purpose * (level1/ level2/ State/ Zone/ Region) +
-                  level3 * (level1/ level2/ State/ Zone) +
-                  Purpose*level3 , value = sum(value)) 
+  aggregate_key( level1 + level2 + State + Zone + Region + Purpose + level3 + level1:Purpose
+                 + level2:Purpose + State:Purpose + Zone:Purpose + Purpose:level3 + level1:level3
+                 + level2:level3 + State:level3 + Zone:level3
+                 + Purpose:level1:level2:level3:State:Zone:Region , value = sum(value)) 
 
 
 fc.ets <- actual.05gts %>%

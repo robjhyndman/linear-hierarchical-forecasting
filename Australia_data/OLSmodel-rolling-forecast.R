@@ -87,18 +87,19 @@ write.csv(errors.arima.ets,"errors.arima.ets.rolling.csv")
 #### OLS rolling function
 OLSmodel<-function(X,freq,maxlag,h, nolag = NULL){
   X<-as.vector(X)
-  trend<-seq(NROW(X))
+  trend1 <-  (seq_along(X))^2
+  trend2 <- seq(NROW(X))
   season<-forecast::seasonaldummy(ts(X,frequency = freq))
   if(maxlag>0)
   {
     Xlag <- quantmod::Lag(X,k=1:maxlag)
     if(length(nolag) == 0)
-      X_mat <- cbind.data.frame(X, trend, season)
+      X_mat <- cbind.data.frame(X, trend1, trend2, season)
     else
-      X_mat <- cbind.data.frame(X, trend, season, Xlag[,nolag])
+      X_mat <- cbind.data.frame(X, trend1, trend2, season, Xlag[,nolag])
   }
   else
-    X_mat<-cbind.data.frame(X,trend,season)
+    X_mat<-cbind.data.frame(X,trend1, trend2,season)
   n <- nrow(X_mat)
   fore_base_OLS<-matrix(NA,nrow = h,ncol=1)
   for (i in 1:h) {
@@ -110,6 +111,7 @@ OLSmodel<-function(X,freq,maxlag,h, nolag = NULL){
   }
   return(fore_base_OLS)
 }
+
 
 ### computing base forecasts
 fc.OLS.base <- array(NA, c(Horizon=h, Series=NCOL(ally), Method=2))

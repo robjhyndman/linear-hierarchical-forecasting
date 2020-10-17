@@ -2,22 +2,22 @@
 
 OLSmodel<-function(X,freq,maxlag,h, nolag = NULL){
   X<-as.vector(X)
-  trend <- seq(NROW(X))
-  #trend2 <- seq(NROW(X))^2
+  trend1 <- seq(NROW(X))
+  trend2 <- seq(NROW(X))^2
   season<-forecast::seasonaldummy(ts(X,frequency = freq))
   if(maxlag>0)
   {
     Xlag <- quantmod::Lag(X,k=1:maxlag)
     if(length(nolag) == 0)
-      X_mat <- cbind.data.frame(X, trend, season)
-      #X_mat <- cbind.data.frame(X, trend1, trend2, season)
+      #X_mat <- cbind.data.frame(X, trend, season)
+      X_mat <- cbind.data.frame(X, trend1, trend2, season)
     else
-      X_mat <- cbind.data.frame(X, trend, season, Xlag[,nolag])
-      #X_mat <- cbind.data.frame(X, trend1, trend2, season, Xlag[,nolag])
+      #X_mat <- cbind.data.frame(X, trend, season, Xlag[,nolag])
+      X_mat <- cbind.data.frame(X, trend1, trend2, season, Xlag[,nolag])
   }
   else
-    X_mat<-cbind.data.frame(X, trend, season)
-    #X_mat<-cbind.data.frame(X,trend1, trend2,season)
+    #X_mat<-cbind.data.frame(X, trend, season)
+    X_mat<-cbind.data.frame(X,trend1, trend2,season)
   n <- nrow(X_mat)
   fc<-matrix(NA,nrow = h,ncol=1)
   lwr<-matrix(NA,nrow = h,ncol=1)

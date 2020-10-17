@@ -9,7 +9,8 @@ olsfc <- function(x, h, maxlag = 0, nolag = NULL ) {
   n <- length(x)
   modeldata <- data.frame(
     x = as.numeric(x),
-    trend = seq_along(x),
+    trend1 = (seq_along(x))^2,
+    trend2 = seq_along(x),
     season = factor(cycle(x))
   )
   if(maxlag > 0)
@@ -23,7 +24,8 @@ olsfc <- function(x, h, maxlag = 0, nolag = NULL ) {
   # Set up formula for linear model
   if (length(nolag) == 0)
     nolag <- seq(maxlag) 
-  form <- "x ~ trend + season"
+  form <- "x ~ trend1 + trend2 + season"
+  #form <- "x ~ trend + season"
   for (i in nolag)
     form <- paste0(form, " + ", "lag", i)
   form <- as.formula(form)
@@ -50,9 +52,11 @@ olsfc <- function(x, h, maxlag = 0, nolag = NULL ) {
   )
   residual.scale <- c() 
   # Set up new data for forecasting
-  trend <- length(x) + seq(h)
+  trend1 <- (length(x) + seq(h))^2
+  trend2 <- length(x) + seq(h)
   season <- factor(cycle(fc))
-  newdata <- data.frame(trend = trend[1], season = season[1])
+  newdata <- data.frame(trend1 = trend1[1], trend2 = trend2[1], season = season[1])
+  #newdata <- data.frame(trend = trend[1], season = season[1])
   for (i in seq_along(lagnames))
     newdata[[lagnames[i]]] <- tail(x,i)[1]
   
@@ -71,7 +75,8 @@ olsfc <- function(x, h, maxlag = 0, nolag = NULL ) {
     {
       newdata[lagnames[seq(maxlag)]] <- c(fc[i], newdata[lagnames[1:(maxlag-1)]]) 
     }
-    newdata[['trend']] <- trend[i+1]
+    newdata[['trend1']] <- trend1[i+1]
+    newdata[['trend2']] <- trend2[i+1]
     newdata[['season']] <- season[i+1]
   }
   return(list(fc, lwr, upr, se, residual.scale))
