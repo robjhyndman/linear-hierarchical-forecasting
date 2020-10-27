@@ -41,18 +41,18 @@ fc.ets<- wikigts %>%
   model(ets = ETS(value ))%>%
   reconcile(ets_adjusted = min_trace(ets, method="wls_struct"))%>%
   forecast(h = "28 day") #%>%
-  #mutate(value = distributional::dist_truncated(value, 0)) %>%
+#mutate(value = distributional::dist_truncated(value, 0)) %>%
 fc.ets<- fc.ets %>%
   hilo(level=95) %>% 
   unpack_hilo("95%")
- 
+
 
 fc.arima<- wikigts %>%
   filter(Date <= ymd ("2017/06/01")) %>%
   model(arima = ARIMA(value ))%>%
   reconcile(arima_adjusted = min_trace(arima, method="wls_struct"))%>%
   forecast(h = "28 day") #%>%
-  #mutate(value = distributional::dist_truncated(value, 0)) %>%
+#mutate(value = distributional::dist_truncated(value, 0)) %>%
 fc.arima <- fc.arima %>%  
   hilo(level=95) %>% 
   unpack_hilo("95%")
