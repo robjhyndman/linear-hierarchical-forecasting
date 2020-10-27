@@ -37,7 +37,7 @@ for(i in seq(NCOL(ally))){
   }
 }
 ### setting negative base forecasts zero  
-fc.arima.ets[fc.arima.ets<0]<-0
+#fc.arima.ets[fc.arima.ets<0]<-0
 ### reconcile the results
 forecast.arima.ets <- array(NA, c(Horizon=h, Series=NCOL(TourismData), Method=4,Reconciled=2))
 dimnames(forecast.arima.ets) <- list(

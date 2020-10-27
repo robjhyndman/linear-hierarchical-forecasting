@@ -25,6 +25,10 @@ Xmatrix<-function(X){
   Xmat[[length(Xmat)+1]] <- X_mat 
 }
 
+as.matrix <- Matrix::as.matrix
+t <- Matrix::t
+solve <- Matrix::solve
+diag <- Matrix::diag
 
 
 TourismData <- head(TourismData1, (n1-k))
@@ -46,30 +50,24 @@ for(i in 1:k){
   Xmat.final <- lapply(as.list(ally), Xmatrix)
   Xmat.final.train <- lapply(Xmat.final, function(x)x[1:((n - 1) + (1 - 1)),])
   Xmat.final.test <- lapply(Xmat.final, function(x)x[(n - 1) + 1,])
-  mat <- bdiag(lapply(Xmat.final.train, function(x){as.matrix(na.omit(x))}))
-  mat.inverse <- solve(t(mat)%*%mat)
+  mat <- Matrix::bdiag(lapply(Xmat.final.train, function(x){as.matrix(na.omit(x))}))
+  mat <- as(mat, 'dgCMatrix')
+  mat.inverse <- Matrix::solve(t(mat)%*%mat)
+  mat.inverse <- as(mat.inverse, 'dgCMatrix')
   ally.train <- ally[1:(n - 1),]
-  y.final <- as.matrix(melt(ally.train[-c(1:maxlag),])$value)
+  y.final <- Matrix::as.matrix(melt(ally.train[-c(1:maxlag),])$value)
+  y.final <- as(y.final, 'dgCMatrix')
   coeff <- (mat.inverse %*%t(mat))%*%y.final
-  mat.test <- bdiag(lapply(Xmat.final.test, function(x){as.matrix(na.omit(x))}))
+  coeff <- as(coeff, 'dgCMatrix')
+  mat.test <- Matrix::bdiag(lapply(Xmat.final.test, function(x){as.matrix(na.omit(x))}))
+  mat.test <- as(mat.test, 'dgCMatrix')
   base.fore <- mat.test%*%coeff
   result.fore [i,] <- as.vector(base.fore) 
 }
-result.fore[result.fore<0] <- 0
-#write.csv(melt(result.fore),"matrix_fixed_unrec.csv")
-
-
-## computing reconceliation matrix
-# gmat<-GmatrixG(ausgts$groups)
-# smatrix<-SmatrixM(gmat)
-# wvec<- InvS4g(ausgts$groups)
-# totalts <- sum(Mlevel(gmat))
-# seqts <- 1:totalts
-# lambda <- sparseMatrix(i = seqts, j = seqts, x = 1/wvec)
 
 gmat <- GmatrixG(ausgts$groups)
-smatrix <- as.matrix(SmatrixM(gmat))
-lambda <- diag(rowSums(smatrix))
+smatrix <- as((SmatrixM(gmat)), 'dgCMatrix')
+lambda <- as(diag(rowSums(smatrix)), 'dgCMatrix')
 
 rec.adj.lambda <- as.matrix(smatrix%*%solve(t(smatrix)%*%solve(lambda)%*%smatrix)%*%t(smatrix)%*%solve(lambda))
 
@@ -79,5 +77,5 @@ for(i in 1:nrow(result.fore)){
   f.24 <- matrix(result.fore[i,], ncol = 1, nrow = ncol(result.fore))
   fr.24 [i,] <- rec.adj.lambda %*% f.24
 }
-#write.csv(melt(fr.24) ,"matrix_fixed_rec.csv")
+
 
