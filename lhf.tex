@@ -556,7 +556,7 @@ where \(\sigma^2\) is the variance of the base model residuals. Assuming normall
 \hypertarget{applications}{%
 \section{Applications}\label{applications}}
 
-In this section we illustrate our approach using a real data set and a simulated dataset\footnote{All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 3.6.1. All the displayed computation times are only for the reconciled point forecasts.}. The real data study includes forecasting monthly Australian domestic tourism. This dataset contains 304 series with both hierarchical and grouped structure with strong seasonality. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. In \protect\hyperlink{appendixB}{Appendix B} , we use another real dataset involving daily Wikipedia pageviews. In all these cases, we compare the forecasting accuracy of ETS, ARIMA\footnote{ For running ETS and ARIMA, we applied \texttt{ETS} and \texttt{ARIMA} functions from the \texttt{fable} package \autocite{o2019fable}. The two sets of functions were run independently and not immediately one after the other.} and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \eqref{eq:mint2}. For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
+In this section we illustrate our approach using a real data set and a simulated dataset\footnote{All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 3.6.1. All the displayed computation times are only for the reconciled point forecasts.}. The real data study includes forecasting monthly Australian domestic tourism. This dataset contains 304 series with both hierarchical and grouped structure with strong seasonality. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. In \protect\hyperlink{appendixB}{Appendix B} , we use another real dataset involving daily Wikipedia pageviews. In all these cases, we compare the forecasting accuracy of ETS, ARIMA\footnote{For running ETS and ARIMA, we applied \texttt{ETS} and \texttt{ARIMA} functions from the \texttt{fable} package \autocite{o2019fable}. The two sets of functions were run independently and not immediately one after the other.} and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \eqref{eq:mint2}. For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
 
 We apply two methods for generating forecasts that align with two different practical forecasting scenarios. The first approach is \emph{rolling origin} forecasting, where we generate one-step-ahead forecasts (\(\tilde{\bm{y}}_{t+1}\) where \(t\) changes). This mimics the scenario where data are refreshed every time period. In the second \emph{fixed origin} method, forecasts are generated at a fixed time \(t\) for \(h\) steps ahead: \(\tilde{\bm{y}}_{t+1}, \tilde{\bm{y}}_{t+2},\dots, \tilde{\bm{y}}_{t+h}\) (we replace lagged values of \(y\) by their forecasts if they occur at periods after the forecast origin; See algorithms \ref{alg:algorithmrolling} and \ref{alg:algorithmfixed} for more details of the rolling and fixed origin approaches).
 
@@ -690,14 +690,14 @@ Region &  &  & 92 & Flinders Range and Outback & DCD\\
 
 \begin{figure}
 
-{\centering \includegraphics[width=450px,height=360px]{Paper-Figures/ausTurRegions} 
+{\centering \includegraphics[width=450px,height=360px]{Paper-Figures/ausTurRegionsBW} 
 
 }
 
-\caption{Australia tourism region map - colors represent states.}\label{fig:Australiahierarchystructuremap}
+\caption{Australia map, showing the eight states.}\label{fig:Australiahierarchystructuremap}
 \end{figure}
 
-In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven ``States'' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 ``Zones'' and 76 ``Regions'' (for details about Australia geographic divisions see Figure \ref{fig:Australiahierarchystructure} and Table \ref{tab:Australiageographicaldivision} and also Figure \ref{fig:Australiahierarchystructuremap} which shows Australia map divided by tourism region and colored by states\footnote{\url{www.tra.gov.au/tra/2016/Tourism_Region_Profiles/Region_profiles/index.html}}).
+In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven ``States'' including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 ``Zones'' and 76 ``Regions'' (for details about Australia geographic divisions see Figure \ref{fig:Australiahierarchystructure} and Table \ref{tab:Australiageographicaldivision} and also Figure \ref{fig:Australiahierarchystructuremap} which shows Australia map divided by tourism region and colored by states\footnote{Reproduced from: \url{www.tra.gov.au/tra/2016/Tourism_Region_Profiles/Region_profiles/index.html}}).
 
 We have four purposes of travel: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). So there are \(76\times4 = 304\) series at the most disaggregate level. Based on the geographic hierarchy and purpose grouping, we end up with 8 aggregation levels with 555 series in total as shown in Table \ref{tab:Australiageographicalpurposedivision}.
 
@@ -717,7 +717,7 @@ Purpose & 4\\
 State x Purpose & 28\\
 Zone x Purpose & 108\\
 Region x Purpose & 304\\
-\midrule
+\hline
 Total & 555\\
 \bottomrule
 \end{tabular}
@@ -1022,7 +1022,7 @@ Level 1 x Purpose & 12\\
 State x Purpose & 28\\
 Zone x Purpose & 108\\
 Region x Purpose & 304\\
-\midrule
+\hline
 Total & 570\\
 \bottomrule
 \end{tabular}
@@ -1048,7 +1048,7 @@ Level 2 x Purpose & 20\\
 State x Purpose & 28\\
 Zone x Purpose & 108\\
 Region x Purpose & 304\\
-\midrule
+\hline
 Total & 595\\
 \bottomrule
 \end{tabular}
@@ -1080,7 +1080,7 @@ State x Group 1 & 7\\
 Zone x Group 1 & 27\\
 Purpose x Group 1 & 20\\
 Bottom level & 304\\
-\midrule
+\hline
 Total & 665\\
 \bottomrule
 \end{tabular}
@@ -1120,34 +1120,34 @@ rec & 304 & 8 & 149.9 & 146.3 & 153.2\\
 rec & 304 & 10 & 164.6 & 160.5 & 168.1\\
 rec & 304 & 12 & 176.6 & 172.3 & 180.2\\
 rec & 304 & 18 & 204.6 & 208.4 & 207.1\\
-rec & 608 & 8 & 196.8 & 194.6 & 205.5\\
-rec & 608 & 10 & 262.5 & 262.5 & 225.3\\
-rec & 608 & 12 & 231.0 & 229.6 & 241.2\\
-rec & 608 & 18 & 283.3 & 280.1 & 294.5\\
-rec & 1520 & 8 & 288.0 & 284.9 & 301.0\\
-rec & 1520 & 10 & 314.2 & 312.1 & 329.3\\
-rec & 1520 & 12 & 336.4 & 334.5 & 352.4\\
-rec & 1520 & 18 & 432.0 & 427.1 & 450.5\\
-rec & 3040 & 8 & 394.2 & 390.6 & 412.5\\
-rec & 3040 & 10 & 429.5 & 427.2 & 451.0\\
-rec & 3040 & 12 & 459.7 & 457.6 & 482.6\\
-rec & 3040 & 18 & 600.9 & 595.6 & 628.7\\
+rec & 608 & 8 & 786.6 & 806.2 & 822.5\\
+rec & 608 & 10 & 879.5 & 904.1 & 921.0\\
+rec & 608 & 12 & 937.6 & 966.8 & 982.5\\
+rec & 608 & 18 & 1070.4 & 1105.7 & 1122.8\\
+rec & 1520 & 8 & 1075.3 & 1182.3 & 1059.6\\
+rec & 1520 & 10 & 1202.9 & 1329.3 & 1188.2\\
+rec & 1520 & 12 & 1284.4 & 1422.7 & 1268.9\\
+rec & 1520 & 18 & 1472.9 & 1651.1 & 1459.3\\
+rec & 3040 & 8 & 1156.4 & 1257.7 & 1155.1\\
+rec & 3040 & 10 & 1296.4 & 1416.6 & 1295.4\\
+rec & 3040 & 12 & 1403.0 & 1518.7 & 1383.5\\
+rec & 3040 & 18 & 1599.8 & 1762.6 & 1601.3\\
 unrec & 304 & 8 & 156.5 & 153.7 & 154.5\\
 unrec & 304 & 10 & 172.3 & 168.9 & 169.7\\
 unrec & 304 & 12 & 185.1 & 180.9 & 181.8\\
 unrec & 304 & 18 & 212.9 & 199.6 & 208.9\\
-unrec & 608 & 8 & 203.0 & 202.3 & 205.0\\
-unrec & 608 & 10 & 265.4 & 263.5 & 224.8\\
-unrec & 608 & 12 & 238.4 & 237.6 & 240.5\\
-unrec & 608 & 18 & 291.4 & 286.8 & 293.8\\
-unrec & 1520 & 8 & 298.1 & 296.4 & 300.1\\
-unrec & 1520 & 10 & 325.2 & 324.2 & 328.4\\
-unrec & 1520 & 12 & 347.7 & 346.2 & 351.2\\
-unrec & 1520 & 18 & 445.0 & 436.5 & 449.0\\
-unrec & 3040 & 8 & 407.9 & 406.4 & 411.2\\
-unrec & 3040 & 10 & 444.9 & 443.7 & 449.5\\
-unrec & 3040 & 12 & 475.9 & 473.4 & 480.7\\
-unrec & 3040 & 18 & 618.4 & 608.5 & 626.4\\
+unrec & 608 & 8 & 788.4 & 813.0 & 822.5\\
+unrec & 608 & 10 & 882.8 & 912.4 & 921.0\\
+unrec & 608 & 12 & 941.3 & 975.5 & 982.5\\
+unrec & 608 & 18 & 1075.0 & 1114.1 & 1122.8\\
+unrec & 1520 & 8 & 1042.3 & 1220.3 & 1059.6\\
+unrec & 1520 & 10 & 1170.7 & 1368.6 & 1188.2\\
+unrec & 1520 & 12 & 1253.0 & 1463.0 & 1268.9\\
+unrec & 1520 & 18 & 1447.7 & 1691.1 & 1459.3\\
+unrec & 3040 & 8 & 1149.4 & 1294.2 & 1155.1\\
+unrec & 3040 & 10 & 1290.0 & 1454.2 & 1295.4\\
+unrec & 3040 & 12 & 1400.4 & 1557.3 & 1383.5\\
+unrec & 3040 & 18 & 1598.3 & 1801.2 & 1601.3\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1160,38 +1160,38 @@ unrec & 3040 & 18 & 618.4 & 608.5 & 626.4\\
 \toprule
 Reconciliation & Series & Levels & ETS & ARIMA & OLS\\
 \midrule
-rec & 304 & 8 & 154.5 & 151.7 & 158.2\\
+rec & 304 & 8 & 154.5 & 151.6 & 158.2\\
 rec & 304 & 10 & 169.6 & 166.4 & 174.1\\
 rec & 304 & 12 & 181.8 & 178.2 & 186.4\\
-rec & 304 & 18 & 209.8 & 204.9 & 213.4\\
-rec & 608 & 8 & 199.1 & 199.3 & 213.4\\
-rec & 608 & 10 & 217.8 & 219.4 & 235.4\\
-rec & 608 & 12 & 233.1 & 235.9 & 252.2\\
-rec & 608 & 18 & 286.1 & 288.5 & 312.6\\
-rec & 1520 & 8 & 291.6 & 291.8 & 312.9\\
-rec & 1520 & 10 & 317.8 & 320.1 & 345.1\\
-rec & 1520 & 12 & 340.2 & 343.4 & 369.7\\
-rec & 1520 & 18 & 435.4 & 440.1 & 479.9\\
-rec & 3040 & 8 & 399.1 & 400.0 & 429.1\\
-rec & 3040 & 10 & 434.6 & 438.0 & 473.2\\
-rec & 3040 & 12 & 465.1 & 469.5 & 507.0\\
-rec & 3040 & 18 & 607.0 & 613.6 & 670.9\\
+rec & 304 & 18 & 209.8 & 205.0 & 213.4\\
+rec & 608 & 8 & 786.0 & 809.0 & 802.7\\
+rec & 608 & 10 & 880.5 & 907.5 & 898.6\\
+rec & 608 & 12 & 939.4 & 970.4 & 958.6\\
+rec & 608 & 18 & 1070.9 & 1107.3 & 1095.3\\
+rec & 1520 & 8 & 1077.2 & 1181.9 & 1039.1\\
+rec & 1520 & 10 & 1208.9 & 1327.8 & 1165.4\\
+rec & 1520 & 12 & 1291.0 & 1421.5 & 1244.8\\
+rec & 1520 & 18 & 1486.4 & 1643.6 & 1430.8\\
+rec & 3040 & 8 & 1148.8 & 1263.0 & 1134.8\\
+rec & 3040 & 10 & 1288.3 & 1420.5 & 1272.7\\
+rec & 3040 & 12 & 1376.2 & 1522.0 & 1359.3\\
+rec & 3040 & 18 & 1587.6 & 1764.4 & 1573.6\\
 unrec & 304 & 8 & 161.0 & 156.6 & 159.2\\
 unrec & 304 & 10 & 177.1 & 172.9 & 175.4\\
-unrec & 304 & 12 & 189.9 & 185.4 & 187.7\\
-unrec & 304 & 18 & 217.9 & 212.5 & 214.7\\
-unrec & 608 & 8 & 207.0 & 209.5 & 213.8\\
-unrec & 608 & 10 & 227.0 & 230.6 & 235.8\\
-unrec & 608 & 12 & 243.7 & 247.1 & 252.6\\
-unrec & 608 & 18 & 299.3 & 299.0 & 312.7\\
-unrec & 1520 & 8 & 302.2 & 307.5 & 313.5\\
-unrec & 1520 & 10 & 330.7 & 336.9 & 345.6\\
-unrec & 1520 & 12 & 353.4 & 360.1 & 370.2\\
-unrec & 1520 & 18 & 449.8 & 456.0 & 480.0\\
-unrec & 3040 & 8 & 414.6 & 421.8 & 429.9\\
-unrec & 3040 & 10 & 453.7 & 461.3 & 473.9\\
-unrec & 3040 & 12 & 484.9 & 492.6 & 507.7\\
-unrec & 3040 & 18 & 628.3 & 635.7 & 670.9\\
+unrec & 304 & 12 & 189.9 & 185.6 & 187.7\\
+unrec & 304 & 18 & 217.9 & 213.0 & 214.7\\
+unrec & 608 & 8 & 790.4 & 816.6 & 802.7\\
+unrec & 608 & 10 & 886.4 & 916.0 & 898.6\\
+unrec & 608 & 12 & 945.6 & 979.2 & 958.7\\
+unrec & 608 & 18 & 1078.2 & 1116.4 & 1095.4\\
+unrec & 1520 & 8 & 1038.2 & 1196.3 & 1037.7\\
+unrec & 1520 & 10 & 1174.9 & 1343.8 & 1163.8\\
+unrec & 1520 & 12 & 1258.2 & 1438.1 & 1243.0\\
+unrec & 1520 & 18 & 1465.3 & 1659.4 & 1429.1\\
+unrec & 3040 & 8 & 1136.1 & 1274.0 & 1142.8\\
+unrec & 3040 & 10 & 1274.9 & 1432.0 & 1281.8\\
+unrec & 3040 & 12 & 1362.7 & 1532.8 & 1369.1\\
+unrec & 3040 & 18 & 1578.6 & 1777.8 & 1583.2\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1298,14 +1298,14 @@ Tables \ref{tab:Tourismdatadifrecrolling} and \ref{tab:Tourismdatadifrecfix} dis
 \cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7} \cmidrule(l{3pt}r{3pt}){8-10}
 Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Total & 1666 & 1637 & 1834 & 1787 & 1938 & 1910 & 1733 & 1840 & 1864\\
-State & 492 & 460 & 500 & 499 & 491 & 511 & 497 & 482 & 509\\
-Zone & 208 & 202 & 209 & 210 & 210 & 213 & 211 & 210 & 213\\
-Region & 117 & 116 & 115 & 117 & 119 & 116 & 118 & 120 & 117\\
-Purpose & 666 & 655 & 703 & 683 & 734 & 720 & 673 & 713 & 713\\
-State x Purpose & 207 & 204 & 209 & 208 & 209 & 213 & 208 & 209 & 213\\
-Zone x Purpose & 96 & 96 & 96 & 96 & 98 & 97 & 96 & 99 & 97\\
-Region x Purpose & 56 & 56 & 55 & 56 & 57 & 55 & 56 & 57 & 56\\
+Total & 1600 & 1543 & 1834 & 1705 & 1853 & 1910 & 1628 & 1680 & 1753\\
+State & 483 & 448 & 500 & 489 & 478 & 511 & 504 & 492 & 503\\
+Zone & 208 & 202 & 209 & 210 & 209 & 213 & 213 & 214 & 213\\
+Region & 117 & 116 & 115 & 117 & 119 & 116 & 120 & 122 & 117\\
+Purpose & 662 & 645 & 703 & 675 & 725 & 720 & 675 & 694 & 698\\
+State x Purpose & 207 & 203 & 209 & 208 & 209 & 213 & 210 & 213 & 213\\
+Zone x Purpose & 96 & 97 & 96 & 97 & 99 & 97 & 97 & 101 & 98\\
+Region x Purpose & 56 & 57 & 55 & 56 & 57 & 55 & 56 & 58 & 56\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1320,14 +1320,14 @@ Region x Purpose & 56 & 56 & 55 & 56 & 57 & 55 & 56 & 57 & 56\\
 \cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7} \cmidrule(l{3pt}r{3pt}){8-10}
 Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Total & 2444 & 2721 & 2506 & 2541 & 2738 & 2880 & 2492 & 2744 & 2819\\
-State & 567 & 580 & 569 & 577 & 585 & 618 & 573 & 583 & 612\\
-Zone & 232 & 233 & 228 & 235 & 236 & 244 & 237 & 234 & 243\\
-Region & 125 & 126 & 120 & 125 & 127 & 126 & 127 & 127 & 126\\
-Purpose & 819 & 868 & 849 & 836 & 898 & 936 & 822 & 889 & 921\\
-State x Purpose & 221 & 224 & 224 & 223 & 226 & 238 & 222 & 226 & 236\\
-Zone x Purpose & 101 & 102 & 100 & 101 & 103 & 104 & 102 & 102 & 104\\
-Region x Purpose & 58 & 58 & 56 & 58 & 58 & 58 & 58 & 58 & 58\\
+Total & 2444 & 2721 & 2506 & 2541 & 2738 & 2880 & 2369 & 3108 & 2678\\
+State & 567 & 580 & 569 & 577 & 585 & 618 & 583 & 597 & 604\\
+Zone & 232 & 233 & 228 & 235 & 236 & 244 & 238 & 232 & 243\\
+Region & 125 & 126 & 120 & 125 & 127 & 126 & 130 & 129 & 127\\
+Purpose & 819 & 868 & 849 & 836 & 898 & 936 & 795 & 859 & 898\\
+State x Purpose & 221 & 224 & 224 & 223 & 226 & 238 & 225 & 229 & 236\\
+Zone x Purpose & 101 & 102 & 100 & 101 & 103 & 104 & 103 & 104 & 105\\
+Region x Purpose & 58 & 58 & 56 & 58 & 58 & 58 & 59 & 59 & 59\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1418,7 +1418,7 @@ Agent x Language & 8\\
 Agent x Purpose & 18\\
 Language x Purpose & 33\\
 Bottom level & 913\\
-\midrule
+\hline
 Total & 1035\\
 \bottomrule
 \end{tabular}
@@ -1438,12 +1438,12 @@ Tables \ref{tab:wikipediadataresulrolling} and \ref{tab:wikipediadataresultRMSE}
 \cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
 Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Total & 10773.7 & 15019.6 & 12968.1 & 12763.6 & 13341.0 & 11959.0\\
-Access & 6524.7 & 6666.3 & 6021.1 & 6794.9 & 6827.8 & 6099.5\\
-Agent & 8272.9 & 10282.7 & 9372.2 & 8578.0 & 8989.7 & 8503.6\\
-Language & 4870.1 & 6279.3 & 5688.2 & 6132.9 & 5901.8 & 5447.5\\
-Purpose & 5233.5 & 4672.5 & 4106.9 & 4541.4 & 4149.7 & 3805.2\\
-Bottom level & 358.1 & 239.7 & 261.5 & 363.8 & 241.6 & 262.8\\
+Total & 11224 & 14835 & 12968 & 12745 & 13304 & 11959\\
+Access & 6532 & 6660 & 5832 & 6787 & 6818 & 5885\\
+Agent & 8263 & 10278 & 9372 & 8571 & 8992 & 8504\\
+Language & 4889 & 6273 & 5688 & 6059 & 5879 & 5448\\
+Purpose & 5237 & 4663 & 4107 & 4548 & 4132 & 3805\\
+Bottom level & 358 & 240 & 262 & 364 & 242 & 263\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1458,12 +1458,12 @@ Bottom level & 358.1 & 239.7 & 261.5 & 363.8 & 241.6 & 262.8\\
 \cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
 Level & ETS & ARIMA & OLS & ETS & ARIMA & OLS\\
 \midrule
-Total & 14846.9 & 24298.8 & 20203.7 & 15787.6 & 26193.9 & 19691.1\\
-Access & 7117.4 & 10722.8 & 8866.4 & 8520.2 & 11532.4 & 8853.3\\
-Agent & 13608.7 & 18168.8 & 14985.7 & 12130.3 & 17639.5 & 14580.2\\
-Language & 6475.9 & 9527.0 & 7913.7 & 6792.9 & 10783.0 & 8022.2\\
-Purpose & 5302.7 & 8638.5 & 5694.1 & 5141.4 & 7536.7 & 5541.8\\
-Bottom level & 436.9 & 388.0 & 366.2 & 440.8 & 389.6 & 365.9\\
+Total & 14731 & 24206 & 20204 & 16570 & 26148 & 19691\\
+Access & 7098 & 10710 & 8497 & 8728 & 11519 & 8381\\
+Agent & 13634 & 18163 & 14986 & 12508 & 17656 & 14580\\
+Language & 6248 & 9505 & 7914 & 6855 & 10756 & 8022\\
+Purpose & 7442 & 8614 & 5694 & 5259 & 7508 & 5542\\
+Bottom level & 437 & 388 & 366 & 441 & 390 & 366\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1501,7 +1501,7 @@ Bottom level & 436.9 & 388.0 & 366.2 & 440.8 & 389.6 & 365.9\\
 
 }
 
-\caption{Comparing reconciled and unreconciled ETS, ARIMA and OLS rolling and fixed origin forecasts for Wikipedia pageviews 'desktopusenPho04' bottom-level series}\label{fig:forecstrolling28wiki}
+\caption{Comparing reconciled and unreconciled ETS, ARIMA and OLS rolling and fixed origin forecasts for Wikipedia pageviews 'desktopusenPho21' bottom-level series}\label{fig:forecstrolling28wiki}
 \end{figure}
 
 \begin{figure}
@@ -1519,12 +1519,12 @@ Bottom level & 436.9 & 388.0 & 366.2 & 440.8 & 389.6 & 365.9\\
 
 }
 
-\caption{The actual test set for the 'desktopusenPho04' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.}\label{fig:predintdesktopus}
+\caption{The actual test set for the 'desktopusenPho21' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.}\label{fig:predintdesktopus}
 \end{figure}
 
 Figures \ref{fig:boxplotrollingwiki} and \ref{fig:boxplotwiki} display the forecast error box plot. These plots are for rolling and fixed origin forecasts over 28 days in each level of grouping. We see that the error distribution is similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels series have higher counts and therefore their error magnitudes are larger.
 
-In Figures \ref{fig:forecstrolling28wikitotal} and \ref{fig:forecstrolling28wiki}, we display results for the total and one of the bottom level series, ``desktopusenPho04'' (desktop-user-english-photo sharing). The plot shows rolling and fixed origin forecast results over the 28 day test set for ETS, ARIMA and OLS, with (dashed lines) and without (dotted lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
+In Figures \ref{fig:forecstrolling28wikitotal} and \ref{fig:forecstrolling28wiki}, we display results for the total and one of the bottom level series, ``desktopusenPho21'' (desktop-user-english-photo sharing). The plot shows rolling and fixed origin forecast results over the 28 day test set for ETS, ARIMA and OLS, with (dashed lines) and without (dotted lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts. In Figures \ref{fig:predinttotalwiki} and \ref{fig:predintdesktopus}, we present the reconciled prediction intervals for the total and ``desktopusenPho21'' series. In the fixed origin results, the ETS prediction intervals were much wider and hence have been omitted to allow for easier visualization of the results.
 
 Table \ref{tab:wikipediadatacomputationtime} presents the computation times for all three methods. ETS and ARIMA are clearly much more computationally heavy compared with OLS. As in the Australian tourism dataset, running reconciliation does not have much effect on computation time.
 

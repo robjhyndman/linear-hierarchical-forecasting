@@ -381,21 +381,186 @@ We apply two methods for generating forecasts, which differ in how they handle u
 ## Australian domestic tourism
 
 ```{r Readtourism, results='hide'}
-error.tourism <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.csv") %>%
-  mutate(
-    Level = recode(Level, "Bottom level" = "Region x Purpose"),
-    facet = factor(Level,
-      levels = c("Total", "State", "Zone", "Region", "Purpose", "State x Purpose", "Zone x Purpose", "Region x Purpose")
-    )
+
+OLS.rolling.tourism <- readr::read_csv("Australia_data/fc.rolling.tourism.OLS.csv") %>%
+  mutate(ForecastInterval = '1Step')
+OLS.fix.tourism <- readr::read_csv("Australia_data/fc.fix.tourism.OLS.csv") %>%
+  mutate(ForecastInterval = '24Step')
+OLS.tourism <- bind_rows(OLS.rolling.tourism, OLS.fix.tourism)
+
+OLS.tourism <- bind_rows(OLS.tourism %>%
+                                   filter(Series == 'Total') %>%
+                                   mutate (Level = 'Total'),
+                         OLS.tourism %>% filter(grepl('State/', Series)) %>%
+                                   mutate (Level = 'State'), 
+                         OLS.tourism %>% filter(grepl('Zone/', Series)) %>%
+                                   mutate (Level = 'Zone'), 
+                         OLS.tourism %>% filter(grepl('Region/', Series)) %>%
+                                   mutate (Level = 'Region'), 
+                         OLS.tourism %>% filter(Series %in% c('Purpose/Bus','Purpose/Hol', 
+                                                                              'Purpose/Oth','Purpose/Vis')) %>%
+                                   mutate (Level = 'Purpose'), 
+                         OLS.tourism %>% filter(grepl('State x Purpose/', Series)) %>%
+                                   mutate (Level = 'State x Purpose'), 
+                         OLS.tourism %>% filter(grepl('Zone x Purpose/', Series)) %>%
+                                   mutate (Level = 'Zone x Purpose'), 
+                         OLS.tourism %>% filter( !grepl('State', Series) & !grepl('Zone', Series) & 
+                                                                   !grepl('Region', Series) & !grepl('Purpose', Series) & 
+                                                                   !grepl('Total', Series)) %>%
+                                   mutate (Level = 'Region x Purpose'))
+
+error.OLS.tourism <-bind_rows( dplyr::select ( OLS.tourism, error = error.rec, Level, ForecastInterval) %>% 
+                                         mutate(Rec = 'rec') %>%
+                                         mutate(Method = 'OLS') , dplyr::select ( OLS.tourism, error = error.unrec, Level, ForecastInterval) %>% 
+                                         mutate(Rec = 'unrec') %>%
+                                         mutate(Method = 'OLS'))
+
+
+ets.arima.rolling.tourism <- readr::read_csv("Australia_data/fc.rolling.tourism.ets.arima.csv") %>%
+  select(-h, -new_index) %>%
+  mutate(ForecastInterval = '1Step')
+ets.arima.fix.tourism <- readr::read_csv("Australia_data/fc.fix.tourism.ets.arima.csv") %>%
+  mutate(ForecastInterval = '24Step')
+
+ets.arima.tourism <- bind_rows(ets.arima.rolling.tourism, ets.arima.fix.tourism)
+
+ets.arima.tourism <- bind_rows( ets.arima.tourism %>%
+                                          filter(State == '<aggregated>', Zone == '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                                          mutate (Level = 'Total'), 
+                                ets.arima.tourism %>%
+                                          filter(State != '<aggregated>', Zone == '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                                          mutate (Level = 'State'), 
+                                ets.arima.tourism %>%
+                                          filter(State != '<aggregated>', Zone != '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                                          mutate (Level = 'Zone') ,
+                                ets.arima.tourism %>%
+                                          filter(State != '<aggregated>', Zone != '<aggregated>', Region != '<aggregated>', Purpose == '<aggregated>') %>%
+                                          mutate (Level = 'Region') ,
+                                ets.arima.tourism %>%
+                                          filter(State == '<aggregated>', Zone == '<aggregated>', Region == '<aggregated>', Purpose != '<aggregated>') %>%
+                                          mutate (Level = 'Purpose') ,
+                                ets.arima.tourism %>%
+                                          filter(State != '<aggregated>', Zone == '<aggregated>', Region == '<aggregated>', Purpose != '<aggregated>') %>%
+                                          mutate (Level = 'State x Purpose') ,
+                                ets.arima.tourism %>%
+                                          filter(State != '<aggregated>', Zone != '<aggregated>', Region == '<aggregated>',  Purpose != '<aggregated>') %>%
+                                          mutate (Level = 'Zone x Purpose') ,
+                                ets.arima.tourism %>%
+                                          filter(State != '<aggregated>', Zone != '<aggregated>', Region != '<aggregated>', Purpose != '<aggregated>') %>%
+                                          mutate (Level = 'Region x Purpose') )
+
+ets.arima.tourism <- bind_rows(ets.arima.tourism %>% 
+                                         filter(.model %in% c('arima', 'ets')) %>%
+                                         mutate(Rec = 'unrec'), 
+                               ets.arima.tourism %>% 
+                                         filter(.model %in% c('arima_adjusted', 'ets_adjusted')) %>%
+                                         mutate(Rec = 'rec'))
+
+ets.arima.tourism <- bind_rows(ets.arima.tourism %>% 
+                                         filter(.model %in% c('arima', 'arima_adjusted')) %>%
+                                         mutate(Method = 'ARIMA'), 
+                               ets.arima.tourism %>% 
+                                         filter(.model %in% c('ets', 'ets_adjusted')) %>%
+                                         mutate(Method = 'ETS'))
+
+
+
+error.tourism <- bind_rows(
+  dplyr::select ( ets.arima.tourism, error , Level, Rec, Method, ForecastInterval), error.OLS.tourism) %>%
+  mutate( facet = factor(Level,
+                         levels = c("Total", "State", "Zone", "Region", "Purpose", "State x Purpose", "Zone x Purpose", "Region x Purpose")
+  )
   )
 
-tourism.dif.rec <- readr::read_csv("Paper-Figures/results_Tourism/tourism.dif.rec.csv")%>%
-  select(-Actual, -Value)%>%
-  mutate(
-    Level = recode(Level, "Bottom level" = "Region x Purpose"),
-    facet = factor(Level,
-      levels = c("Total", "State", "Zone", "Region", "Purpose", "State x Purpose", "Zone x Purpose", "Region x Purpose")
-    )
+#### different reconciliation approaches
+fc.rolling.mint.shrink.ets.arima <- readr::read_csv("Australia_data/fc.rolling.mint.shrink.ets.arima.csv") %>%
+  mutate(Rec = 'mint_shrink', ForecastInterval = '1Step') %>%
+  filter(.model %in% c('ets_adjusted', 'arima_adjusted'))
+fc.rolling.wls.var.ets.arima <- readr::read_csv("Australia_data/fc.rolling.wls.var.ets.arima.csv") %>%
+  mutate(Rec = 'wls_var', ForecastInterval = '1Step') %>%
+  filter(.model %in% c('ets_adjusted', 'arima_adjusted'))
+fc.rolling.OLS.mint.shrink.wls.var <- readr::read_csv("Australia_data/fc.rolling.OLS.mint.shrink.wls.var.csv") %>%
+  mutate(ForecastInterval = '1Step')
+fc.fix.ets.arima.mint.shrink <- readr::read_csv("Australia_data/fc.fix.ets.arima.mint.shrink.csv") %>%
+  mutate(Rec = 'mint_shrink', ForecastInterval = '24Step') %>%
+  filter(.model %in% c('ets_adjusted', 'arima_adjusted'))
+fc.fix.ets.arima.wls.var <-  readr::read_csv("Australia_data/fc.fix.ets.arima.wls.var.csv") %>%
+  mutate(Rec = 'wls_var', ForecastInterval = '24Step') %>%
+  filter(.model %in% c('ets_adjusted', 'arima_adjusted'))
+fc.fix.OLS.mint.shrink.wls.var <- readr::read_csv("Australia_data/fc.fix.OLS.mint.shrink.wls.var.csv") %>%
+  mutate(ForecastInterval = '24Step')
+
+ets.arima.dif.rec <- bind_rows(fc.rolling.mint.shrink.ets.arima, fc.rolling.wls.var.ets.arima, 
+                               fc.fix.ets.arima.mint.shrink, fc.fix.ets.arima.wls.var)
+fc.OLS.mint.shrink.wls.var <- bind_rows(fc.rolling.OLS.mint.shrink.wls.var, fc.fix.OLS.mint.shrink.wls.var)
+
+fc.OLS.mint.shrink.wls.var <- bind_rows(fc.OLS.mint.shrink.wls.var %>%
+                           filter(Series == 'Total') %>%
+                           mutate (Level = 'Total'),
+                           fc.OLS.mint.shrink.wls.var %>% filter(grepl('State/', Series)) %>%
+                           mutate (Level = 'State'), 
+                           fc.OLS.mint.shrink.wls.var %>% filter(grepl('Zone/', Series)) %>%
+                           mutate (Level = 'Zone'), 
+                           fc.OLS.mint.shrink.wls.var %>% filter(grepl('Region/', Series)) %>%
+                           mutate (Level = 'Region'), 
+                           fc.OLS.mint.shrink.wls.var %>% filter(Series %in% c('Purpose/Bus','Purpose/Hol', 
+                                                              'Purpose/Oth','Purpose/Vis')) %>%
+                           mutate (Level = 'Purpose'), 
+                           fc.OLS.mint.shrink.wls.var %>% filter(grepl('State x Purpose/', Series)) %>%
+                           mutate (Level = 'State x Purpose'), 
+                           fc.OLS.mint.shrink.wls.var %>% filter(grepl('Zone x Purpose/', Series)) %>%
+                           mutate (Level = 'Zone x Purpose'), 
+                           fc.OLS.mint.shrink.wls.var %>% filter( !grepl('State', Series) & !grepl('Zone', Series) & 
+                                                   !grepl('Region', Series) & !grepl('Purpose', Series) & 
+                                                   !grepl('Total', Series)) %>%
+                           mutate (Level = 'Region x Purpose'))
+
+error.OLS.dif.rec <- dplyr::select ( fc.OLS.mint.shrink.wls.var, error , Level, ForecastInterval, Rec) %>% 
+                                 mutate(Method = 'OLS')
+
+
+ets.arima.dif.rec <- bind_rows( ets.arima.dif.rec %>%
+                                  filter(State == '<aggregated>', Zone == '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                                  mutate (Level = 'Total'), 
+                                ets.arima.dif.rec %>%
+                                  filter(State != '<aggregated>', Zone == '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                                  mutate (Level = 'State'), 
+                                ets.arima.dif.rec %>%
+                                  filter(State != '<aggregated>', Zone != '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                                  mutate (Level = 'Zone') ,
+                                ets.arima.dif.rec %>%
+                                  filter(State != '<aggregated>', Zone != '<aggregated>', Region != '<aggregated>', Purpose == '<aggregated>') %>%
+                                  mutate (Level = 'Region') ,
+                                ets.arima.dif.rec %>%
+                                  filter(State == '<aggregated>', Zone == '<aggregated>', Region == '<aggregated>', Purpose != '<aggregated>') %>%
+                                  mutate (Level = 'Purpose') ,
+                                ets.arima.dif.rec %>%
+                                  filter(State != '<aggregated>', Zone == '<aggregated>', Region == '<aggregated>', Purpose != '<aggregated>') %>%
+                                  mutate (Level = 'State x Purpose') ,
+                                ets.arima.dif.rec %>%
+                                  filter(State != '<aggregated>', Zone != '<aggregated>', Region == '<aggregated>',  Purpose != '<aggregated>') %>%
+                                  mutate (Level = 'Zone x Purpose') ,
+                                ets.arima.dif.rec %>%
+                                  filter(State != '<aggregated>', Zone != '<aggregated>', Region != '<aggregated>', Purpose != '<aggregated>') %>%
+                                  mutate (Level = 'Region x Purpose') )
+
+
+ets.arima.dif.rec <- bind_rows(ets.arima.dif.rec %>% 
+                                 filter(.model %in% c('arima_adjusted')) %>%
+                                 mutate(Method = 'ARIMA'), 
+                               ets.arima.dif.rec %>% 
+                                 filter(.model %in% c('ets_adjusted')) %>%
+                                 mutate(Method = 'ETS'))
+
+error.tourism.struct <- error.tourism %>%
+  select(-Rec) %>%
+  mutate(Rec = 'wls_struct')
+
+error.dif.rec <- bind_rows(
+  dplyr::select ( ets.arima.dif.rec, error , Level, Rec, Method, ForecastInterval), error.OLS.dif.rec, error.tourism.struct) %>%
+  mutate( facet = factor(Level,
+                         levels = c("Total", "State", "Zone", "Region", "Purpose", "State x Purpose", "Zone x Purpose", "Region x Purpose")
+  )
   )
 
 
@@ -403,7 +568,7 @@ tourism.dif.rec <- readr::read_csv("Paper-Figures/results_Tourism/tourism.dif.re
 rmse <- error.tourism %>%
   group_by(Rec, Method, facet, ForecastInterval) %>%
   summarise(
-    rmse = sqrt(mean(Value^2))
+    rmse = sqrt(mean(error^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
@@ -412,10 +577,10 @@ rmse <- error.tourism %>%
     facet = str_replace(facet, "level([0-9])", "facet \\1")
   )
 
-rmse.dif.rec <- tourism.dif.rec %>%
+rmse.dif.rec <- error.dif.rec %>%
   group_by(Rec, Method, facet, ForecastInterval) %>%
   summarise(
-    rmse = sqrt(mean(Error^2))
+    rmse = sqrt(mean(error^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
@@ -423,23 +588,42 @@ rmse.dif.rec <- tourism.dif.rec %>%
   mutate(
     facet = str_replace(facet, "level([0-9])", "facet \\1")
   )
-easter.error.tourism <- readr::read_csv("Paper-Figures/results_Tourism/error.tourism.easter.csv")
-easter.rmse <- easter.error.tourism %>%
-  group_by(Rec, Method, Level, ForecastInterval) %>%
-  summarise(
-    rmse = sqrt(mean(Value^2))
-  ) %>%
-  spread(value = rmse, key = Method) %>%
-  ungroup() %>%
-  select(Rec, ForecastInterval, Level, ARIMAX, OLSX) %>%
-  mutate(
-    Level = str_replace(Level, "level([0-9])", "Level \\1")
-  ) %>%
-  left_join(rmse) %>%
-  select(-ETS)
-forecast.tourism.data <- readr::read_csv("Paper-Figures/results_Tourism/forecast.tourism.csv")
+
+## forecast results
+forecast.tourism.OLS <- bind_rows(OLS.tourism %>% filter(Series == 'Total') , OLS.tourism %>% filter(Series == 'AAAVis'))
+forecast.tourism.OLS <- forecast.tourism.OLS %>% select(-X1, -error.rec, -error.unrec, -Level) 
+
+arima.unrec <- bind_rows( ets.arima.tourism %>% filter(.model == 'arima' , State == '<aggregated>', 
+                                                               Zone == '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                            select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`),
+                          ets.arima.tourism %>% filter(.model == 'arima' , State == 'A', 
+                                                               Zone == 'AA', Region == 'AAA', Purpose == 'Vis') %>%
+                            select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`))
+
+arima.rec <- bind_rows( ets.arima.tourism %>% filter(.model == 'arima_adjusted' , State == '<aggregated>', 
+                                                             Zone == '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                          select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`),
+                        ets.arima.tourism %>% filter(.model == 'arima_adjusted' , State == 'A', 
+                                                             Zone == 'AA', Region == 'AAA', Purpose == 'Vis') %>%
+                          select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`))
+
+ets.unrec <- bind_rows( ets.arima.tourism %>% filter(.model == 'ets' , State == '<aggregated>', 
+                                                             Zone == '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                          select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`), 
+                        ets.arima.tourism %>% filter(.model == 'ets' , State == 'A', 
+                                                             Zone == 'AA', Region == 'AAA', Purpose == 'Vis') %>%
+                          select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`))
+
+ets.rec <- bind_rows( ets.arima.tourism %>% filter(.model == 'ets_adjusted' , State == '<aggregated>', 
+                                                           Zone == '<aggregated>', Region == '<aggregated>', Purpose == '<aggregated>') %>%
+                        select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`), 
+                      ets.arima.tourism %>% filter(.model == 'ets_adjusted' , State == 'A', 
+                                                           Zone == 'AA', Region == 'AAA', Purpose == 'Vis') %>%
+                        select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`))
+forecast.tourism.data <- bind_cols (forecast.tourism.OLS, arima.unrec, arima.rec, ets.unrec, ets.rec)
+
 forecast.tourism <- forecast.tourism.data %>%
-  select(-X1, -OLS.lower.rec, -OLS.upper.rec, -OLS.lower.unrec, -OLS.upper.unrec,
+  select(-OLS.lower.rec, -OLS.upper.rec, -OLS.lower.unrec, -OLS.upper.unrec,
          -ARIMA.lower.rec, -ARIMA.upper.rec, -ARIMA.lower.unrec, -ARIMA.upper.unrec,
          -ETS.lower.rec, -ETS.upper.rec, -ETS.lower.unrec, -ETS.upper.unrec) %>%
   gather(-Series, -ForecastInterval, -date, key = "Method", value = "Count") %>%
@@ -449,7 +633,7 @@ forecast.tourism <- forecast.tourism.data %>%
     Model = str_extract(Method, "^[A-Z]*"),
     Model = if_else(Model == "A", "Actual", Model)
   )
-AAAVis.Total.PI <- readr::read_csv("Paper-Figures/results_Tourism/AAAVis.Total.PI.csv")
+
 ```
 
 This dataset has 19 years of monthly visitor nights in Australia by Australian tourists, a measure used as an indicator of tourism activity [@mint2018]. The data were collected by computer-assisted telephone interviews with 120,000 Australians aged 15 and over [@researchAustralia2005]. The dataset includes 304 time series each of length 228 observations. The hierarchy and grouping structure for this dataset is made using geographic and purpose of travel information.
@@ -494,11 +678,11 @@ tibble(
 knitr::include_graphics("Paper-Figures/Australian_hierarchy_structure.jpg")
 ```
 
-```{r Australiahierarchystructuremap, out.width = "450px", out.height= "360px", fig.align="center", fig.cap="Australia tourism region map - colors represent states."}
-knitr::include_graphics("Paper-Figures/ausTurRegions.pdf")
+```{r Australiahierarchystructuremap, out.width = "450px", out.height= "360px", fig.align="center", fig.cap="Australia map, showing the eight states."}
+knitr::include_graphics("Paper-Figures/ausTurRegionsBW.pdf")
 ```
 
-In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven "States" including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 "Zones" and 76 "Regions" (for details about Australia geographic divisions see Figure \@ref(fig:Australiahierarchystructure) and Table \@ref(tab:Australiageographicaldivision) and also Figure \@ref(fig:Australiahierarchystructuremap) which shows Australia map divided by tourism region and colored by states^[\url{www.tra.gov.au/tra/2016/Tourism_Region_Profiles/Region_profiles/index.html}]).
+In this dataset we have three levels of geographic divisions in Australia. In the first level, Australia is divided into seven "States" including New South Wales (NSW), Victoria (VIC), Queensland (QLD), South Australia (SA), Western Australia (WA), Tasmania (TAS) and Northern Territory (NT). In the second and third levels, it is divided into 27 "Zones" and 76 "Regions" (for details about Australia geographic divisions see Figure \@ref(fig:Australiahierarchystructure) and Table \@ref(tab:Australiageographicaldivision) and also Figure \@ref(fig:Australiahierarchystructuremap) which shows Australia map divided by tourism region and colored by states^[Reproduced from: \url{www.tra.gov.au/tra/2016/Tourism_Region_Profiles/Region_profiles/index.html}]).
 
 We have four purposes of travel: Holiday (Hol), Visiting friends and relatives (Vis), Business (Bus) and Other (Oth). So there are $76\times4 = 304$ series at the most disaggregate level. Based on the geographic hierarchy and purpose grouping, we end up with 8 aggregation levels with 555 series in total as shown in Table \@ref(tab:Australiageographicalpurposedivision).
 
@@ -590,7 +774,7 @@ error.tourism %>%
     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
-  ggplot(aes(x = id, y = Value, fill = id)) +
+  ggplot(aes(x = id, y = error, fill = id)) +
   stat_summary(fun.data = boxplot.stat, geom = "boxplot", alpha = 0.5) +
   # geom_boxplot(alpha = 0.5) +
   xlab("Method") +
@@ -624,7 +808,7 @@ error.tourism %>%
     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
-  ggplot(aes(x = id, y = Value, fill = id)) +
+  ggplot(aes(x = id, y = error, fill = id)) +
   stat_summary(fun.data = boxplot.stat, geom = "boxplot", alpha = 0.5) +
   # geom_boxplot(alpha = 0.5) +
   xlab("Method") +
@@ -665,13 +849,14 @@ ylim <- forecast.tourism %>%
 g1 <- forecast.tourism %>%
   filter(Series == "Total", ForecastInterval == "1Step") %>%
   # rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec, size = Model)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Rolling origin 1-step forecasts") +
   scale_linetype_manual(name = "Reconciled", values = c(Actual = "solid", rec = "dashed", unrec = "dotted")) +
+  scale_size_manual(values = c(Actual = 0.8, ETS = 0.5, ARIMA = 0.5, OLS = 0.5), guide = "none") +
   scale_color_manual(
     name = "Series",
     values = c(
@@ -686,13 +871,14 @@ g1 <- forecast.tourism %>%
 g2 <- forecast.tourism %>%
   filter(Series == "Total", ForecastInterval == "24Step") %>%
   # rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec, size = Model)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_linetype_manual(name = "Reconciled", values = c(Actual = "solid", rec = "dashed", unrec = "dotted")) +
+  scale_size_manual(values = c(Actual = 0.8, ETS = 0.5, ARIMA = 0.5, OLS = 0.5), guide = "none") +
   scale_color_manual(
     name = "Series",
     values = c(
@@ -716,13 +902,14 @@ ylim <- forecast.tourism %>%
 p1 <- forecast.tourism %>%
   filter(Series == "AAAVis", ForecastInterval == "1Step") %>%
   # rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec, size = Model)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Rolling origin 1-step forecasts") +
   scale_linetype_manual(name = "Reconciled", values = c(Actual = "solid", rec = "dashed", unrec = "dotted")) +
+    scale_size_manual(values = c(Actual = 0.8, ETS = 0.5, ARIMA = 0.5, OLS = 0.5), guide = "none") +
   scale_color_manual(
     name = "Series",
     values = c(
@@ -737,13 +924,14 @@ p1 <- forecast.tourism %>%
 p2 <- forecast.tourism %>%
   filter(Series == "AAAVis", ForecastInterval == "24Step") %>%
   # rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec, size = Model)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_linetype_manual(name = "Reconciled", values = c(Actual = "solid", rec = "dashed", unrec = "dotted")) +
+    scale_size_manual(values = c(Actual = 0.8, ETS = 0.5, ARIMA = 0.5, OLS = 0.5), guide = "none") +
   scale_color_manual(
     name = "Series",
     values = c(
@@ -762,15 +950,15 @@ Figures \@ref(fig:predinttotal) and \@ref(fig:predintAAAVis) display the predict
 
 ```{r predinttotal, fig.align="center", fig.cap="Comparing ETS, ARIMA and OLS reconciled forecasts and prediction intervals for 'Total' series. (Top: rolling origin, Bottom: fixed origin).", out.width="100%"}
 ### total series
-p1 <- AAAVis.Total.PI %>%
+p1 <- forecast.tourism.data %>%
    filter(Series == "Total", ForecastInterval == "1Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = .5) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
@@ -778,18 +966,20 @@ p1 <- AAAVis.Total.PI %>%
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
                       values = c("black", "blue", "green",  "red"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   theme_bw() +
     theme(legend.position="none")
 
-p2 <- AAAVis.Total.PI %>%
+p2 <- forecast.tourism.data %>%
    filter(Series == "Total", ForecastInterval == "24Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
@@ -797,21 +987,23 @@ p2 <- AAAVis.Total.PI %>%
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
                       values = c("black", "blue", "green",  "red"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   theme_bw()
 p1 / p2
 ```
 
 ```{r predintAAAVis, fig.align="center", fig.cap="Comparing ETS, ARIMA and OLS reconciled forecasts and prediction intervals for 'AAAVis' bottom-level series. (Top: rolling origin, Bottom: fixed origin).", out.width="100%"}
 ### one series example series
-p1 <- AAAVis.Total.PI %>%
+p1 <- forecast.tourism.data %>%
    filter(Series == "AAAVis", ForecastInterval == "1Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
@@ -819,18 +1011,20 @@ p1 <- AAAVis.Total.PI %>%
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
                       values = c("black", "blue", "green",  "red"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   theme_bw() +
     theme(legend.position="none")
 
-p2 <- AAAVis.Total.PI %>%
+p2 <- forecast.tourism.data %>%
    filter(Series == "AAAVis", ForecastInterval == "24Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
@@ -838,6 +1032,8 @@ p2 <- AAAVis.Total.PI %>%
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
                       values = c("black", "blue", "green",  "red"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   theme_bw()
 
 p1 / p2
@@ -968,60 +1164,341 @@ bind_cols(
 We provide results from two simulation studies based on the Australian domestic tourism dataset, to evaluate the sensitivity of our results to several factors. In the first study, we simulate bottom-level series similar to the real bottom-level series of the tourism data, with the same number of series and the same length. We then generate forecasts for four forecast horizons (12, 24, 36 and 48 months) with four different noise levels (standard deviation=0.01, 0.1, 0.5 and 1)^[Since the level of the series are different, we first scale the simulated series (subtracting by mean and dividing by standard deviation), add the white noise series and then we rescale the series.].
 
 ```{r Readsimtourism, results='hide'}
-error.sim.tourism.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.noise.FH.csv")[,-1]
-error.sim.tourism.rolling.noise.FH <-readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.rolling.noise.FH.csv")[,-1]
-AAAHol.rolling.PI.noise.FH <-  readr::read_csv("Paper-Figures/results_Tourism/Simulation/AAAHol.rolling.PI.noise.FH.csv")
-AAAHol.fix.PI.noise.FH <-  readr::read_csv("Paper-Figures/results_Tourism/Simulation/AAAHol.fix.PI.noise.FH.csv")
-AAAHol.fix.PI.levels.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/AAAHol.fix.PI.levels.NS.csv")
-AAAHol.rolling.PI.levels.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/AAAHol.rolling.PI.levels.NS.csv")
-fc.sim.fix.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.fix.level.NS.csv")[, -1]
-fc.sim.rolling.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/fc.sim.rolling.level.NS.csv")[, -1]
+fc.fix.noise0.01.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.fix.noise0.01.FH.csv')
+fc.fix.noise0.1.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.fix.noise0.1.FH.csv')
+fc.fix.noise0.5.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.fix.noise0.5.FH.csv')
+fc.fix.noise1.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.fix.noise1.FH.csv')
+fc.rolling.noise0.01.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.rolling.noise0.01.FH.csv') 
+fc.rolling.noise0.1.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.rolling.noise0.1.FH.csv')
+fc.rolling.noise0.5.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.rolling.noise0.5.FH.csv')
+fc.rolling.noise1.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.rolling.noise1.FH.csv')
 
-rmse.sim.noise.FH <- error.sim.tourism.noise.FH %>%
-  group_by(Rec, Method, noise, ForecastHorizon) %>%
+fc.fix.noise.FH <- bind_rows(fc.fix.noise0.01.FH, fc.fix.noise0.1.FH, fc.fix.noise0.5.FH, fc.fix.noise1.FH) %>%
+  mutate(ForecastInterval = '24Step')
+fc.rolling.noise.FH <- bind_rows(fc.rolling.noise0.01.FH, fc.rolling.noise0.1.FH, fc.rolling.noise0.5.FH, fc.rolling.noise1.FH) %>%
+  mutate(ForecastInterval = '1Step')%>%
+  select(-order)
+fc.noise.FH <- bind_rows(fc.fix.noise.FH, fc.rolling.noise.FH)
+fc.noise.FH <- bind_rows(fc.noise.FH %>% 
+            filter(.model %in% c('arima', 'ets')) %>%
+            mutate(Rec = 'unrec'), 
+            fc.noise.FH %>% 
+            filter(.model %in% c('arima_adjusted', 'ets_adjusted')) %>%
+            mutate(Rec = 'rec'))
+fc.noise.FH <- bind_rows(fc.noise.FH %>% 
+                                     filter(.model %in% c('arima', 'arima_adjusted')) %>%
+                                     mutate(Method = 'ARIMA'), 
+                             fc.noise.FH %>% 
+                                     filter(.model %in% c('ets', 'ets_adjusted')) %>%
+                                     mutate(Method = 'ETS'))
+fc.OLS.fix.noise.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.OLS.fix.noise.FH.csv')
+fc.rolling.OLS.noise.FH <- readr::read_csv('Australia_data/sim/noiseFH/fc.rolling.OLS.noise.FH.csv')
+error.OLS.fix.noise.FH <-bind_rows( dplyr::select ( fc.OLS.fix.noise.FH, error = error.rec, noise, FH) %>% 
+                                         mutate(Rec = 'rec') %>%
+                                         mutate(Method = 'OLS') %>%
+                                         mutate(ForecastInterval = '24Step'), 
+                                    dplyr::select ( fc.OLS.fix.noise.FH, error = error.unrec, noise, FH) %>% 
+                                      mutate(Rec = 'unrec') %>%
+                                      mutate(Method = 'OLS') %>%
+                                      mutate(ForecastInterval = '24Step'))
+error.OLS.rolling.noise.FH <-bind_rows( dplyr::select ( fc.rolling.OLS.noise.FH, error = error.rec, noise, FH) %>% 
+                                      mutate(Rec = 'rec') %>%
+                                      mutate(Method = 'OLS') %>%
+                                      mutate(ForecastInterval = '1Step'), 
+                                    dplyr::select ( fc.rolling.OLS.noise.FH, error = error.unrec, noise, FH) %>% 
+                                      mutate(Rec = 'unrec') %>%
+                                      mutate(Method = 'OLS') %>%
+                                      mutate(ForecastInterval = '1Step'))
+error.noise.FH <- bind_rows(
+  dplyr::select ( fc.noise.FH, error ,noise, FH,  Rec, Method, ForecastInterval), 
+  dplyr::select (error.OLS.rolling.noise.FH, error ,noise, FH,  Rec, Method, ForecastInterval), 
+   dplyr::select (error.OLS.fix.noise.FH, error ,noise, FH,  Rec, Method, ForecastInterval))
+
+forecast.OLS.noise.FH <- bind_rows(fc.OLS.fix.noise.FH %>% filter(Series == 'AAAHol', FH =='48') %>% mutate(ForecastInterval = '24Step'), 
+                                   fc.rolling.OLS.noise.FH %>% filter(Series == 'AAAHol', FH =='48') %>% mutate(ForecastInterval = '1Step'))
+forecast.OLS.noise.FH <- forecast.OLS.noise.FH %>% select(-OLS.var.rec, -error.rec, -error.unrec) 
+
+forecast.OLS.noise.FH <- bind_rows(forecast.OLS.noise.FH %>% filter(noise == '0.01', ForecastInterval == '24Step'),
+                                   forecast.OLS.noise.FH %>% filter(noise == '0.1', ForecastInterval == '24Step'),
+                                   forecast.OLS.noise.FH %>% filter(noise == '0.5', ForecastInterval == '24Step'),
+                                   forecast.OLS.noise.FH %>% filter(noise == '1', ForecastInterval == '24Step'),
+                                   forecast.OLS.noise.FH %>% filter(noise == '0.01', ForecastInterval == '1Step'),
+                                   forecast.OLS.noise.FH %>% filter(noise == '0.1', ForecastInterval == '1Step'),
+                                   forecast.OLS.noise.FH %>% filter(noise == '0.5', ForecastInterval == '1Step'),
+                                   forecast.OLS.noise.FH %>% filter(noise == '1', ForecastInterval == '1Step'))
+
+forecast.arima.rec.noise.FH <- fc.noise.FH %>% filter(Method == 'ARIMA', Rec == 'rec', State == 'A', 
+                                                               Zone == 'AA', Region == 'AAA', Purpose == 'Hol', FH =='48') %>%
+                            select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`)
+forecast.arima.unrec.noise.FH <- fc.noise.FH %>% filter(Method == 'ARIMA', Rec == 'unrec', State == 'A', 
+                                                      Zone == 'AA', Region == 'AAA', Purpose == 'Hol', FH =='48') %>%
+  select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`)
+forecast.ets.rec.noise.FH <- fc.noise.FH %>% filter(Method == 'ETS', Rec == 'rec', State == 'A', 
+                                                      Zone == 'AA', Region == 'AAA', Purpose == 'Hol', FH =='48') %>%
+  select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`)
+forecast.ets.unrec.noise.FH <- fc.noise.FH %>% filter(Method == 'ETS', Rec == 'unrec', State == 'A', 
+                                                        Zone == 'AA', Region == 'AAA', Purpose == 'Hol', FH =='48') %>%
+  select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`)
+forecast.noise.FH <- bind_cols (forecast.OLS.noise.FH, forecast.arima.rec.noise.FH, forecast.arima.unrec.noise.FH, 
+                                forecast.ets.rec.noise.FH, forecast.ets.unrec.noise.FH)
+
+fc.fix.sim.ets.arima.levelNS8 <-  readr::read_csv('Australia_data/sim/levelNS/fc.fix.sim.ets.arima.levelNS8.csv')
+fc.fix.sim.ets.arima.levelNS10 <- readr::read_csv('Australia_data/sim/levelNS/fc.fix.sim.ets.arima.levelNS10.csv')
+fc.fix.sim.ets.arima.levelNS12 <- readr::read_csv('Australia_data/sim/levelNS/fc.fix.sim.ets.arima.levelNS12.csv')
+fc.fix.sim.ets.arima.levelNS18 <- readr::read_csv('Australia_data/sim/levelNS/fc.fix.sim.ets.arima.levelNS18.csv')
+fc.rolling.sim.ets.arima.levelNS8 <- readr::read_csv('Australia_data/sim/levelNS/fc.rolling.sim.ets.arima.levelNS8.csv')
+fc.rolling.sim.ets.arima.levelNS10 <- readr::read_csv('Australia_data/sim/levelNS/fc.rolling.sim.ets.arima.levelNS10.csv')
+fc.rolling.sim.ets.arima.levelNS12 <- readr::read_csv('Australia_data/sim/levelNS/fc.rolling.sim.ets.arima.levelNS12.csv')
+fc.rolling.sim.ets.arima.levelNS18 <- readr::read_csv('Australia_data/sim/levelNS/fc.rolling.sim.ets.arima.levelNS18.csv')
+fc.OLS.fix.levelNS <- readr::read_csv('Australia_data/sim/levelNS/OLS.fix.levelNS.csv') %>%
+ mutate(cat = paste(NS,Level,  sep = '-'))
+fc.OLS.rolling.levelNS <- readr::read_csv('Australia_data/sim/levelNS/OLS.rolling.levelNS.csv') %>%
+ mutate(cat = paste(NS,Level,  sep = '-'))
+
+fc.fix.sim.ets.arima.levelNS8 <- fc.fix.sim.ets.arima.levelNS8 %>%
+  mutate(ForecastInterval = '24Step')
+fc.rolling.sim.ets.arima.levelNS8 <- fc.rolling.sim.ets.arima.levelNS8 %>%
+  mutate(ForecastInterval = '1Step')%>%
+  select(-new_index)
+fc.NS.level8 <- bind_rows(fc.fix.sim.ets.arima.levelNS8, fc.rolling.sim.ets.arima.levelNS8)
+
+fc.fix.sim.ets.arima.levelNS10 <- fc.fix.sim.ets.arima.levelNS10 %>%
+  mutate(ForecastInterval = '24Step')
+fc.rolling.sim.ets.arima.levelNS10 <- fc.rolling.sim.ets.arima.levelNS10 %>%
+  mutate(ForecastInterval = '1Step')%>%
+  select(-new_index)
+fc.NS.level10 <- bind_rows(fc.fix.sim.ets.arima.levelNS10, fc.rolling.sim.ets.arima.levelNS10)
+
+fc.fix.sim.ets.arima.levelNS12 <- fc.fix.sim.ets.arima.levelNS12 %>%
+  mutate(ForecastInterval = '24Step')
+fc.rolling.sim.ets.arima.levelNS12 <- fc.rolling.sim.ets.arima.levelNS12 %>%
+  mutate(ForecastInterval = '1Step')%>%
+  select(-new_index)
+fc.NS.level12 <- bind_rows(fc.fix.sim.ets.arima.levelNS12, fc.rolling.sim.ets.arima.levelNS12)
+
+fc.fix.sim.ets.arima.levelNS18 <- fc.fix.sim.ets.arima.levelNS18 %>%
+  mutate(ForecastInterval = '24Step')
+fc.rolling.sim.ets.arima.levelNS18 <- fc.rolling.sim.ets.arima.levelNS18 %>%
+  mutate(ForecastInterval = '1Step')%>%
+  select(-new_index)
+fc.NS.level18 <- bind_rows(fc.fix.sim.ets.arima.levelNS18, fc.rolling.sim.ets.arima.levelNS18)
+
+fc.NS.level8 <- bind_rows(fc.NS.level8 %>% 
+                           filter(.model %in% c('arima', 'ets')) %>%
+                           mutate(Rec = 'unrec'), 
+                          fc.NS.level8 %>% 
+                           filter(.model %in% c('arima_adjusted', 'ets_adjusted')) %>%
+                           mutate(Rec = 'rec'))
+fc.NS.level8 <- bind_rows(fc.NS.level8 %>% 
+                           filter(.model %in% c('arima', 'arima_adjusted')) %>%
+                           mutate(Method = 'ARIMA'), 
+                          fc.NS.level8 %>% 
+                           filter(.model %in% c('ets', 'ets_adjusted')) %>%
+                           mutate(Method = 'ETS'))
+fc.NS.level10 <- bind_rows(fc.NS.level10 %>% 
+                            filter(.model %in% c('arima', 'ets')) %>%
+                            mutate(Rec = 'unrec'), 
+                          fc.NS.level10 %>% 
+                            filter(.model %in% c('arima_adjusted', 'ets_adjusted')) %>%
+                            mutate(Rec = 'rec'))
+fc.NS.level10 <- bind_rows(fc.NS.level10 %>% 
+                            filter(.model %in% c('arima', 'arima_adjusted')) %>%
+                            mutate(Method = 'ARIMA'), 
+                          fc.NS.level10 %>% 
+                            filter(.model %in% c('ets', 'ets_adjusted')) %>%
+                            mutate(Method = 'ETS'))
+fc.NS.level12 <- bind_rows(fc.NS.level12 %>% 
+                            filter(.model %in% c('arima', 'ets')) %>%
+                            mutate(Rec = 'unrec'), 
+                          fc.NS.level12 %>% 
+                            filter(.model %in% c('arima_adjusted', 'ets_adjusted')) %>%
+                            mutate(Rec = 'rec'))
+fc.NS.level12 <- bind_rows(fc.NS.level12 %>% 
+                            filter(.model %in% c('arima', 'arima_adjusted')) %>%
+                            mutate(Method = 'ARIMA'), 
+                          fc.NS.level12 %>% 
+                            filter(.model %in% c('ets', 'ets_adjusted')) %>%
+                            mutate(Method = 'ETS'))
+fc.NS.level18 <- bind_rows(fc.NS.level18 %>% 
+                            filter(.model %in% c('arima', 'ets')) %>%
+                            mutate(Rec = 'unrec'), 
+                          fc.NS.level18 %>% 
+                            filter(.model %in% c('arima_adjusted', 'ets_adjusted')) %>%
+                            mutate(Rec = 'rec'))
+fc.NS.level18 <- bind_rows(fc.NS.level18 %>% 
+                            filter(.model %in% c('arima', 'arima_adjusted')) %>%
+                            mutate(Method = 'ARIMA'), 
+                          fc.NS.level18 %>% 
+                            filter(.model %in% c('ets', 'ets_adjusted')) %>%
+                            mutate(Method = 'ETS'))
+
+OLS.fix.levelNS <-bind_rows( dplyr::select ( fc.OLS.fix.levelNS, error = error.rec, NS, Level) %>% 
+                                      mutate(Rec = 'rec') %>%
+                                      mutate(Method = 'OLS') %>%
+                                      mutate(ForecastInterval = '24Step'), 
+                                    dplyr::select ( fc.OLS.fix.levelNS, error = error.unrec, NS, Level) %>% 
+                                      mutate(Rec = 'unrec') %>%
+                                      mutate(Method = 'OLS') %>%
+                                      mutate(ForecastInterval = '24Step'))
+OLS.rolling.levelNS <-bind_rows( dplyr::select ( fc.OLS.rolling.levelNS, error = error.rec, NS, Level) %>% 
+                                          mutate(Rec = 'rec') %>%
+                                          mutate(Method = 'OLS') %>%
+                                          mutate(ForecastInterval = '1Step'), 
+                                        dplyr::select ( fc.OLS.rolling.levelNS, error = error.unrec, NS, Level) %>% 
+                                          mutate(Rec = 'unrec') %>%
+                                          mutate(Method = 'OLS') %>%
+                                          mutate(ForecastInterval = '1Step'))
+error.NS.Level <- bind_rows(
+  dplyr::select (fc.NS.level8, error ,NS, Level,  Rec, Method, ForecastInterval), 
+  dplyr::select (fc.NS.level10, error ,NS, Level,  Rec, Method, ForecastInterval), 
+  dplyr::select (fc.NS.level12, error ,NS, Level,  Rec, Method, ForecastInterval), 
+  dplyr::select (fc.NS.level18, error ,NS, Level,  Rec, Method, ForecastInterval), 
+  dplyr::select (OLS.fix.levelNS, error ,NS, Level,  Rec, Method, ForecastInterval), 
+  dplyr::select (OLS.rolling.levelNS, error ,NS, Level,  Rec, Method, ForecastInterval))
+
+rmse.rolling.noise.FH <- error.noise.FH %>%
+  filter(ForecastInterval == '1Step') %>%
+  group_by(Rec, Method, noise, FH) %>%
   summarise(
-    rmse = sqrt(mean(Error^2))
+    rmse = sqrt(mean(error^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, noise, ForecastHorizon, ETS, ARIMA, OLS)
+  select(Rec, noise, FH, ETS, ARIMA, OLS)
 
-rmse.sim.rolling.noise.FH <- error.sim.tourism.rolling.noise.FH %>%
-  group_by(Rec, Method, noise, ForecastHorizon) %>%
+rmse.fix.noise.FH <- error.noise.FH %>%
+  filter(ForecastInterval == '24Step') %>%
+  group_by(Rec, Method, noise, FH) %>%
   summarise(
-    rmse = sqrt(mean(Error^2))
+    rmse = sqrt(mean(error^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, noise, ForecastHorizon, ETS, ARIMA, OLS)
-com.time.noise.FH <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/computation.noise.FH.csv")
+  select(Rec, noise, FH, ETS, ARIMA, OLS)
+
+com.time.noise.FH <- readr::read_csv("Australia_data/sim/noiseFH/computation.noise.FH.csv")
 
 ## changing number of levels and series
-rmse.sim.level.NS.fix <- fc.sim.fix.level.NS %>%
-  group_by(Rec, Method, Series, Levels) %>%
+rmse.sim.level.NS.rolling <- error.NS.Level %>%
+  filter(ForecastInterval == '1Step') %>%
+  group_by(Rec, Method, NS, Level) %>%
   summarise(
-    rmse = sqrt(mean(Error^2))
+    rmse = sqrt(mean(error^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, Series, Levels, ETS, ARIMA, OLS)
+  select(Rec, NS, Level, ETS, ARIMA, OLS)
 
-rmse.sim.level.NS.rolling <- fc.sim.rolling.level.NS %>%
-  group_by(Rec, Method, Series, Levels) %>%
+rmse.sim.level.NS.fix <- error.NS.Level %>%
+  filter(ForecastInterval == '24Step') %>%
+  group_by(Rec, Method, NS, Level) %>%
   summarise(
-    rmse = sqrt(mean(Error^2))
+    rmse = sqrt(mean(error^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
-  select(Rec, Series, Levels, ETS, ARIMA, OLS)
+  select(Rec, NS, Level, ETS, ARIMA, OLS)
 
-com.time.level.NS <- readr::read_csv("Paper-Figures/results_Tourism/Simulation/computation.level.NS.csv")
+## forecast
+forecast.OLS.levelNS.fix <- fc.OLS.fix.levelNS %>% filter(Series %in% c('AAAHol', 'AAAAHol1', 'AAAAAHol1', 'AAAAAHol1G1'), 
+                              cat %in% c('304-8', '608-10', '1520-12', '3040-18')) %>%
+  mutate(ForecastInterval = '24Step')
+
+forecast.OLS.levelNS.rolling <- fc.OLS.rolling.levelNS %>% filter(Series %in% c('AAAHol', 'AAAAHol1', 'AAAAAHol1', 'AAAAAHol1G1'), 
+                                  cat %in% c('304-8', '608-10', '1520-12', '3040-18')) %>%
+  mutate(date = forecast.OLS.levelNS.fix$date) %>%
+ mutate(ForecastInterval = '1Step')
+
+
+forecast.OLS.levelNS <- bind_rows(forecast.OLS.levelNS.fix, forecast.OLS.levelNS.rolling) %>%
+                               select(-OLS.var.rec, -error.rec, -error.unrec) 
+
+## level = 8
+fc.NS.level8.arima.rec <- fc.NS.level8 %>% filter(Method == 'ARIMA', Rec == 'rec', State == 'A', 
+                                                      Zone == 'AA', Region == 'AAA', Purpose == 'Hol', NS == '304') %>%
+  select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`, ForecastInterval)
+fc.NS.level8.arima.unrec <- fc.NS.level8 %>% filter(Method == 'ARIMA', Rec == 'unrec', State == 'A', 
+                                                  Zone == 'AA', Region == 'AAA', Purpose == 'Hol', NS == '304') %>%
+  select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`, ForecastInterval)
+fc.NS.level8.ets.rec <- fc.NS.level8 %>% filter(Method == 'ETS', Rec == 'rec', State == 'A', 
+                                                  Zone == 'AA', Region == 'AAA', Purpose == 'Hol', NS == '304') %>%
+  select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`, ForecastInterval)
+fc.NS.level8.ets.unrec <- fc.NS.level8 %>% filter(Method == 'ETS', Rec == 'unrec', State == 'A', 
+                                                  Zone == 'AA', Region == 'AAA', Purpose == 'Hol', NS == '304') %>%
+  select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`, ForecastInterval)
+## level = 10
+fc.NS.level10.arima.rec <- fc.NS.level10 %>% filter(Method == 'ARIMA', Rec == 'rec', level1 == 'A', State == 'AA', 
+                                                  Zone == 'AAA', Region == 'AAAA', Purpose == 'Hol1', NS == '608') %>%
+  select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`, ForecastInterval)
+fc.NS.level10.arima.unrec <- fc.NS.level10 %>% filter(Method == 'ARIMA', Rec == 'unrec', level1 == 'A', State == 'AA', 
+                                                      Zone == 'AAA', Region == 'AAAA', Purpose == 'Hol1', NS == '608') %>%
+  select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`, ForecastInterval)
+fc.NS.level10.ets.rec <- fc.NS.level10 %>% filter(Method == 'ETS', Rec == 'rec', level1 == 'A', State == 'AA', 
+                                                  Zone == 'AAA', Region == 'AAAA', Purpose == 'Hol1', NS == '608') %>%
+  select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`, ForecastInterval)
+fc.NS.level10.ets.unrec <- fc.NS.level10 %>% filter(Method == 'ETS', Rec == 'unrec', level1 == 'A', State == 'AA', 
+                                                    Zone == 'AAA', Region == 'AAAA', Purpose == 'Hol1', NS == '608') %>%
+  select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`, ForecastInterval)
+
+## level = 12
+fc.NS.level12.arima.rec <- fc.NS.level12 %>% filter(Method == 'ARIMA', Rec == 'rec',level1 == 'A', level2 == 'AA', State == 'AAA', 
+                                                    Zone == 'AAAA', Region == 'AAAAA', Purpose == 'Hol1', NS == '1520') %>%
+  select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`, ForecastInterval)
+fc.NS.level12.arima.unrec <- fc.NS.level12 %>% filter(Method == 'ARIMA', Rec == 'unrec', level1 == 'A', level2 == 'AA', State == 'AAA', 
+                                                      Zone == 'AAAA', Region == 'AAAAA', Purpose == 'Hol1', NS == '1520') %>%
+  select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`, ForecastInterval)
+fc.NS.level12.ets.rec <- fc.NS.level12 %>% filter(Method == 'ETS', Rec == 'rec', level1 == 'A', level2 == 'AA', State == 'AAA', 
+                                                  Zone == 'AAAA', Region == 'AAAAA', Purpose == 'Hol1', NS == '1520') %>%
+  select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`, ForecastInterval)
+fc.NS.level12.ets.unrec <- fc.NS.level12 %>% filter(Method == 'ETS', Rec == 'unrec', level1 == 'A', level2 == 'AA', State == 'AAA', 
+                                                    Zone == 'AAAA', Region == 'AAAAA', Purpose == 'Hol1', NS == '1520') %>%
+  select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`, ForecastInterval)
+## level = 18
+fc.NS.level18.arima.rec <- fc.NS.level18 %>% filter(Method == 'ARIMA', Rec == 'rec', level1 == 'A', level2 == 'AA', State == 'AAA', 
+                                                    Zone == 'AAAA', Region == 'AAAAA', Purpose == 'Hol1' , level3 == 'G1', NS == '3040') %>%
+  select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`, ForecastInterval)
+fc.NS.level18.arima.unrec <- fc.NS.level18 %>% filter(Method == 'ARIMA', Rec == 'unrec', level1 == 'A', level2 == 'AA', State == 'AAA', 
+                                                      Zone == 'AAAA', Region == 'AAAAA', Purpose == 'Hol1' , level3 == 'G1', NS == '3040') %>%
+  select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`, ForecastInterval)
+fc.NS.level18.ets.rec <- fc.NS.level18 %>% filter(Method == 'ETS', Rec == 'rec', level1 == 'A', level2 == 'AA', State == 'AAA', 
+                                                  Zone == 'AAAA', Region == 'AAAAA', Purpose == 'Hol1' , level3 == 'G1', NS == '3040') %>%
+  select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`, ForecastInterval)
+fc.NS.level18.ets.unrec <- fc.NS.level18 %>% filter(Method == 'ETS', Rec == 'unrec', level1 == 'A', level2 == 'AA', State == 'AAA', 
+                                                    Zone == 'AAAA', Region == 'AAAAA', Purpose == 'Hol1' , level3 == 'G1', NS == '3040') %>%
+  select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`, ForecastInterval)
+
+fc.NS.level.arima.rec <- bind_rows(bind_rows(fc.NS.level8.arima.rec , fc.NS.level10.arima.rec, fc.NS.level12.arima.rec, fc.NS.level18.arima.rec) %>%
+                               filter(ForecastInterval == '24Step'), 
+                               bind_rows(fc.NS.level8.arima.rec , fc.NS.level10.arima.rec, fc.NS.level12.arima.rec, fc.NS.level18.arima.rec) %>%
+                                 filter(ForecastInterval == '1Step')) %>%
+                              select(-ForecastInterval)
+fc.NS.level.arima.unrec <- bind_rows(bind_rows(fc.NS.level8.arima.unrec , fc.NS.level10.arima.unrec, fc.NS.level12.arima.unrec, fc.NS.level18.arima.unrec) %>%
+                                         filter(ForecastInterval == '24Step'), 
+                                       bind_rows(fc.NS.level8.arima.unrec , fc.NS.level10.arima.unrec, fc.NS.level12.arima.unrec, fc.NS.level18.arima.unrec) %>%
+                                         filter(ForecastInterval == '1Step'))%>%
+                                      select(-ForecastInterval)
+fc.NS.level.ets.rec <- bind_rows(bind_rows(fc.NS.level8.ets.rec , fc.NS.level10.ets.rec, fc.NS.level12.ets.rec, fc.NS.level18.ets.rec) %>%
+                                     filter(ForecastInterval == '24Step'), 
+                                   bind_rows(fc.NS.level8.ets.rec , fc.NS.level10.ets.rec, fc.NS.level12.ets.rec, fc.NS.level18.ets.rec) %>%
+                                     filter(ForecastInterval == '1Step'))%>%
+                                   select(-ForecastInterval)
+fc.NS.level.ets.unrec <- bind_rows(bind_rows(fc.NS.level8.ets.unrec , fc.NS.level10.ets.unrec, fc.NS.level12.ets.unrec, fc.NS.level18.ets.unrec) %>%
+                                       filter(ForecastInterval == '24Step'), 
+                                     bind_rows(fc.NS.level8.ets.unrec , fc.NS.level10.ets.unrec, fc.NS.level12.ets.unrec, fc.NS.level18.ets.unrec) %>%
+                                       filter(ForecastInterval == '1Step'))%>%
+                                     select(-ForecastInterval)
+
+forecast.NS.Level <- bind_cols (forecast.OLS.levelNS, fc.NS.level.arima.rec, fc.NS.level.arima.unrec, 
+                                fc.NS.level.ets.rec, fc.NS.level.ets.unrec)
+
+
+com.time.level.NS <- readr::read_csv("Australia_data/sim/levelNS/computation.level.NS.csv")
 ```
 
 Tables \@ref(tab:TourismdatasimrollingnoiseFH) and \@ref(tab:TourismdatasimfixnoiseFH) display the average of the RMSEs for 12 to 48 month-ahead forecasts with different noise levels. Results are shown for the base and the reconciled forecasts for both rolling and fixed origin approaches. The results show that, as expected, by increasing the forecast horizon and/or noise level, the average RMSE increases in all the three methods. Also, the proposed OLS approach shows similar results compared with ETS and ARIMA. It should be noted that for both rolling and fixed origin forecasts in the OLS approach we use the same set of predictors as the Australian domestic tourism example.
 
 ```{r TourismdatasimrollingnoiseFH, results='asis', dependson="Readsimtouris"}
-kable(rmse.sim.rolling.noise.FH,
+kable(rmse.rolling.noise.FH,
   align = c("l", rep("r", 4)),
   format = "latex",
   booktabs = TRUE,
@@ -1034,7 +1511,7 @@ kable(rmse.sim.rolling.noise.FH,
 ```
 
 ```{r TourismdatasimfixnoiseFH, results='asis', dependson="Readsimtouris"}
-kable(rmse.sim.noise.FH,
+kable(rmse.fix.noise.FH,
   align = c("l", rep("r", 6)),
   format = "latex",
   booktabs = TRUE,
@@ -1050,89 +1527,67 @@ Figures \@ref(fig:TourismdatasimPIrollingnoiseFH) and \@ref(fig:TourismdatasimPI
 
 
 ```{r TourismdatasimPIrollingnoiseFH, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="Comparing reconciled 'rolling origin' forecasts and prediction intervals for a sample bottom-level series across different error levels (different panels).", out.width="100%"}
-AAAHol.rolling.PI.noise.FH %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
-  #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  #geom_line(aes(y = ETS.unrec, colour = "ETS.unrec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
-  #geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+forecast.noise.FH %>%
+  filter(ForecastInterval == '1Step') %>%
+  ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   geom_vline(xintercept = 12, linetype="dotted",
              color = "gray", size=1) +
-  # geom_text(mapping = aes(x = 13, label = 'h = 12', y = -110),
-  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
   geom_vline(xintercept = 24, linetype="dotted",
              color = "gray", size=1) +
-  # geom_text(mapping = aes(x = 25, label = 'h = 24', y = -110),
-  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
   geom_vline(xintercept = 36, linetype="dotted",
              color = "gray", size=1) +
-  # geom_text(mapping = aes(x = 37, label = 'h = 36', y = -110),
-  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
   geom_vline(xintercept = 48, linetype="dotted",
              color = "gray", size=1) +
-  # geom_text(mapping = aes(x = 49, label = '', y = -110),
-  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
   xlab("Horizon") +
   ylab("Count") +
-  facet_wrap(. ~ Error, scales = "free_y", ncol = 2) +
+  facet_wrap(. ~ noise, scales = "free_y", ncol = 2) +
   ggtitle("Rolling origin 1-step forecasts") +
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
                       values = c("black", "blue", "green",  "red")) +
-  scale_x_discrete(limits = c(12,24,36,48), labels = c("12" = "h = 12", "24" = "h = 24"                                                     ,"36" = "h = 36","48" = "h = 48"))+
+      scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
+  scale_x_discrete(limits = c(12,24,36,48), labels = c("12" = "h = 12", "24" = "h = 24" ,"36" = "h = 36","48" = "h = 48"))+
   theme_bw()
 ```
 
 
 
 ```{r TourismdatasimPIfixnoiseFH, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="Comparing reconciled 'fixed origin' forecasts and prediction intervals for a sample bottom-level series across different error levels (different panels).", out.width="100%"}
-AAAHol.fix.PI.noise.FH %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
-  #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  #geom_line(aes(y = ETS.unrec, colour = "ETS.unrec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
-  #geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+forecast.noise.FH %>%
+  filter(ForecastInterval == '24Step') %>%
+  ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = "ARIMA.rec")) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   geom_vline(xintercept = 12, linetype="dotted",
              color = "gray", size=1) +
-  # geom_text(mapping = aes(x = 13, label = 'h = 12', y = -110),
-  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
   geom_vline(xintercept = 24, linetype="dotted",
              color = "gray", size=1) +
-  # geom_text(mapping = aes(x = 25, label = 'h = 24', y = -110),
-  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
   geom_vline(xintercept = 36, linetype="dotted",
              color = "gray", size=1) +
-  # geom_text(mapping = aes(x = 37, label = 'h = 36', y = -110),
-  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
   geom_vline(xintercept = 48, linetype="dotted",
              color = "gray", size=1) +
-  # geom_text(mapping = aes(x = 49, label = '', y = -110),
-  #           angle = 90, hjust = 0, color = 'darkgray', size = 5) +
   xlab("Horizon") +
   ylab("Count") +
-  facet_wrap(. ~ Error, scales = "free_y", ncol = 2) +
+  facet_wrap(. ~ noise, scales = "free_y", ncol = 2) +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
                       values = c("black", "blue", "green",  "red")) +
+      scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   scale_x_discrete(limits = c(12,24,36,48), labels = c("12" = "h = 12", "24" = "h = 24"                                                     ,"36" = "h = 36","48" = "h = 48"))+
   theme_bw()
 ```
@@ -1143,9 +1598,9 @@ Figures \@ref(fig:TourismsimcomputationtimerollingnoiseFH) and \@ref(fig:Tourism
 com.time.noise.FH %>%
   filter(ForecastInterval == "rolling") %>%
   ggplot() +
-  geom_line(aes(x = ForecastHorizon, y = ComputationTime, color = Method)) +
-  scale_color_manual(name = "Series", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
-  #scale_linetype_manual(name = "Reconciled", values = c(rec = "dashed", unrec = "dotted")) +
+  geom_line(aes(x = ForecastHorizon, y = ComputationTime, color = Method, linetype = Method)) +
+  scale_color_manual(name = "Method", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
+  scale_linetype_manual( values = c(ETS = "solid", ARIMA = "dashed", OLS = "dotted")) +
   facet_wrap(. ~ Error, nrow = 2) +
   scale_x_continuous(breaks = c(12, 24, 36, 48)) +
   xlab("Horizon") +
@@ -1162,9 +1617,9 @@ com.time.noise.FH %>%
 com.time.noise.FH %>%
   filter(ForecastInterval == "fixed") %>%
   ggplot() +
-  geom_line(aes(x = ForecastHorizon, y = ComputationTime, color = Method)) +
-  scale_color_manual(name = "Series", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
-  #scale_linetype_manual(name = "Reconciled", values = c(rec = "dashed", unrec = "dotted")) +
+  geom_line(aes(x = ForecastHorizon, y = ComputationTime, color = Method, linetype = Method)) +
+  scale_color_manual(name = "Method", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
+    scale_linetype_manual( values = c(ETS = "solid", ARIMA = "dashed", OLS = "dotted")) +
   facet_wrap(. ~ Error, nrow = 2) +
   scale_x_continuous(breaks = c(12, 24, 36, 48)) +
   xlab("Horizon") +
@@ -1344,22 +1799,17 @@ In Figures \@ref(fig:TourismdatasimPIrollinglevelNS) and \@ref(fig:Tourismdatasi
 
 ```{r TourismdatasimPIrollinglevelNS, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="Comparing reconciled 'rolling origin' forecasts and prediction intervals for a sample bottom-level series, for different number of bottom-level series and hierarchy levels (different panels). Simulated series has error value 0.5 and 24 months test set.", out.width="100%"}
 
-AAAHol.rolling.PI.levels.NS$SL_f = factor(AAAHol.rolling.PI.levels.NS$SL, levels=c('304-8','608-10','1520-12', '3040-18'))
+forecast.NS.Level$SL_f = factor(forecast.NS.Level$cat, levels=c('304-8','608-10','1520-12', '3040-18'))
 
-AAAHol.rolling.PI.levels.NS %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
-  #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  #geom_line(aes(y = ETS.unrec, colour = "ETS.unrec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
-  #geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+forecast.NS.Level %>%
+  filter(ForecastInterval == "1Step") %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
@@ -1368,6 +1818,8 @@ AAAHol.rolling.PI.levels.NS %>%
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
                       values = c("black", "blue", "green",  "red")) +
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   theme_bw()
 ```
 
@@ -1375,22 +1827,18 @@ AAAHol.rolling.PI.levels.NS %>%
 
 ```{r TourismdatasimPIfixlevelNS, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="Comparing reconciled fixed origin forecasts and prediction intervals for a sample bottom-level series, for different number of bottom-level series and hierarchy levels (different panels). Simulated series has error value 0.5 and 24 months test set.", out.width="100%"}
 
-AAAHol.fix.PI.levels.NS$SL_f = factor(AAAHol.fix.PI.levels.NS$SL, levels=c('304-8','608-10','1520-12', '3040-18'))
 
-AAAHol.fix.PI.levels.NS %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-    geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  #geom_ribbon(aes(x = date, ymax =  ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "orange", colour = "orange", alpha = .3) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
-  #geom_ribbon(aes(x = date, ymax =  ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "darkgreen", colour = "darkgreen", alpha = .3) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  #geom_ribbon(aes(x = date, ymax =  OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .3) +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  #geom_line(aes(y = ARIMA.unrec, colour = "ARIMA.unrec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  #geom_line(aes(y = ETS.unrec, colour = "ETS.unrec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
-  #geom_line(aes(y = OLS.unrec, colour = "OLS.unrec")) +
+forecast.NS.Level$SL_f = factor(forecast.NS.Level$cat, levels=c('304-8','608-10','1520-12', '3040-18'))
+
+forecast.NS.Level %>%
+  filter(ForecastInterval == "24Step") %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+    geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
@@ -1399,6 +1847,8 @@ AAAHol.fix.PI.levels.NS %>%
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
                       values = c("black", "blue", "green",  "red")) +
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   theme_bw()
 ```
 
@@ -1408,9 +1858,9 @@ Finally, in Figures \@ref(fig:TourismsimcomputationtimerollinglevelNS) and \@ref
 com.time.level.NS %>%
   filter(ForecastInterval == "rolling") %>%
   ggplot() +
-  geom_line(aes(x = NS, y = ComputationTime, color = Method)) +
-  scale_color_manual(name = "Series", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
-  #scale_linetype_manual(name = "Reconciled", values = c(rec = "dashed", unrec = "dotted")) +
+  geom_line(aes(x = NS, y = ComputationTime, color = Method, linetype = Method)) +
+  scale_color_manual(name = "Method", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
+  scale_linetype_manual( values = c(ETS = "solid", ARIMA = "dashed", OLS = "dotted")) +
   facet_wrap(. ~ Level, nrow = 2) +
   scale_x_continuous(breaks = c(304, 608, 1520, 3040)) +
   xlab("Number of series") +
@@ -1428,9 +1878,9 @@ com.time.level.NS %>%
 com.time.level.NS %>%
   filter(ForecastInterval == "fixed") %>%
   ggplot() +
-  geom_line(aes(x = NS, y = ComputationTime, color = Method)) +
-  scale_color_manual(name = "Series", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
-  #scale_linetype_manual(name = "Reconciled", values = c(rec = "dashed", unrec = "dotted")) +
+  geom_line(aes(x = NS, y = ComputationTime, color = Method, linetype = Method)) +
+  scale_color_manual(name = "Method", values = c(ETS = "green", ARIMA = "blue", OLS = "red")) +
+  scale_linetype_manual( values = c(ETS = "solid", ARIMA = "dashed", OLS = "dotted")) +
   facet_wrap(. ~ Level, nrow = 2) +
   scale_x_continuous(breaks = c(304, 608, 1520, 3040)) +
   xlab("Number of series") +
@@ -1473,16 +1923,18 @@ Figures \@ref(fig:boxplotrollingtourismappendix) and \@ref(fig:boxplottourismapp
 
 ```{r boxplotrollingtourismappendix, fig.align="center", fig.cap="Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA, and OLS rolling origin forecasts for tourism demand data. Panels are different hierarchy levels.", out.width="88%"}
 ## 1-step-ahead
-error.tourism %>%
+error.tourism.scale <- error.tourism %>%
+  mutate(Series = rep(1:6660, each = 24))
+error.tourism.scale %>%
   filter(ForecastInterval == "1Step") %>%
   mutate(id = factor(paste(Method, Rec, sep = "."),
     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
   group_by(id, Series) %>%
-  mutate(value.scale = (Value - mean(Value)) / sd(Value)) %>%
+  mutate(error.scale = (error - mean(error)) / sd(error)) %>%
   ungroup() %>%
-  ggplot(aes(x = id, y = value.scale, fill = id)) +
+  ggplot(aes(x = id, y = error.scale, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") +
   ylab("Error") +
@@ -1509,16 +1961,16 @@ error.tourism %>%
 
 ```{r boxplottourismappendix, fig.align="center", fig.cap="Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA, and OLS fixed origin forecasts for tourism demand data. Panels are different hierarchy levels.", out.width="88%"}
 ## 24-step-ahead
-error.tourism %>%
+error.tourism.scale %>%
   filter(ForecastInterval == "24Step") %>%
   mutate(id = factor(paste(Method, Rec, sep = "."),
     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
   group_by(id, Series) %>%
-  mutate(value.scale = (Value - mean(Value)) / sd(Value)) %>%
+  mutate(error.scale = (error - mean(error)) / sd(error)) %>%
   ungroup() %>%
-  ggplot(aes(x = id, y = value.scale, fill = id)) +
+  ggplot(aes(x = id, y = error.scale, fill = id)) +
   geom_boxplot(alpha = 0.5) +
   xlab("Method") +
   ylab("Error") +
@@ -1586,13 +2038,13 @@ In Figure \@ref(fig:predintAAAVisrecunrec), we compare the prediction intervals 
 
 ```{r predintAAAVisrecunrec, fig.align="center", fig.cap="Comparing forecasts and prediction intervals of 'AAAVis' bottom-level series across methods. Left: rolling origin. Right: fixed origin.", out.width="100%", out.lenght="100%"}
 ### one series example series
-p1 <- AAAVis.Total.PI %>%
+p1 <- forecast.tourism.data  %>%
    filter(Series == "AAAVis", ForecastInterval == "1Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-   geom_ribbon(aes(x = date, ymax = ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "gray83", colour = "gray83", alpha = .2) +
-   geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightblue", colour = "lightblue", alpha = .2)  +
-   geom_line(aes(y = ETS.rec, colour = "ARIMA.unrec")) +
-   geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+   geom_ribbon(aes(x = date, ymax = ARIMA.upper.unrec, ymin = ARIMA.lower.unrec), fill = "gray83", colour = "gray83", alpha = .2, size = 0.5) +
+   geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightblue", colour = "lightblue", alpha = .2, size = 0.5)  +
+   geom_line(aes(y = ETS.rec, colour = "ARIMA.unrec", size = 'ARIMA.unrec')) +
+   geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
    geom_line() +
    xlab("Horizon") +
    ylab("Count") +
@@ -1600,16 +2052,18 @@ p1 <- AAAVis.Total.PI %>%
    scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.unrec", "ARIMA.rec"),
                       values = c("black", "gray",  "blue"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.unrec", 'ARIMA.rec'),
+        values = c( 0.8, 0.5,  0.5), guide = "none") +
    theme_bw() +
     theme(legend.position="none")
 
-p2 <- AAAVis.Total.PI %>%
+p2 <- forecast.tourism.data  %>%
    filter(Series == "AAAVis", ForecastInterval == "1Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-   geom_ribbon(aes(x = date, ymax = ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "gray83", colour = "gray83", alpha = .2) +
-   geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2)  +
-   geom_line(aes(y = ETS.rec, colour = "ETS.unrec")) +
-   geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+   geom_ribbon(aes(x = date, ymax = ETS.upper.unrec, ymin = ETS.lower.unrec), fill = "gray83", colour = "gray83", alpha = .2, size = 0.5) +
+   geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5)  +
+   geom_line(aes(y = ETS.rec, colour = "ETS.unrec", size = 'ETS.unrec')) +
+   geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
    geom_line() +
    xlab("Horizon") +
    ylab("Count") +
@@ -1617,16 +2071,18 @@ p2 <- AAAVis.Total.PI %>%
    scale_colour_manual("Method",
                       breaks = c("Actual", "ETS.unrec", 'ETS.rec'),
                       values = c("black", "gray",  "green"))+
+   scale_size_manual(breaks = c("Actual", "ETS.unrec", 'ETS.rec'),
+        values = c( 0.8, 0.5,  0.5), guide = "none") +
    theme_bw() +
     theme(legend.position="none")
 
-p3 <- AAAVis.Total.PI %>%
+p3 <- forecast.tourism.data %>%
    filter(Series == "AAAVis", ForecastInterval == "1Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-   geom_ribbon(aes(x = date, ymax = OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "gray83", colour = "gray83", alpha = .2) +
-   geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-   geom_line(aes(y = ETS.rec, colour = "OLS.unrec")) +
-   geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+   geom_ribbon(aes(x = date, ymax = OLS.upper.unrec, ymin = OLS.lower.unrec), fill = "gray83", colour = "gray83", alpha = .2, size = 0.5) +
+   geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+   geom_line(aes(y = ETS.rec, colour = "OLS.unrec", size = 'OLS.unrec')) +
+   geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
    geom_line() +
    xlab("Horizon") +
    ylab("Count") +
@@ -1634,16 +2090,18 @@ p3 <- AAAVis.Total.PI %>%
    scale_colour_manual("Method",
                       breaks = c("Actual", "OLS.unrec", 'OLS.rec'),
                       values = c("black", "gray",  "red"))+
+  scale_size_manual(breaks = c("Actual", "OLS.unrec", 'OLS.rec'),
+        values = c( 0.8, 0.5,  0.5), guide = "none") +
    theme_bw() +
     theme(legend.position="none")
 
-p4 <- AAAVis.Total.PI %>%
+p4 <- forecast.tourism.data %>%
    filter(Series == "AAAVis", ForecastInterval == "24Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-   geom_ribbon(aes(x = date, ymax = ARIMA.unrec.upper, ymin = ARIMA.unrec.lower), fill = "gray83", colour = "gray83", alpha = .2) +
-   geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightblue", colour = "lightblue", alpha = .2)  +
-   geom_line(aes(y = ETS.rec, colour = "ARIMA.unrec")) +
-   geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+   geom_ribbon(aes(x = date, ymax = ARIMA.upper.unrec, ymin = ARIMA.lower.unrec), fill = "gray83", colour = "gray83", alpha = .2, size = 0.5) +
+   geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightblue", colour = "lightblue", alpha = .2, size = 0.5)  +
+   geom_line(aes(y = ETS.rec, colour = "ARIMA.unrec", size = 'ARIMA.unrec')) +
+   geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
    geom_line() +
    xlab("Horizon") +
    ylab("Count") +
@@ -1651,15 +2109,17 @@ p4 <- AAAVis.Total.PI %>%
    scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.unrec", "ARIMA.rec"),
                       values = c("black", "gray",  "blue"))+
+scale_size_manual(breaks = c("Actual", "ARIMA.unrec", 'ARIMA.rec'),
+        values = c( 0.8, 0.5,  0.5), guide = "none") +
    theme_bw()
 
-p5 <- AAAVis.Total.PI %>%
+p5 <- forecast.tourism.data %>%
    filter(Series == "AAAVis", ForecastInterval == "24Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-   geom_ribbon(aes(x = date, ymax = ETS.unrec.upper, ymin = ETS.unrec.lower), fill = "gray83", colour = "gray83", alpha = .2) +
-   geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2)  +
-   geom_line(aes(y = ETS.rec, colour = "ETS.unrec")) +
-   geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+   geom_ribbon(aes(x = date, ymax = ETS.upper.unrec, ymin = ETS.lower.unrec), fill = "gray83", colour = "gray83", alpha = .2, size = 0.5) +
+   geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5)  +
+   geom_line(aes(y = ETS.rec, colour = "ETS.unrec", size = 'ETS.unrec')) +
+   geom_line(aes(y = ETS.rec, colour = "ETS.rec", size= 'ETS.rec')) +
    geom_line() +
    xlab("Horizon") +
    ylab("Count") +
@@ -1667,15 +2127,17 @@ p5 <- AAAVis.Total.PI %>%
    scale_colour_manual("Method",
                       breaks = c("Actual", "ETS.unrec", 'ETS.rec'),
                       values = c("black", "gray",  "green"))+
+  scale_size_manual(breaks = c("Actual", "ETS.unrec", 'ETS.rec'),
+        values = c( 0.8, 0.5,  0.5), guide = "none") +
    theme_bw()
 
-p6 <- AAAVis.Total.PI %>%
+p6 <- forecast.tourism.data %>%
    filter(Series == "AAAVis", ForecastInterval == "24Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-   geom_ribbon(aes(x = date, ymax = OLS.unrec.upper, ymin = OLS.unrec.lower), fill = "gray83", colour = "gray83", alpha = .2) +
-   geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-   geom_line(aes(y = ETS.rec, colour = "OLS.unrec")) +
-   geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+   geom_ribbon(aes(x = date, ymax = OLS.upper.unrec, ymin = OLS.lower.unrec), fill = "gray83", colour = "gray83", alpha = .2, size = 0.5) +
+   geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+   geom_line(aes(y = ETS.rec, colour = "OLS.unrec", size = 'OLS.unrec')) +
+   geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
    geom_line() +
    xlab("Horizon") +
    ylab("Count") +
@@ -1683,6 +2145,8 @@ p6 <- AAAVis.Total.PI %>%
    scale_colour_manual("Method",
                       breaks = c("Actual", "OLS.unrec", 'OLS.rec'),
                       values = c("black", "gray",  "red"))+
+   scale_size_manual(breaks = c("Actual", "OLS.unrec", 'OLS.rec'),
+        values = c( 0.8, 0.5,  0.5), guide = "none") +
    theme_bw()
 
 
@@ -1707,16 +2171,136 @@ knitr::include_graphics("Paper-Figures/Wiki_group_structure.jpg")
 ```
 
 ```{r Readwikipedia, results='hide'}
-error.wiki <- readr::read_csv("Paper-Figures/results_Wikipedia/error.wiki.csv") %>%
+fc.rolling.wiki.OLS <- readr::read_csv("Wikipedia_data/fc.rolling.wiki.OLS.csv") %>%
+  mutate(ForecastInterval = '1Step')
+fc.fix.wiki.OLS <- readr::read_csv("Wikipedia_data/fc.fix.wiki.OLS.csv") %>%
+  mutate(ForecastInterval = '28Step')
+
+fc.wiki.OLS <- bind_rows(fc.rolling.wiki.OLS, fc.fix.wiki.OLS)
+
+fc.wiki.OLS <- bind_rows(fc.wiki.OLS %>%
+                                   filter(Series == 'Total') %>%
+                                   mutate (Level = 'Total'),
+                         fc.wiki.OLS %>% filter(Series %in% c('Access/desktop','Access/mobilea', 
+                                                                              'Access/mobilea')) %>%
+                                   mutate (Level = 'Access'), 
+                         fc.wiki.OLS %>% filter(Series %in% c('Agent/sp','Agent/us')) %>%
+                                   mutate (Level = 'Agent'), 
+                         fc.wiki.OLS %>% filter(Series %in% c('Language/de','Language/es', 
+                                                                              'Language/en', 'Language/zh')) %>%
+                                   mutate (Level = 'Language'), 
+                         fc.wiki.OLS %>% filter(Series %in% c('Purpose/Blo', 'Purpose/Bus', 'Purpose/Gam',
+                                                                              'Purpose/Gen', 'Purpose/Lif', 'Purpose/Pho', 
+                                                                              'Purpose/Reu', 'Purpose/Tra', 'Purpose/Vid')) %>%
+                                   mutate (Level = 'Purpose'), 
+                         fc.wiki.OLS %>% filter(grepl('Access x Purpose/', Series)) %>%
+                                   mutate (Level = 'Access x Purpose'), 
+                         fc.wiki.OLS %>% filter(grepl('Agent x Purpose/', Series)) %>%
+                                   mutate (Level = 'Agent x Purpose'), 
+                         fc.wiki.OLS %>% filter(grepl('Language x Purpose/', Series)) %>%
+                                   mutate (Level = 'Language x Purpose'),
+                         fc.wiki.OLS %>% filter(grepl('Access x Agent/', Series)) %>%
+                                   mutate (Level = 'Access x Agent'),
+                         fc.wiki.OLS %>% filter(grepl('Access x Language/', Series)) %>%
+                                   mutate (Level = 'Access x Language'),
+                         fc.wiki.OLS %>% filter(grepl('Agent x Language/', Series)) %>%
+                                   mutate (Level = 'Agent x Language'),
+                         fc.wiki.OLS %>% filter( !grepl('Access', Series) & !grepl('Agent', Series) & 
+                                                                   !grepl('Language', Series) & !grepl('Purpose', Series) & 
+                                                                   !grepl('Total', Series)) %>%
+                                   mutate (Level = 'Bottom level'))
+
+error.wiki.OLS <-bind_rows( dplyr::select ( fc.wiki.OLS, error = error.rec, Level, ForecastInterval) %>% 
+                                         mutate(Rec = 'rec') %>%
+                                         mutate(Method = 'OLS') , dplyr::select ( fc.wiki.OLS, error = error.unrec, Level, ForecastInterval) %>% 
+                                         mutate(Rec = 'unrec') %>%
+                                         mutate(Method = 'OLS'))
+
+ets.arima.rolling.wiki <- readr::read_csv("Wikipedia_data/fc.rolling.wiki.ets.arima.csv") %>%
+  select(-new_index) %>%
+  mutate(ForecastInterval = '1Step')
+
+ets.arima.fix.wiki <- readr::read_csv("Wikipedia_data/fc.fix.wiki.ets.arima.csv") %>%
+  mutate(ForecastInterval = '28Step')
+
+ets.arima.wiki <- bind_rows(ets.arima.rolling.wiki, ets.arima.fix.wiki)
+
+ets.arima.wiki <- bind_rows( ets.arima.wiki %>%
+                                       filter(Access == '<aggregated>', Agent == '<aggregated>', Language == '<aggregated>', Purpose == '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Total'), 
+                             ets.arima.wiki %>%
+                                       filter(Access != '<aggregated>', Agent == '<aggregated>', Language == '<aggregated>', Purpose == '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Access'), 
+                             ets.arima.wiki %>%
+                                       filter(Access == '<aggregated>', Agent != '<aggregated>', Language == '<aggregated>', Purpose == '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Agent') ,
+                             ets.arima.wiki %>%
+                                       filter(Access == '<aggregated>', Agent == '<aggregated>', Language != '<aggregated>', Purpose == '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Language') ,
+                             ets.arima.wiki %>%
+                                       filter(Access == '<aggregated>', Agent == '<aggregated>', Language == '<aggregated>', Purpose != '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Purpose') ,
+                             ets.arima.wiki %>%
+                                       filter(Access != '<aggregated>', Agent != '<aggregated>', Language == '<aggregated>', Purpose == '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Access x Agent') ,
+                             ets.arima.wiki %>%
+                                       filter(Access != '<aggregated>', Agent == '<aggregated>', Language != '<aggregated>', Purpose == '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Access x Language') ,
+                             ets.arima.wiki %>%
+                                       filter(Access != '<aggregated>', Agent == '<aggregated>', Language == '<aggregated>', Purpose != '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Access x Purpose') ,
+                             ets.arima.wiki %>%
+                                       filter(Access == '<aggregated>', Agent != '<aggregated>', Language != '<aggregated>', Purpose == '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Agent x Language') ,
+                             ets.arima.wiki %>%
+                                       filter(Access == '<aggregated>', Agent != '<aggregated>', Language == '<aggregated>', Purpose != '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Agent x Purpose') ,
+                             ets.arima.wiki %>%
+                                       filter(Access == '<aggregated>', Agent == '<aggregated>', Language != '<aggregated>', Purpose != '<aggregated>'
+                                              , Article == '<aggregated>') %>%
+                                       mutate (Level = 'Language x Purpose') ,
+                             ets.arima.wiki %>%
+                                       filter(Access != '<aggregated>', Agent != '<aggregated>', Language != '<aggregated>', Purpose != '<aggregated>'
+                                              , Article != '<aggregated>') %>%
+                                       mutate (Level = 'Bottom level') )
+
+ets.arima.wiki <- bind_rows(ets.arima.wiki %>% 
+                                      filter(.model %in% c('arima', 'ets')) %>%
+                                      mutate(Rec = 'unrec'), 
+                                    ets.arima.wiki %>% 
+                                      filter(.model %in% c('arima_adjusted', 'ets_adjusted')) %>%
+                                      mutate(Rec = 'rec'))
+
+ets.arima.wiki <- bind_rows(ets.arima.wiki %>% 
+                                      filter(.model %in% c('arima', 'arima_adjusted')) %>%
+                                      mutate(Method = 'ARIMA'), 
+                            ets.arima.wiki %>% 
+                                      filter(.model %in% c('ets', 'ets_adjusted')) %>%
+                                      mutate(Method = 'ETS'))
+
+
+error.wiki <- bind_rows(
+  dplyr::select ( ets.arima.wiki, error , Level, Rec, Method, ForecastInterval), error.wiki.OLS) %>%
   filter(Level %in% c("Total", "Access", "Agent", "Language", "Purpose", "Bottom level")) %>%
   mutate(
-    facet = factor(Level, levels = c("Total", "Access", "Agent", "Language", "Purpose", "Bottom level"))
-  )
-# Read csv files for tourism results
-rmse2 <- error.wiki %>%
+    facet = factor(Level, levels = c("Total", "Access", "Agent", "Language", "Purpose", "Bottom level")))
+
+
+# Read csv files for wiki results
+rmse <- error.wiki %>%
   group_by(Rec, Method, facet, ForecastInterval) %>%
   summarise(
-    rmse = sqrt(mean(Value^2))
+    rmse = sqrt(mean(error^2))
   ) %>%
   spread(value = rmse, key = Method) %>%
   ungroup() %>%
@@ -1725,10 +2309,63 @@ rmse2 <- error.wiki %>%
     facet = str_replace(facet, "level([0-9])", "facet \\1")
   )
 
-forecast.wiki.data <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.csv")
-forecast.wiki.OLS <- readr::read_csv("Paper-Figures/results_Wikipedia/forecast.wiki.OLS.csv")
-forecast.wiki <-forecast.wiki.data %>%
-  select(-X1, -ARIMA.lower.rec, -ARIMA.upper.rec, -ARIMA.lower.unrec, -ARIMA.upper.unrec,
+# Read csv files for wiki results
+rmse <- error.wiki %>%
+  group_by(Rec, Method, facet, ForecastInterval) %>%
+  summarise(
+    rmse = sqrt(mean(error^2))
+  ) %>%
+  spread(value = rmse, key = Method) %>%
+  ungroup() %>%
+  select(Rec, ForecastInterval, facet, ETS, ARIMA, OLS) %>%
+  mutate(
+    facet = str_replace(facet, "level([0-9])", "facet \\1")
+  )
+
+
+
+## forecast results
+m <- c(746, 450, 420, 576, 596, 631, 611, 514, 411, 452, 582, 927, 1106, 1313, 926, 422, 442, 619, 630, 605, 585, 606, 414, 405, 623, 614, 644, 653) 
+forecast.wiki.OLS <- bind_rows(fc.wiki.OLS %>% filter(Series == 'Total'), fc.wiki.OLS %>% filter(Series == 'desktopusenPho') %>% filter(Actual%in% m))
+forecast.wiki.OLS <- forecast.wiki.OLS %>% select(-error.rec, -error.unrec, -Level) 
+
+arima.unrec <- bind_rows( ets.arima.wiki %>% filter(.model == 'arima' , Access == '<aggregated>', 
+                                                               Agent == '<aggregated>', Language == '<aggregated>', 
+                                                            Purpose == '<aggregated>', 
+                                                               Article == '<aggregated>') %>%
+                            select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`),
+                          ets.arima.wiki %>% filter(.model == 'arima' , Access == 'desktop', 
+                                                               Agent == 'us', Language == 'en', Purpose == 'Pho', Article == '21') %>%
+                            select(ARIMA.unrec = .mean, ARIMA.lower.unrec = `95%_lower`, ARIMA.upper.unrec = `95%_upper`))
+
+arima.rec <- bind_rows( ets.arima.wiki %>% filter(.model == 'arima_adjusted' , Access == '<aggregated>', 
+                                                          Agent == '<aggregated>', Language == '<aggregated>', Purpose == '<aggregated>',
+                                                          Article == '<aggregated>') %>%
+                          select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`),
+                        ets.arima.wiki %>% filter(.model == 'arima_adjusted' , Access == 'desktop', 
+                                                          Agent == 'us', Language == 'en', Purpose == 'Pho', Article == '21') %>%
+                          select(ARIMA.rec = .mean, ARIMA.lower.rec = `95%_lower`, ARIMA.upper.rec = `95%_upper`))
+
+ets.unrec <- bind_rows( ets.arima.wiki %>% filter(.model == 'ets' , Access == '<aggregated>', 
+                                                          Agent == '<aggregated>', Language == '<aggregated>', Purpose == '<aggregated>',
+                                                          Article == '<aggregated>') %>%
+                          select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`),
+                        ets.arima.wiki %>% filter(.model == 'ets' , Access == 'desktop', 
+                                                          Agent == 'us', Language == 'en', Purpose == 'Pho', Article == '21') %>%
+                          select(ETS.unrec = .mean, ETS.lower.unrec = `95%_lower`, ETS.upper.unrec = `95%_upper`))
+
+ets.rec <- bind_rows( ets.arima.wiki %>% filter(.model == 'ets_adjusted' , Access == '<aggregated>', 
+                                                        Agent == '<aggregated>', Language == '<aggregated>', Purpose == '<aggregated>',
+                                                        Article == '<aggregated>') %>%
+                        select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`),
+                      ets.arima.wiki %>% filter(.model == 'ets_adjusted' , Access == 'desktop', 
+                                                        Agent == 'us', Language == 'en', Purpose == 'Pho', Article == '21') %>%
+                        select(ETS.rec = .mean, ETS.lower.rec = `95%_lower`, ETS.upper.rec = `95%_upper`))
+forecast.wiki.data <- bind_cols (forecast.wiki.OLS, arima.unrec, arima.rec, ets.unrec, ets.rec)
+
+forecast.wiki <- forecast.wiki.data %>%
+  select(-OLS.lower.rec, -OLS.upper.rec, -OLS.lower.unrec, -OLS.upper.unrec,
+         -ARIMA.lower.rec, -ARIMA.upper.rec, -ARIMA.lower.unrec, -ARIMA.upper.unrec,
          -ETS.lower.rec, -ETS.upper.rec, -ETS.lower.unrec, -ETS.upper.unrec) %>%
   gather(-Series, -ForecastInterval, -date, key = "Method", value = "Count") %>%
   mutate(
@@ -1738,19 +2375,6 @@ forecast.wiki <-forecast.wiki.data %>%
     Model = if_else(Model == "A", "Actual", Model)
   )
 
-forecast.wiki.OLS <- forecast.wiki.OLS %>%
-  select(-X1, -OLS.lower.rec, -OLS.upper.rec, -OLS.lower.unrec, -OLS.upper.unrec) %>%
-  gather(-Series, -ForecastInterval, -date, key = "Method", value = "Count") %>%
-  mutate(
-    Rec = str_extract(Method, "[a-z]*$"),
-    Rec = if_else(Rec == "ctual", "Actual", Rec),
-    Model = str_extract(Method, "^[A-Z]*"),
-    Model = if_else(Model == "A", "Actual", Model)
-  )
-
-forecast.wiki <- rbind(forecast.wiki, forecast.wiki.OLS)
-
-total.desktopusenPho.PI <- readr::read_csv("Paper-Figures/results_Wikipedia/desktopusenPho.PI.csv")
 ```
 
 ```{r wikipediagroupingstructure, echo=FALSE, message = FALSE, results='asis'}
@@ -1812,13 +2436,13 @@ Tables \@ref(tab:wikipediadataresulrolling) and \@ref(tab:wikipediadataresultRMS
 
 ```{r wikipediadataresulrolling, results='asis', dependson="Readwikipedia"}
 bind_cols(
-  filter(rmse2, ForecastInterval == "1Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
-  filter(rmse2, ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
+  filter(rmse, ForecastInterval == "1Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
+  filter(rmse, ForecastInterval == "1Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
     booktabs = TRUE,
     format = "latex",
-    digits = 1,
+    digits = 0,
     linesep = "",
     caption = "Mean RMSE for ETS, ARIMA and OLS with and without reconciliation - Rolling origin - Wikipedia dataset",
     col.names = c("Level", rep(c("ETS", "ARIMA", "OLS"), 2))
@@ -1829,13 +2453,13 @@ bind_cols(
 
 ```{r wikipediadataresultRMSE, results='asis', dependson="Readwikipedia"}
 bind_cols(
-  filter(rmse2, ForecastInterval == "28Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
-  filter(rmse2, ForecastInterval == "28Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
+  filter(rmse, ForecastInterval == "28Step", Rec == "unrec") %>% select(-Rec, -ForecastInterval),
+  filter(rmse, ForecastInterval == "28Step", Rec == "rec") %>% select(-Rec, -ForecastInterval, -facet)
 ) %>%
   kable(
     booktabs = TRUE,
     format = "latex",
-    digits = 1,
+    digits = 0,
     linesep = "",
     caption = "Mean RMSE for ETS, ARIMA and OLS with and without reconciliation - Fixed origin - Wikipedia dataset",
     col.names = c("Level", rep(c("ETS", "ARIMA", "OLS"), 2))
@@ -1852,7 +2476,7 @@ error.wiki %>%
     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
-  ggplot(aes(x = id, y = Value, fill = id)) +
+  ggplot(aes(x = id, y = error, fill = id)) +
   stat_summary(fun.data = boxplot.stat, geom = "boxplot", alpha = 0.5) +
   # geom_boxplot(alpha = 0.5) +
   xlab("Method") +
@@ -1886,7 +2510,7 @@ error.wiki %>%
     levels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec"),
     labels = c("ETS.rec", "ETS.unrec", "ARIMA.rec", "ARIMA.unrec", "OLS.rec", "OLS.unrec")
   )) %>%
-  ggplot(aes(x = id, y = Value, fill = id)) +
+  ggplot(aes(x = id, y = error, fill = id)) +
   stat_summary(fun.data = boxplot.stat, geom = "boxplot", alpha = 0.5) +
   # geom_boxplot(alpha = 0.5) +
   xlab("Method") +
@@ -1921,13 +2545,14 @@ ylim <- forecast.wiki %>%
 h1 <- forecast.wiki %>%
   filter(Series == "Total", ForecastInterval == "1Step") %>%
   # rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec, size = Model)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Rolling origin 1-step forecasts") +
   scale_linetype_manual(name = "Reconciled", values = c(Actual = "solid", rec = "dashed", unrec = "dotted")) +
+    scale_size_manual(values = c(Actual = 0.8, ETS = 0.5, ARIMA = 0.5, OLS = 0.5), guide = "none") +
   scale_color_manual(
     name = "Series",
     values = c(
@@ -1944,13 +2569,14 @@ h1 <- forecast.wiki %>%
 h2 <- forecast.wiki %>%
   filter(Series == "Total", ForecastInterval == "28Step") %>%
   # rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec, size = Model)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_linetype_manual(name = "Reconciled", values = c(Actual = "solid", rec = "dashed", unrec = "dotted")) +
+    scale_size_manual(values = c(Actual = 0.8, ETS = 0.5, ARIMA = 0.5, OLS = 0.5), guide = "none") +
   scale_color_manual(
     name = "Series",
     values = c(
@@ -1967,22 +2593,23 @@ h2 <- forecast.wiki %>%
 h1 / h2
 ```
 
-```{r forecstrolling28wiki, fig.align="center", fig.cap="Comparing reconciled and unreconciled ETS, ARIMA and OLS rolling and fixed origin forecasts for Wikipedia pageviews 'desktopusenPho04' bottom-level series", out.width="100%"}
+```{r forecstrolling28wiki, fig.align="center", fig.cap="Comparing reconciled and unreconciled ETS, ARIMA and OLS rolling and fixed origin forecasts for Wikipedia pageviews 'desktopusenPho21' bottom-level series", out.width="100%"}
 ### one of the bottom level series
 ylim <- forecast.wiki %>%
-  filter(Series == "desktopusenPho123") %>%
+  filter(Series == "desktopusenPho") %>%
   pull(Count) %>%
   range()
 f1 <- forecast.wiki %>%
-  filter(Series == "desktopusenPho123", ForecastInterval == "1Step") %>%
+  filter(Series == "desktopusenPho", ForecastInterval == "1Step") %>%
   # rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec, size = Model)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle(" Rolling origin 1-step forecasts") +
   scale_linetype_manual(name = "Reconciled", values = c(Actual = "solid", rec = "dashed", unrec = "dotted")) +
+    scale_size_manual(values = c(Actual = 0.8, ETS = 0.5, ARIMA = 0.5, OLS = 0.5), guide = "none") +
   scale_color_manual(
     name = "Series",
     values = c(
@@ -1998,15 +2625,16 @@ f1 <- forecast.wiki %>%
   guides(linetype = FALSE)
 
 f2 <- forecast.wiki %>%
-  filter(Series == "desktopusenPho123", ForecastInterval == "28Step") %>%
+  filter(Series == "desktopusenPho", ForecastInterval == "28Step") %>%
   # rename(Reconciled = Rec) %>%
-  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec)) +
+  ggplot(aes(x = date, y = Count, colour = Model, linetype = Rec, size = Model)) +
   geom_line() +
   ylim(ylim) +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_linetype_manual(name = "Reconciled", values = c(Actual = "solid", rec = "dashed", unrec = "dotted")) +
+      scale_size_manual(values = c(Actual = 0.8, ETS = 0.5, ARIMA = 0.5, OLS = 0.5), guide = "none") +
   scale_color_manual(
     name = "Series",
     values = c(
@@ -2026,83 +2654,91 @@ f1 / f2
 
 ```{r predinttotalwiki, fig.align="center", fig.cap="The actual test set for the 'Total series' compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin Wikipedia pageviews.", out.width="100%"}
 ### total series
-p1 <- total.desktopusenPho.PI %>%
+p1 <- forecast.wiki.data %>%
    filter(Series == "Total", ForecastInterval == "1Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, size = 0.5) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Rolling origin 1-step forecasts") +
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
-                      values = c("black", "blue", "green",  "red"))+
+                      values = c("black", "blue", "green" , "red"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   theme_bw()+
     theme(legend.position="none")
 
-p2 <- total.desktopusenPho.PI %>%
+p2 <- forecast.wiki.data %>%
    filter(Series == "Total", ForecastInterval == "28Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  #geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  #geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_colour_manual("Method",
-                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
-                      values = c("black", "blue", "green",  "red"))+
+                      breaks = c("Actual", "ARIMA.rec",   "OLS.rec"),
+                      values = c("black", "blue",  "red"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5), guide = "none") +
   theme_bw()
 
 p1 / p2
 ```
 
-```{r predintdesktopus, fig.align="center", fig.cap="The actual test set for the 'desktopusenPho04' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.", out.width="100%"}
+```{r predintdesktopus, fig.align="center", fig.cap="The actual test set for the 'desktopusenPho21' bottom level series compared to the forecasts from reconciled and unreconciled OLS methods with prediction interval for rolling and fixed origin  Wikipedia pageviews.", out.width="100%"}
 ## one series example series
-p1 <- total.desktopusenPho.PI %>%
-   filter(Series == "desktopusenPho123", ForecastInterval == "1Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+p1 <- forecast.wiki.data %>%
+   filter(Series == "desktopusenPho", Actual %in% m , ForecastInterval == "1Step") %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  geom_ribbon(aes(x = date, ymax = ETS.upper.rec, ymin = ETS.lower.rec), fill = "lightgreen", colour = "lightgreen", alpha = .2, szie= 0.5) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  geom_line(aes(y = ETS.rec, colour = "ETS.rec", size = 'ETS.rec')) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Rolling origin 1-step forecasts") +
   scale_colour_manual("Method",
                       breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
-                      values = c("black", "blue", "green",  "red"))+
+                      values = c("black", "blue", "green" ,"red"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5,  0.5), guide = "none") +
   theme_bw()+
     theme(legend.position="none")
 
-p2 <- total.desktopusenPho.PI%>%
-   filter(Series == "desktopusenPho123", ForecastInterval == "28Step") %>%
-   ggplot(aes(x = date, y = Actual, colour = "Actual")) +
-  geom_ribbon(aes(x = date, ymax = ARIMA.rec.upper, ymin = ARIMA.rec.lower), fill = "lightskyblue", colour = "lightskyblue", alpha = .2) +
-  geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
- geom_ribbon(aes(x = date, ymax = OLS.rec.upper, ymin = OLS.rec.lower), fill = "pink", colour = "pink", alpha = .2)  +
-  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec")) +
-  geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
-  geom_line(aes(y = OLS.rec, colour = "OLS.rec")) +
+p2 <- forecast.wiki.data %>%
+   filter(Series == "desktopusenPho", Actual %in% m, ForecastInterval == "28Step") %>%
+   ggplot(aes(x = date, y = Actual, colour = "Actual", size = 'Actual')) +
+  geom_ribbon(aes(x = date, ymax = ARIMA.upper.rec, ymin = ARIMA.lower.rec), fill = "lightskyblue", colour = "lightskyblue", alpha = .2, size = 0.5) +
+  #geom_ribbon(aes(x = date, ymax = ETS.rec.upper, ymin = ETS.rec.lower), fill = "lightgreen", colour = "lightgreen", alpha = .2) +
+ geom_ribbon(aes(x = date, ymax = OLS.upper.rec, ymin = OLS.lower.rec), fill = "pink", colour = "pink", alpha = .2, size = 0.5)  +
+  geom_line(aes(y = ARIMA.rec, colour = "ARIMA.rec", size = 'ARIMA.rec')) +
+  #geom_line(aes(y = ETS.rec, colour = "ETS.rec")) +
+  geom_line(aes(y = OLS.rec, colour = "OLS.rec", size = 'OLS.rec')) +
   geom_line() +
   xlab("Horizon") +
   ylab("Count") +
   ggtitle("Fixed origin multi-step forecasts") +
   scale_colour_manual("Method",
-                      breaks = c("Actual", "ARIMA.rec",  "ETS.rec", "OLS.rec"),
-                      values = c("black", "blue", "green",  "red"))+
+                      breaks = c("Actual", "ARIMA.rec",  "OLS.rec"),
+                      values = c("black", "blue",  "red"))+
+   scale_size_manual(breaks = c("Actual", "ARIMA.rec", "OLS.rec"),
+        values = c( 0.8, 0.5,  0.5), guide = "none") +
   theme_bw()
 
 p1 / p2
@@ -2111,7 +2747,7 @@ p1 / p2
 
 Figures \@ref(fig:boxplotrollingwiki) and \@ref(fig:boxplotwiki) display the forecast error box plot. These plots are for rolling and fixed origin forecasts over 28 days in each level of grouping. We see that the error distribution is similar in all levels across the different methods. The only exception is the Total series, where ETS performs significantly better than ARIMA and OLS. We also note that the reconciliation is less effective. As in the tourism example, in higher levels series have higher counts and therefore their error magnitudes are larger.
 
-In Figures \@ref(fig:forecstrolling28wikitotal) and \@ref(fig:forecstrolling28wiki), we display results for the total and one of the bottom level series, "desktopusenPho04" (desktop-user-english-photo sharing). The plot shows rolling and fixed origin forecast results over the 28 day test set for ETS, ARIMA and OLS, with (dashed lines) and without (dotted lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts.
+In Figures \@ref(fig:forecstrolling28wikitotal) and \@ref(fig:forecstrolling28wiki), we display results for the total and one of the bottom level series, "desktopusenPho21" (desktop-user-english-photo sharing). The plot shows rolling and fixed origin forecast results over the 28 day test set for ETS, ARIMA and OLS, with (dashed lines) and without (dotted lines) applying reconciliation. We see that the OLS forecasting model performs close to the other two methods, and reconciliation improves the forecasts. In Figures \@ref(fig:predinttotalwiki) and \@ref(fig:predintdesktopus), we present the reconciled prediction intervals for the total and "desktopusenPho21" series. In the fixed origin results, the ETS prediction intervals were much wider and hence have been omitted to allow for easier visualization of the results.
 
 Table \@ref(tab:wikipediadatacomputationtime) presents the computation times for all three methods. ETS and ARIMA are clearly much more computationally heavy compared with OLS. As in the Australian tourism dataset, running reconciliation does not have much effect on computation time.
 

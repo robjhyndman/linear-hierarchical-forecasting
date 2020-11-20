@@ -1,7 +1,9 @@
 *_cache
 *_files
 
-Paper-Figures/results_Tourism/Simulation
+Australia_data/sim/levelNS/
+Australia_data/sim/noiseFH/
+Extra-files/
 
 *.Ruserdata
 
@@ -16,8 +18,9 @@ Paper-Figures/results_Tourism/Simulation
 *.log
 
 # History files
-*.Rhistory
-*.Rapp.history
+**.Rhistory
+**.Rapp.history
+**.RDataTmp
 
 # Session Data files
 *.RData
@@ -54,3 +57,25 @@ rsconnect/
 .Rproj.user
 
 hcf\.log
+
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# User-specific files
+.Ruserdata
+
+# Example code in package build process
+*-Ex.R
+
+# Output files from R CMD build
+/*.tar.gz
+
+# Output files from R CMD check
+/*.Rcheck/
+
+# RStudio files
+.Rproj.user/

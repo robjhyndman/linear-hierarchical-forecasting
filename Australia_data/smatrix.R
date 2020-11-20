@@ -38,16 +38,6 @@ Mlevel <- function(xgroup) {
   return(m)
 }
 
-# A function to get the inverse of row sums of S matrix
-InvS4g <- function(xgroup) {
-  mlevel <- Mlevel(xgroup)
-  len <- length(mlevel)
-  repcount <- mlevel[len]/mlevel
-  inv.s <- 1/unlist(mapply(rep, repcount, mlevel, SIMPLIFY = FALSE))
-  return(inv.s)
-}
-
-
 GmatrixH <- function(xlist) {
   l.xlist <- length(xlist)
   num.bts <- sum(xlist[[l.xlist]])
@@ -72,14 +62,3 @@ GmatrixH <- function(xlist) {
   return(gmat)
 }
 
-InvS4h <- function(xlist) {
-  gmat <- GmatrixH(xlist)
-  uniq <- apply(gmat, 1, unique)
-  len <- nrow(gmat)
-  inv.s <- vector(length = len, mode = "list")
-  for (i in 1L:len) {
-    inv.s[[i]] <- sapply(uniq[[i]], function(x) length(gmat[i, gmat[i, ] == x]))
-  }
-  inv.s <- 1/unlist(inv.s)
-  return(inv.s)
-}
