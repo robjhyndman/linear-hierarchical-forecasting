@@ -96,7 +96,7 @@ In the optimal combination method, reconciled forecasts can be computed using th
 \end{equation}
 where $\hat{\bm{y}}_{t+h}$ represents a vector of $h$-step-ahead base forecasts for all levels of the hierarchy, and $\bm{W}_{h}$ is the covariance matrix of forecast errors for the $h$-step-ahead base forecasts.
 
-Several possible methods for estimating $\bm{W}_{h}$ are available. @mint2018 discuss a simple "structural scaling" approximation whereby $\bm{W}_{h} = k_{h} \bm{\Lambda}$ with $k_{h}$ being a positive constant, $\bm{\Lambda} = \text{diag}(\bm{S}\bm{1})$, and $\bm{1}$ being a unit vector of dimension $M$ (the number of bottom level series). Note that $\bm{\Lambda}$ simply contains the row sums of the summing matrix $\bm{S}$, and that $k_{h}$ will cancel out in \@ref(eq:mint).^[For simplicity of exposition, we used the structural scaling (wls_struct) summing matrix for reconciliation in all the results. In Appendix B, we compare two alternatives: Tables \@ref(tab:Tourismdatadifrecrolling) and \@ref(tab:Tourismdatadifrecfix) in [Appendix B](#appendixB) display the results for estimates of $\bm{W}_h$ using a shrinkage estimator (`mint_shrink`) and variance scaling (`wls_var`) for the Australian tourism example.] Thus
+Several possible methods for estimating $\bm{W}_{h}$ are available. @mint2018 discuss a simple "structural scaling" approximation whereby $\bm{W}_{h} = k_{h} \bm{\Lambda}$ with $k_{h}$ being a positive constant, $\bm{\Lambda} = \text{diag}(\bm{S}\bm{1})$, and $\bm{1}$ being a unit vector of dimension $M$ (the number of bottom level series). Note that $\bm{\Lambda}$ simply contains the row sums of the summing matrix $\bm{S}$, and that $k_{h}$ will cancel out in \@ref(eq:mint).^[For simplicity of exposition, we used the structural scaling (wls_struct) summing matrix for reconciliation in all the results. In [Appendix A](#appendixA), we compare two alternatives: Tables \@ref(tab:Tourismdatadifrecrolling) and \@ref(tab:Tourismdatadifrecfix) display the results for estimates of $\bm{W}_h$ using a shrinkage estimator (`mint_shrink`) and variance scaling (`wls_var`) for the Australian tourism example.] Thus
 \begin{equation}\label{eq:mint2}
   \tilde{\bm{y}}_{t+h}=\bm{S}(\bm{S}'\bm{\Lambda}^{-1}\bm{S})^{-1}\bm{S}'\bm{\Lambda}^{-1}\hat{\bm{y}}_{t+h}.
 \end{equation}
@@ -322,7 +322,7 @@ where $\sigma^2$ is the variance of the base model residuals. Assuming normally 
 
 # Applications
 
-In this section we illustrate our approach using a real data set and a simulated dataset^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 3.6.1. All the displayed computation times are only for the reconciled point forecasts.]. The real data study includes forecasting monthly Australian domestic tourism. This dataset contains 304 series with both hierarchical and grouped structure with strong seasonality. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. In [Appendix B](#appendixB) , we use another real dataset involving daily Wikipedia pageviews. In all these cases, we compare the forecasting accuracy of ETS, ARIMA^[ For running ETS and ARIMA, we applied `ETS` and `ARIMA` functions from the `fable` package [@o2019fable]. The two sets of functions were run independently and not immediately one after the other.] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
+In this section we illustrate our approach using a real dataset and a simulated dataset^[All methods were run on a Linux server with Intel Xeon Silver 4108 (1.80GHz / 8-Cores / 11MB Cache)*2 and 8GB DDR4 2666 DIMM ECC Registered Memory. R version 3.6.1. All the displayed computation times are only for the reconciled point forecasts.]. The real data study includes forecasting monthly Australian domestic tourism. This dataset contains 304 series with both hierarchical and grouped structure with strong seasonality. In the simulation studies, we simulate series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series. In [Appendix B](#appendixB) , we use another real dataset involving daily Wikipedia pageviews. In all these cases, we compare the forecasting accuracy of ETS, ARIMA^[ For running ETS and ARIMA, we applied `ETS` and `ARIMA` functions from the `fable` package [@o2019fable]. The two sets of functions were run independently and not immediately one after the other.] and the proposed linear OLS forecasting model, with and without the reconciliation step. In these applications, we used the weighted reconciliation approach from Equation \@ref(eq:mint2). For comparing these methods, we use the average of Root Mean Square Errors (RMSEs) across all series and also display box plots for forecast errors along with the raw forecast errors. To aid visibility, we suppress plotting the outliers.
 
 <!--The two real datasets differ in terms of structure, size and behavior.The tourism data contains 304 series with both hierarchical and grouped structure, while the Wikipedia pageviews dataset contains 913 series with grouped structure. The tourism dataset has strong seasonality while the Wikipedia data are noiser.-->
 
@@ -1774,7 +1774,7 @@ rmse.sim.level.NS.rolling %>%
     booktabs = TRUE,
     linesep = "",
     digits = c(0, 0, 0, 1, 1, 1),
-    caption = "Mean RMSE by number of hierarchy levels, number of bottom-level series, method, with/without reconciliation. Based on rolling origin  forecasts for a 24-month horizon, with error value 0.5.",
+    caption = "Mean RMSE by number of hierarchy levels, number of bottom-level series, method, with/without reconciliation. Simulated series has error value 0.5. Forecasting uses rolling origin for a 24-month horizon.",
     col.names = c("Reconciliation", "Series", "Levels", "ETS", "ARIMA", "OLS")
   ) %>%
   kable_styling(position = "center", latex_options = "hold_position")
@@ -1797,7 +1797,7 @@ rmse.sim.level.NS.fix %>%
 
 In Figures \@ref(fig:TourismdatasimPIrollinglevelNS) and \@ref(fig:TourismdatasimPIfixlevelNS), we compare the reconciled ETS, ARIMA, and OLS forecasts and prediction intervals for one of the bottom level series. From these figures we see that all three approaches have similar prediction intervals.
 
-```{r TourismdatasimPIrollinglevelNS, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="Comparing reconciled 'rolling origin' forecasts and prediction intervals for a sample bottom-level series, for different number of bottom-level series and hierarchy levels (different panels). Simulated series has error value 0.5 and 24 months test set.", out.width="100%"}
+```{r TourismdatasimPIrollinglevelNS, results='asis', dependson="Readsimtouris", fig.align="center", fig.cap="Comparing reconciled rolling origin forecasts and prediction intervals for a sample bottom-level series, for different number of bottom-level series and hierarchy levels (different panels). Simulated series has error value 0.5 and 24 months test set.", out.width="100%"}
 
 forecast.NS.Level$SL_f = factor(forecast.NS.Level$cat, levels=c('304-8','608-10','1520-12', '3040-18'))
 
@@ -2308,20 +2308,6 @@ rmse <- error.wiki %>%
   mutate(
     facet = str_replace(facet, "level([0-9])", "facet \\1")
   )
-
-# Read csv files for wiki results
-rmse <- error.wiki %>%
-  group_by(Rec, Method, facet, ForecastInterval) %>%
-  summarise(
-    rmse = sqrt(mean(error^2))
-  ) %>%
-  spread(value = rmse, key = Method) %>%
-  ungroup() %>%
-  select(Rec, ForecastInterval, facet, ETS, ARIMA, OLS) %>%
-  mutate(
-    facet = str_replace(facet, "level([0-9])", "facet \\1")
-  )
-
 
 
 ## forecast results
