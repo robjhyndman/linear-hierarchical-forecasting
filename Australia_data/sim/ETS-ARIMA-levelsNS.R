@@ -106,9 +106,15 @@ new_data <- actual.05gts %>%
   dplyr::filter(Date <= yearmonth ("2014 Dec")) %>%
   rename(actual = value)
 
+## computation time
+start_time <- Sys.time()
 fc.ets <- actual.05gts %>%
   filter(Date <= yearmonth ("2012 Dec"))%>%
-  model(ets = ETS(value)) %>%
+  model(ets = ETS(value)) 
+end_time <- Sys.time()
+end_time - start_time
+
+fc.ets <- fc.ets %>%
   reconcile(ets_adjusted = min_trace(ets, method="wls_struct"))%>%
   forecast(h = "2 years")
 
@@ -120,9 +126,15 @@ fc.ets <- fc.ets.error %>%
   hilo(level=95) %>% 
   unpack_hilo("95%")
 
+## computation time
+start_time <- Sys.time()
 fc.arima <- actual.05gts %>%
   filter(Date <= yearmonth ("2012 Dec"))%>%
-  model(arima = ARIMA(value)) %>%
+  model(arima = ARIMA(value)) 
+end_time <- Sys.time()
+end_time - start_time
+
+fc.arima <- fc.arima %>%
   reconcile(arima_adjusted = min_trace(arima, method="wls_struct"))%>%
   forecast(h = "2 years")
 
@@ -165,8 +177,12 @@ new_data <- actual.05gts %>%
   arrange(`Date`) %>%
   mutate(new_index = dense_rank(Date))
 
+## computation time
+start_time <- Sys.time()
 fc.ets <- gts.rolling %>%
   model(ets = ETS(value))
+end_time <- Sys.time()
+end_time - start_time
 
 m <- c(1:24)
 fc.ets.rec <- data.frame(a=c(), b=c())
@@ -205,8 +221,12 @@ new_data <- actual.05gts %>%
   arrange(`Date`) %>%
   mutate(new_index = dense_rank(Date))
 
+## computation time
+start_time <- Sys.time()
 fc.arima <- gts.rolling %>%
   model(arima = ARIMA(value))
+end_time <- Sys.time()
+end_time - start_time
 
 m <- c(1:24)
 fc.arima.rec <- data.frame(a=c(), b=c())

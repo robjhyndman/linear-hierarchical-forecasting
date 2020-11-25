@@ -84,9 +84,15 @@ new_data <- wikigts %>%
   dplyr::filter(date > ymd("2017-06-01")) %>%
   rename(actual = views)
 #ETS
+## computation time
+start_time <- Sys.time()
 fc.ets <- wikigts %>%
   filter(date <= ymd("2017-06-01")) %>%
-  model(ets = ETS(views ))%>%
+  model(ets = ETS(views ))
+end_time <- Sys.time()
+end_time - start_time
+
+fc.ets <- fc.ets %>%
   reconcile(ets_adjusted = min_trace(ets, method="wls_struct"))%>%
   forecast(h = "28 days") 
 
@@ -99,9 +105,15 @@ fc.ets <- fc.ets.error %>%
   unpack_hilo("95%")
 
 #ARIMA
+## computation time
+start_time <- Sys.time()
 fc.arima <- wikigts %>%
   filter(date <= ymd("2017-06-01")) %>%
-  model(arima = ARIMA(views ))%>%
+  model(arima = ARIMA(views ))
+end_time <- Sys.time()
+end_time - start_time
+
+fc.arima <- fc.arima %>%
   reconcile(arima_adjusted = min_trace(arima, method="wls_struct"))%>%
   forecast(h = "28 days") 
 
@@ -133,8 +145,12 @@ new_data <- wikigts %>%
   mutate(new_index = dense_rank(date))
 
 # ETS
+## computation time
+start_time <- Sys.time()
 fc.ets <- gts.rolling2 %>%
   model(ets = ETS(views))
+end_time <- Sys.time()
+end_time - start_time
 
 m <- c(1:28)
 fc.ets.rec <- data.frame(a=c(), b=c())
@@ -161,8 +177,12 @@ for(i in m){
 
 
 # ARIMA
+## computation time
+start_time <- Sys.time()
 fc.arima <- gts.rolling2 %>%
   model(arima = ARIMA(views))
+end_time <- Sys.time()
+end_time - start_time
 
 m <- c(1:28)
 fc.arima.rec <- data.frame(a=c(), b=c())

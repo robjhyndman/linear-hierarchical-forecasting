@@ -109,7 +109,8 @@ dimnames(fc) <- list(
   Series = colnames(ally),
   Method = c("OLS", "OLS.lwr", "OLS.upr", "OLS.se", "OLS.residual.scale")
 )
-
+## computation time
+start_time <- Sys.time()
 for(i in seq(NCOL(ally)))
 {
   fit.OLS <-  OLSmodel(ally[,i],12,12,24, nolag = c(1,12))
@@ -119,6 +120,8 @@ for(i in seq(NCOL(ally)))
   fc[, i,"OLS.se"] <- fit.OLS[[4]]
   fc[, i,"OLS.residual.scale"] <- fit.OLS[[5]]
 }
+end_time <- Sys.time()
+end_time - start_time
 
 fc.OLS.05 <- as.data.frame(fc[,,"OLS"])
 fc.OLS.lwr.05 <- as.data.frame(fc[,,"OLS.lwr"])

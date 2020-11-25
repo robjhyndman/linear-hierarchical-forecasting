@@ -46,9 +46,15 @@ new_data <- actual.05gts %>%
 ## Change h based on the desired forecast horizon (1 year(12 months), 2 years(24 months), 3 years (36 months) and 4 years(48 months))
 
 # ETS
+## computation time
+start_time <- Sys.time()
 fc.ets <- actual.05gts %>%
   filter(Date <= yearmonth ("2012 Dec")) %>%
-  model(ets = ETS(value ))%>%
+  model(ets = ETS(value ))
+end_time <- Sys.time()
+end_time - start_time
+
+fc.ets <- fc.ets %>%
   reconcile(ets_adjusted = min_trace(ets, method="wls_struct"))%>%
   forecast(h = "4 years") 
 
@@ -62,9 +68,15 @@ fc.ets <- fc.ets.error %>%
 
 
 # ARIMA
+## computation time
+start_time <- Sys.time()
 fc.arima <- actual.05gts %>%
   filter(Date <= yearmonth ("2012 Dec")) %>%
-  model(arima = ARIMA(value ))%>%
+  model(arima = ARIMA(value ))
+end_time <- Sys.time()
+end_time - start_time
+
+fc.arima <- fc.arima %>%
   reconcile(arima_adjusted = min_trace(arima, method="wls_struct"))%>%
   forecast(h = "4 years") 
 
@@ -193,8 +205,12 @@ new_data <- actual.05gts %>%
   mutate(new_index = dense_rank(Date))
 
 # ETS
+## computation time
+start_time <- Sys.time()
 fc.ets <- gts.rolling %>%
   model(ets = ETS(value))
+end_time <- Sys.time()
+end_time - start_time
 ## set k based on the desired forecast horizon (12, 24, 36, 48)
 k = 48
 m <- c(1:k)
@@ -221,8 +237,12 @@ for(i in m){
 }
 
 # ARIMA
+## computation time
+start_time <- Sys.time()
 fc.arima <- gts.rolling %>%
   model(arima = ARIMA(value))
+end_time <- Sys.time()
+end_time - start_time
 ## set k based on the desired forecast horizon (12, 24, 36, 48)
 k = 48
 m <- c(1:k)

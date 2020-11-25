@@ -111,7 +111,8 @@ dimnames(fc) <- list(
   Method = c("OLS", "OLS.lwr", "OLS.upr", "OLS.se", "OLS.residual.scale")
 )
 
-# Create forecasts for all methods
+## computation time
+start_time <- Sys.time()
 for(i in seq(NCOL(ally)))
 {
   fit.OLS <- olsfc(ally[,i], h = h, maxlag = 12, nolag = c(1,12))
@@ -121,6 +122,8 @@ for(i in seq(NCOL(ally)))
   fc[, i,"OLS.se"] <- fit.OLS[[4]]
   fc[, i,"OLS.residual.scale"] <- fit.OLS[[5]]
 }
+end_time <- Sys.time()
+end_time - start_time
 
 fc.OLS.3040.10 <- as.data.frame(fc[,,"OLS"])
 fc.OLS.lwr.3040.10 <- as.data.frame(fc[,,"OLS.lwr"])
