@@ -5,7 +5,7 @@ The repository for manuscript entitled **Fast forecast reconciliation using line
 
 #### Datasets
 
-- Austeralian domestic tourism dataset:  contains 304 series with both hierarchical and grouped structure with strong seasonality.
+- Australian domestic tourism dataset:  contains 304 series with both hierarchical and grouped structure with strong seasonality.
 - Australian domestic tourism (simulated): simulated series based on the monthly Australian domestic tourism data and systematically modify the forecasting horizon, noise level, hierarchy levels, and number of series.
 - Wikipedia pageviews: includes 12 months of daily data (2016-06-01 to 2017-06-29) on Wikipedia pageviews for the most popular social networks articles.
 
