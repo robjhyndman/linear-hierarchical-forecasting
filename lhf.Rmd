@@ -973,7 +973,7 @@ p2 <- forecast.tourism %>%
 p1 / p2
 ```
 
-Next, we expand the comparison to include prediction intervals. We display the prediction intervals for the} total series (Figure \@ref(fig:predinttotal)) and for the bottom-level series 'AAAVis' (Sydney - Visiting) (Figure \@ref(fig:predintAAAVis)) reconciled forecasts. We again see that OLS is similar to the two other methods^[In [Appendix A.3](#appendixA.3), displays the comparison between the reconciled and unreconciled prediction intervals.].
+Next, we expand the comparison to include prediction intervals. We display the prediction intervals (based on reconciled forecasts) for the total series (Figure \@ref(fig:predinttotal)) and for the bottom-level series `AAAVis' (Sydney - Visiting) (Figure \@ref(fig:predintAAAVis)).We again see that OLS is similar to the two other methods^[We compare the reconciled and unreconciled prediction intervals in [Appendix A.3](#appendixA.3).].
 
 ```{r predinttotal, fig.align="center", fig.cap="Comparing ETS, ARIMA and OLS reconciled forecasts and prediction intervals for `Total' series. (Top: rolling origin, Bottom: fixed origin).", out.width="100%"}
 ### total series
@@ -2037,7 +2037,7 @@ The datasets and R codes used in this paper are publicly available  at \url{gith
 
 ## Different reconciliation matrices
 
-Tables \@ref(tab:Tourismdatadifrecrolling) and \@ref(tab:Tourismdatadifrecfix) display the reconciliation results using two other reconciliation matrices introduced in [@mint2018]: shrinkage estimator (\texttt{mint\_shrink}) and variance scaling (\texttt{wls\_var}). These results are presented for both rolling origin (Table \@ref[tab:Tourismdatadifrecrolling]) and fixed origin forecasts (Table \@ref(tab:Tourismdatadifrecfix)). We see that in this case the shrinkage estimator provides the best reconciled forecasts.
+We present reconciliation results using two other reconciliation matrices introduced in [@mint2018]: shrinkage estimator (\texttt{mint\_shrink}) and variance scaling (\texttt{wls\_var}). These results are presented for both rolling origin (Table \@ref(tab:Tourismdatadifrecrolling)) and fixed origin forecasts (Table \@ref(tab:Tourismdatadifrecfix)). We see that in this case the shrinkage estimator provides the best reconciled forecasts.
 
 ```{r Tourismdatadifrecrolling, results='asis', dependson="Readtourism"}
 bind_cols(
@@ -2078,7 +2078,7 @@ bind_cols(
 
 ## Scaled forecast errors boxplots
 
-Figures \@ref(fig:boxplotrollingtourismappendix) and \@ref(fig:boxplottourismappendix) display boxplots of the scaled forecast errors for the tourism example. These plots are displayed for both rolling forward and multiple-step-ahead forecasts, respectively. We see that scaled error magnitudes are similar at different hierarchy/grouping levels.
+For further comparison of the forecast errors for the tourism example across different aggregation levels, we plot the \emph{scaled errors} for rolling forward forecasts (Figures \@ref(fig:boxplotrollingtourismappendix)) and fixed origin forecasts (Figure \@ref(fig:boxplottourismappendix)). Scaled errors are computed by subtracting the mean and dividing by the standard deviation. We see that the scaled error magnitudes are similar at different hierarchy/grouping levels.
 
 ```{r boxplotrollingtourismappendix, fig.align="center", fig.cap="Box plots of scaled forecast errors from reconciled and unreconciled ETS, ARIMA, and OLS rolling origin forecasts for tourism demand data. Panels are different hierarchy levels.", out.width="88%"}
 ## 1-step-ahead
